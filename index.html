@@ -82,6 +82,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .lock input[type=password]{width:100%;min-height:52px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);border-radius:10px;font:inherit;padding:12px;margin:16px 0 10px;text-align:center}
 .lock label.rm{display:flex;align-items:center;justify-content:center;gap:10px;min-height:44px;color:var(--mu)}
 .lock label.rm input{width:22px;height:22px}
+.cnt3{display:grid!important;grid-template-columns:repeat(3,1fr);gap:2px 8px}
+.cnt3 button{min-width:0}
+.cnt3 .lbl{min-height:18px;font-size:12px;line-height:18px;color:var(--ac);font-weight:650;text-align:center}
 .sw3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .sw3 button{min-height:52px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);border-radius:10px;font:inherit;font-size:14px;padding:0 6px;line-height:1.15}
 .sw3 .half{display:grid;grid-template-columns:1fr 1fr;gap:4px}
@@ -131,16 +134,21 @@ inst:{title:"Installazione",blocks:function(s){
  ["Sito e punto di installazione verificati","Adesivi presenti (codice assistenza e contatti azienda)","Dotazione verificata (cavi, chiavi, manuali)","Pre-configurazione di magazzino verificata","Matricole comunicate al Magazzino","DDT ricevuto","Cliente contattato: punto di installazione predisposto (prese elettriche adeguate, rete attiva e presente)"].forEach(function(t,k){b.push(C("p"+k,t))});
  var cr=C("car","Carrettino trasporto Glory");cr.memo=1;b.splice(b.length-7,0,cr);
  if(s.bo==="Sì")["Licenza SNG Cloud creata correttamente","Cliente contattato per informazioni su SNG Cloud e postazioni"].forEach(function(t,k){b.push(C("b"+k,t))});
- for(i=1;i<=n;i++){var m=s["m"+i],p=PX[m]||"",k="d"+i+"_";
-  b.push(H("Dispositivo "+i+(m?" · "+m:"")),T("a"+i,"RBW"+p+"- (banconote)","Numero di matricola"),T("c"+i,"RCW"+p+"- (monete)","Numero di matricola"),T("mt"+i,"Matricola impianto","Numero"),
-  H3("Installazione"),C(k+"1","Posizionamento e fissaggio"),C(k+"2","Cablaggio e alimentazione dispositivo"));
-  if(s.mon!=="No")b.push(C(k+"3","Cablaggio e alimentazione monitor"));
-  b.push(C(k+"4","Avvio e verifica accensione"),H3("Configurazione"),C(k+"5","Indirizzo IP impostato"),C(k+"6","Collegato alla rete del cliente"),C(k+"7","Interconnessione con il gestionale verificata"));
-  if(s.bo==="Sì"||(s.app&&s.sng!=="Android"))b.push(C(k+"11","App SNG Cloud installata"));
-  b.push(C(k+"12","Cartella assistenza Glory trasferita"),C(k+"13","Cash Tools installato"),
-  H3("Collaudo"));
-  if(m==="CI-5")b.push(C(k+"s8","Dip switch 8 verificato"),C(k+"sd","Verificati diverter"),C(k+"sv","Verificato sensore valigetta"));
-  b.push(C(k+"8","Test di deposito e prelievo"),C(k+"9","Test trasferimento e azzeramento livelli valigetta"),C(k+"10","Sensori e sportelli verificati"))}
+ function DL(i){var m=s["m"+i];return "Dispositivo "+i+(m?" · "+m:"")}
+ if(n){
+  b.push(H("Matricole"));
+  for(i=1;i<=n;i++){var p=PX[s["m"+i]]||"";b.push(H3(DL(i)),T("a"+i,"RBW"+p+"- (banconote)","Numero di matricola"),T("c"+i,"RCW"+p+"- (monete)","Numero di matricola"),T("mt"+i,"Matricola impianto","Numero"))}
+  b.push(H("Installazione hardware"));
+  for(i=1;i<=n;i++){var k="d"+i+"_";b.push(H3(DL(i)),C(k+"1","Posizionamento e fissaggio"),C(k+"2","Cablaggio e alimentazione dispositivo"));if(s.mon!=="No")b.push(C(k+"3","Cablaggio e alimentazione monitor"));b.push(C(k+"4","Avvio e verifica accensione"))}
+  b.push(H("Configurazione"));
+  for(i=1;i<=n;i++){var k="d"+i+"_";b.push(H3(DL(i)),C(k+"5","Indirizzo IP impostato"),C(k+"6","Collegato alla rete del cliente"),C(k+"7","Interconnessione con il gestionale verificata"))}
+  b.push(H3(n>1?"Per tutti i dispositivi":"Software"));
+  if(s.bo==="Sì"||(s.app&&s.sng!=="Android"))b.push(C("g11","App SNG Cloud installata"));
+  b.push(C("g12","Cartella assistenza Glory trasferita"),C("g13","Cash Tools installato"));
+  b.push(H("Collaudo"));
+  for(i=1;i<=n;i++){var k="d"+i+"_";b.push(H3(DL(i)));if(s["m"+i]==="CI-5")b.push(C(k+"s8","Dip switch 8 verificato"),C(k+"sd","Verificati diverter"),C(k+"sv","Verificato sensore valigetta"));
+   b.push(C(k+"8","Test di deposito e prelievo"),C(k+"9","Test trasferimento e azzeramento livelli valigetta"),C(k+"10","Sensori e sportelli verificati"))}
+ }
  b.push(H("Tutti i dispositivi"),C("adx","Adesivi di assistenza posizionati"),C("mtx","Matricola impianto applicata"));
  if(s.bo==="Sì")b.push(H("SNG Cloud"),C("bi","Software installato"),C("bc","Software configurato"),C("bs","Cliente istruito sul software"));
  b.push(H("Consegna"),C("f1","Eseguita formazione sul corretto utilizzo del dispositivo"),C("f2","Imballi puliti e ritirati"),C("f3","Chiavi e staffe di fissaggio consegnate"),T("ric","Chiavi consegnate a","Nome"),{t:"sx"},C("f4","Firma del cliente sul rapporto"),NT(),{t:"n"});
@@ -233,10 +241,11 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=41,svEl=null;
+var VER=42,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
-function load(v){var s=null;try{s=JSON.parse(lsGet("gla_"+v))}catch(e){}if(!s||typeof s!=="object"||Array.isArray(s))s={};if(!s.tec){var tc=lsGet("gla_tec");if(tc)s.tec=tc}return s}
+function load(v){var s=null;try{s=JSON.parse(lsGet("gla_"+v))}catch(e){}if(!s||typeof s!=="object"||Array.isArray(s))s={};if(v==="inst")migInst(s);if(!s.tec){var tc=lsGet("gla_tec");if(tc)s.tec=tc}return s}
+function migInst(s){["11","12","13"].forEach(function(x){var re=new RegExp("^d\\d+_"+x+"$");if(s["g"+x]==null&&Object.keys(s).some(function(k){return re.test(k)&&s[k]}))s["g"+x]=1})}
 function save(){if(view)lsSet("gla_"+view,JSON.stringify(S))}
 
 /* ---------- testi per il rapportino ---------- */
@@ -320,7 +329,7 @@ function notes(s){var sn=s.sng==="Android"?"SNG 3":s.sng==="Windows"?"SNG Suite"
 function noteText(){return view==="inst"?notes(S):view==="rip"?ripText(S):view==="loc"?locText(S):altroText(S)}
 
 /* ---------- controllo prima di copiare ---------- */
-function check(bl){var bad=[],warn=[],s=S,i,n,sec="";
+function check(bl){var bad=[],warn=[],s=S,i,n,sec="",sub="";
  function has(k){return !!String(s[k]||"").trim()}
  function need(k,t){if(!has(k))bad.push(t)}
  function want(k,t){if(!has(k))warn.push(t)}
@@ -343,7 +352,7 @@ function check(bl){var bad=[],warn=[],s=S,i,n,sec="";
  else if(view==="prep"){if(s.m&&(s.m!=="CI-5"||prepMode(s)==="Completa")&&s.mon!=="Sì"&&!has("chp"))warn.push("Dove sono state messe le chiavi (monitor assente)");if(prepMode(s)==="Downgrade CI-5"){var sn={},dk,dv0;for(dk=1;dk<=(+s.dn||1);dk++){dv0=mnorm(s[mrk(dk)]);if(!dv0)continue;if(sn[dv0])warn.push("Matricola duplicata: "+s[mrk(dk)]+" (dispositivi "+sn[dv0]+" e "+dk+")");else sn[dv0]=dk}}}
   else{need("ti","Titolo dell'attività");need("de","Descrizione dell'intervento");
   if(s.rf)want("rc","Codice "+s.rf);else warn.push("Riferimento CV o RMA");want("es","Esito");want("ore","Ore di manodopera")}
- bl.forEach(function(x){if(x.t==="h")sec=x.x;else if(x.t==="c"&&!x.memo&&!x.opt&&!s[x.id]&&!/^(r\d_|d_)(ok|nr|agc|agb)$/.test(x.id))warn.push("Non spuntata: "+x.x+(x.dv?" · dispositivo "+x.dv:"")+(sec?" ("+sec+")":""))});
+ bl.forEach(function(x){if(x.t==="h"){sec=x.x;sub=""}else if(x.t==="h3")sub=x.x;else if(x.t==="c"&&!x.memo&&!x.opt&&!s[x.id]&&!/^(r\d_|d_)(ok|nr|agc|agb)$/.test(x.id))warn.push("Non spuntata: "+x.x+(x.dv?" · dispositivo "+x.dv:"")+(sec?" ("+sec+(sub?" · "+sub:"")+")":""))});
  return {bad:bad,warn:warn}}
 function cpy(t,ok,ko){var f=function(){var a=document.createElement("textarea"),r=false;a.value=t;a.style.position="fixed";a.style.opacity="0";document.body.append(a);a.select();try{r=document.execCommand("copy")}catch(e){}a.remove();if(r)ok();else if(ko)ko()};
  try{navigator.clipboard.writeText(t).then(ok,f)}catch(e){f()}}
@@ -731,7 +740,9 @@ function render(){
   else if(x.t==="h3")app.append(el("h3",0,x.x));
   else if(x.t==="cnt"){var fc=el("div","fld"),sc=el("div","seg"),cc={},q;for(q=1;q<=devN(S);q++)cc[S["m"+q]]=(cc[S["m"+q]]||0)+1;
    fc.append(el("label",0,"Dispositivi: tocca un modello per aggiungerne uno"));
-   ["CI-5","CI-10","CI-10X"].forEach(function(o){var bc=btn(cc[o]?"on":"",o+(cc[o]?" · "+cc[o]:""),function(){addDev(o)});bc.setAttribute("aria-label","Aggiungi un "+o+(cc[o]?" (ora "+cc[o]+")":""));sc.append(bc)});
+   sc.className="seg cnt3";var MD=["CI-5","CI-10","CI-10X"];
+   MD.forEach(function(o){sc.append(el("div","lbl",cc[o]>1?"Dispositivi "+cc[o]:""))});
+   MD.forEach(function(o){var bc=btn(cc[o]?"on":"",o,function(){addDev(o)});bc.setAttribute("aria-label","Aggiungi un "+o+(cc[o]?" (ora "+cc[o]+")":""));sc.append(bc)});
    fc.append(sc);app.append(fc)}
   else if(x.t==="sw"){var fw=el("div","fld"),rw3=el("div","sw3"),hf=el("div","half");fw.append(el("label",0,"Software"));
    var bo=btn(S.bo==="Sì"?"on":"","SNG Cloud",function(){S.bo=S.bo==="Sì"?0:"Sì";save();render()});bo.setAttribute("aria-pressed",S.bo==="Sì"?"true":"false");
