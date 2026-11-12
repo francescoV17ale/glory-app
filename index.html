@@ -121,23 +121,23 @@ function TEC(){return T("tec","Tecnico","Nome del tecnico che esegue l'intervent
 var PX={"CI-5":"50","CI-10":"100","CI-10X":"200"};
 var V={
 inst:{title:"Installazione",blocks:function(s){
- var n=+s.n||1,b=[TEC(),T("cv","CV","Codice contratto"),RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),T("se","Sede","Sede"),H("Contratto"),G("bo","SNG Cloud incluso",["Sì","No"]),G("mon","Monitor presente",["Sì","No"])]),i;
+ var n=+s.n||1,b=[TEC(),T("cv","CV","Codice contratto"),RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),T("se","Sede","Sede"),H("Contratto"),G("bo","Back office incluso",["Sì","No"]),G("mon","Monitor presente",["Sì","No"])]),i;
  for(i=1;i<=n;i++){b.push(G("m"+i,"Modello dispositivo "+i,["CI-5","CI-10","CI-10X"]))}
  b.push({t:"add"},{t:"del"},H("Prima di iniziare"));
  ["Sito e punto di installazione verificati","Adesivi presenti (codice assistenza e contatti azienda)","Dotazione verificata (cavi, chiavi, manuali)","Pre-configurazione di magazzino verificata","Matricole comunicate al Magazzino","DDT ricevuto","Cliente contattato: punto di installazione predisposto (prese elettriche adeguate, rete attiva e presente)"].forEach(function(t,k){b.push(C("p"+k,t))});
  var cr=C("car","Carrettino trasporto Glory");cr.memo=1;b.splice(b.length-7,0,cr);
  b.push(G("sng","Sistema del gestionale del cliente",["Windows","Android"]));
- if(s.bo==="Sì")["Licenza SNG Cloud creata correttamente","Cliente contattato per informazioni su SNG Cloud e postazioni"].forEach(function(t,k){b.push(C("b"+k,t))});
+ if(s.bo==="Sì")["Licenza back office creata correttamente","Cliente contattato per informazioni sul back office e postazioni"].forEach(function(t,k){b.push(C("b"+k,t))});
  for(i=1;i<=n;i++){var m=s["m"+i],p=PX[m]||"",k="d"+i+"_";
   b.push(H("Dispositivo "+i+(m?" · "+m:"")),T("a"+i,"RBW"+p+"- (banconote)","Numero di matricola"),T("c"+i,"RCW"+p+"- (monete)","Numero di matricola"),T("mt"+i,"Matricolina dispositivo","Numero"),
   H3("Installazione"),C(k+"1","Posizionamento e fissaggio"),C(k+"2","Cablaggio e alimentazione dispositivo"));
   if(s.mon!=="No")b.push(C(k+"3","Cablaggio e alimentazione monitor"));
-  b.push(C(k+"4","Avvio e verifica accensione"),H3("Configurazione"),C(k+"5","Indirizzo IP impostato"),C(k+"6","Collegato alla rete del cliente"),C(k+"7","Interconnessione con il gestionale verificata"),C(k+"11","App cloud SNG installata"),C(k+"12","Cartella assistenza Glory trasferita"),C(k+"13","Cash Tools installato"),
+  b.push(C(k+"4","Avvio e verifica accensione"),H3("Configurazione"),C(k+"5","Indirizzo IP impostato"),C(k+"6","Collegato alla rete del cliente"),C(k+"7","Interconnessione con il gestionale verificata"),C(k+"11","App SNG Cloud installata"),C(k+"12","Cartella assistenza Glory trasferita"),C(k+"13","Cash Tools installato"),
   H3("Collaudo"));
-  if(m==="CI-5")b.push(C(k+"s8","Deep switch 8 verificato"),C(k+"sd","Verificati diverter"),C(k+"sv","Verificato sensore valigetta"));
+  if(m==="CI-5")b.push(C(k+"s8","Dip switch 8 verificato"),C(k+"sd","Verificati diverter"),C(k+"sv","Verificato sensore valigetta"));
   b.push(C(k+"8","Test di deposito e prelievo"),C(k+"9","Test trasferimento e azzeramento livelli valigetta"),C(k+"10","Sensori e sportelli verificati"))}
  b.push(H("Tutti i dispositivi"),C("adx","Adesivi di assistenza posizionati"),C("mtx","Matricolina applicata"));
- if(s.bo==="Sì")b.push(H("SNG Cloud"),C("bi","Software installato"),C("bc","Software configurato"),C("bs","Cliente istruito sul software"));
+ if(s.bo==="Sì")b.push(H("Back office"),C("bi","Software installato"),C("bc","Software configurato"),C("bs","Cliente istruito sul software"));
  b.push(H("Consegna"),C("f1","Eseguita formazione sul corretto utilizzo del dispositivo"),C("f2","Imballi puliti e ritirati"),C("f3","Chiavi e staffe di fissaggio consegnate"),T("ric","Chiavi consegnate a","Nome"),{t:"sx"},C("f4","Firma del cliente sul rapporto"),NT(),{t:"n"});
  return b}},
 prep:{title:"Preparazione macchine",blocks:function(s){
@@ -157,10 +157,10 @@ prep:{title:"Preparazione macchine",blocks:function(s){
  if(full){b.push(H(k++ +" · Hardware"));
   if(c5){
    b.push(H3("Modulo banconote"),C("nasB","Rimossi i nastri di protezione"),C("dvB","Eseguito settaggio dei diverter"),C("svB","Verificato sensore valigetta"),C("azB","Eseguito azzeramento valigetta"),C("adB","Adesivo BANCONOTE"));
-   b.push(H3("Modulo monete"),C("nas","Rimossi i nastri di protezione"),C("ds8","Deep switch 8 impostato"),C("adM","Adesivo MONETE"))}
+   b.push(H3("Modulo monete"),C("nas","Rimossi i nastri di protezione"),C("ds8","Dip switch 8 impostato"),C("adM","Adesivo MONETE"))}
   else{[["b","banconote"],["m","monete"]].forEach(function(p){var k2=p[0],n=p[1];
    b.push(H3("Modulo "+n),C("bas"+k2,"Basamento collegato"),C("nas"+k2,"Rimossi i nastri di protezione"),G("val"+k2,"Valigetta "+n,["Standard","Motorizzata"]),C("cab"+k2,"Eseguito cablaggio: alimentazione e USB"),C("ad"+k2,"Adesivo "+n.toUpperCase()))});
-   b.push(G("fw","Firmware modulo monete versione 47",["Sì","No"]));if(s.fw==="Sì")b.push(C("ds4","Deep switch 4 impostato"))}}
+   b.push(G("fw","Firmware modulo monete versione 47",["Sì","No"]));if(s.fw==="Sì")b.push(C("ds4","Dip switch 4 impostato"))}}
  if(c5&&pm==="Downgrade CI-5"){var nd=+s.dn||1,dd,c1;
   for(dd=1;dd<=nd;dd++){t1=T(mrk(dd),(nd>1?"Dispositivo "+dd+" · matricola ":"Matricola modulo monete ")+"RCW50-","Numero di matricola");t1.opt=1;b.push(t1);
    c1=C(dgk(dd),"Eseguito downgrade FCC");c1.dv=dd;b.push(c1);c1=C(bkk(dd),"Caricato backup di configurazione base");c1.dv=dd;b.push(c1);c1=C(tsk(dd),"Eseguito test di configurazione");c1.dv=dd;b.push(c1)}
@@ -228,7 +228,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=38,svEl=null;
+var VER=39,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function load(v){var s=null;try{s=JSON.parse(lsGet("gla_"+v))}catch(e){}if(!s||typeof s!=="object"||Array.isArray(s))s={};if(!s.tec){var tc=lsGet("gla_tec");if(tc)s.tec=tc}return s}
@@ -685,7 +685,7 @@ function updApply(){updMsg="Aggiornamento in corso…";home();var p=[];
  Promise.all(p).then(function(){location.reload()},function(){location.reload()})}
 
 /* ---------- menù ---------- */
-var DESC={inst:"Checklist CI-5, CI-10, CI-10X e note rapportino",prep:"CI-5, CI-10 e CI-10X in magazzino",rip:"Moduli CI-5, CI-10X, CI-10 con RMA",loc:"Guasto, controlli e aggiornamenti dal cliente",altro:"Attività extra con CV o RMA"};
+var DESC={inst:"Dal contratto alla consegna al cliente",prep:"Configurazione e imballo in magazzino",rip:"Diagnosi, ricambi e collaudo dei moduli",loc:"Guasti, aggiornamenti e collaudo dal cliente",altro:"Lavori fuori dalle schede standard"};
 function home(){
  view="";ttl.textContent="Attività tecniche";back.hidden=true;app.textContent="";noteTa=null;
  if(NEWV)app.append(btn("reset ac tight","È disponibile un aggiornamento: tocca per aggiornare",updApply));
