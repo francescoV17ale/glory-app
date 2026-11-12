@@ -137,7 +137,7 @@ inst:{title:"Installazione",blocks:function(s){
  function DL(i){var m=s["m"+i];return "Dispositivo "+i+(m?" · "+m:"")}
  if(n){
   b.push(H("Matricole"));
-  for(i=1;i<=n;i++){var p=PX[s["m"+i]]||"";b.push(H3(DL(i)),T("a"+i,"RBW"+p+"- (banconote)","Numero di matricola"),T("c"+i,"RCW"+p+"- (monete)","Numero di matricola"),T("mt"+i,"Matricola impianto","Numero"))}
+  for(i=1;i<=n;i++){var p=PX[s["m"+i]]||"";b.push(H3(DL(i)),T("a"+i,"RBW"+p+"- (banconote)","Numero di matricola"),T("c"+i,"RCW"+p+"- (monete)","Numero di matricola"),T("mt"+i,"Codice impianto","Numero"))}
   b.push(H("Installazione hardware"));
   for(i=1;i<=n;i++){var k="d"+i+"_";b.push(H3(DL(i)),C(k+"1","Posizionamento e fissaggio"),C(k+"2","Cablaggio e alimentazione dispositivo"));if(s.mon!=="No")b.push(C(k+"3","Cablaggio e alimentazione monitor"));b.push(C(k+"4","Avvio e verifica accensione"))}
   b.push(H("Configurazione"));
@@ -149,7 +149,7 @@ inst:{title:"Installazione",blocks:function(s){
   for(i=1;i<=n;i++){var k="d"+i+"_";b.push(H3(DL(i)));if(s["m"+i]==="CI-5")b.push(C(k+"s8","Dip switch 8 verificato"),C(k+"sd","Verificati diverter"),C(k+"sv","Verificato sensore valigetta"));
    b.push(C(k+"8","Test di deposito e prelievo"),C(k+"9","Test trasferimento e azzeramento livelli valigetta"),C(k+"10","Sensori e sportelli verificati"))}
  }
- b.push(H("Tutti i dispositivi"),C("adx","Adesivi di assistenza posizionati"),C("mtx","Matricola impianto applicata"));
+ b.push(H("Tutti i dispositivi"),C("adx","Adesivi di assistenza posizionati"),C("mtx","Codice impianto applicato"));
  if(s.bo==="Sì")b.push(H("SNG Cloud"),C("bi","Software installato"),C("bc","Software configurato"),C("bs","Cliente istruito sul software"));
  b.push(H("Consegna"),C("f1","Eseguita formazione sul corretto utilizzo del dispositivo"),C("f2","Imballi puliti e ritirati"),C("f3","Chiavi e staffe di fissaggio consegnate"),T("ric","Chiavi consegnate a","Nome"),{t:"sx"},C("f4","Firma del cliente sul rapporto"),NT(),{t:"n"});
  return b}},
@@ -164,7 +164,7 @@ prep:{title:"Preparazione macchine",blocks:function(s){
   if(!pm)return b;
   if(pm==="Completa"){t1=T("mtM","Matricola modulo monete RCW50-","Numero di matricola");t1.opt=1;b.push(t1);
    t1=T("mtB","Matricola modulo banconote RBW50-","Numero di matricola");t1.opt=1;b.push(t1);
-   t1=T("mtD","Matricola impianto","Numero matricola impianto");t1.opt=1;b.push(t1);
+   t1=T("mtD","Codice impianto","Codice impianto");t1.opt=1;b.push(t1);
    b.push(G("mon","Monitor presente nel contratto",["Sì","No"]))}
   }
  if(full){b.push(H(k++ +" · Hardware"));
@@ -207,7 +207,7 @@ rip:{title:"Riparazioni in laboratorio",blocks:function(s){
 loc:{title:"Interventi in loco",blocks:function(s){
  var U=locUnits(s),i,fl=C("fl","Contratto full: aggiornamenti inclusi");fl.memo=1;
  var b=[TEC(),T("rf","Riferimento intervento","Codice chiamata o ticket"),RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),T("se","Sede","Sede"),fl,{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},
-  G("sc","Intervento su",["Modulo banconote","Modulo monete","Entrambi i moduli","Dispositivo / altro"]),G("md","Modello dispositivo",["CI-5","CI-10","CI-10X"]),T("mt","Matricola impianto","Facoltativo"),
+  G("sc","Intervento su",["Modulo banconote","Modulo monete","Entrambi i moduli","Dispositivo / altro"]),G("md","Modello dispositivo",["CI-5","CI-10","CI-10X"]),T("mt","Codice impianto","Facoltativo"),
   H("Controlli effettuati"),C("ct1","Alimentazione e cavi verificati"),C("ct2","Collegamento di rete verificato"),C("ct3","Sportelli e sensori verificati")]);
  if(s.sc==="Dispositivo / altro"){var si=0;b.forEach(function(x,k){if(x.id==="sc")si=k});b.splice(si+1,0,T("sp","Specifica","Es. monitor, stampante, PC"))}
  if(U.length)b.push(H("Guasto e intervento"));
@@ -241,7 +241,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=42,svEl=null;
+var VER=43,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function load(v){var s=null;try{s=JSON.parse(lsGet("gla_"+v))}catch(e){}if(!s||typeof s!=="object"||Array.isArray(s))s={};if(v==="inst")migInst(s);if(!s.tec){var tc=lsGet("gla_tec");if(tc)s.tec=tc}return s}
@@ -288,7 +288,7 @@ function locText(s){var U=locUnits(s),o=[],ag=[],i,j,m=U.length>1;
  U.forEach(function(u,k){var p=u.p,pz=[];
   for(j=1;j<=(+s[p+"np"]||0);j++)if(s[p+"pz"+j])pz.push(s[p+"pz"+j]);
   if(k)o.push("");
-  o.push(u.m?"Modulo "+u.n+(s.md?" "+s.md:"")+" "+u.full+".":(String(s.sp||"").trim()?"Intervento su "+String(s.sp).trim():"Dispositivo"+(s.md?" "+s.md:""))+(s.mt?" (matricola impianto "+s.mt+")":"")+".");
+  o.push(u.m?"Modulo "+u.n+(s.md?" "+s.md:"")+" "+u.full+".":(String(s.sp||"").trim()?"Intervento su "+String(s.sp).trim():"Dispositivo"+(s.md?" "+s.md:""))+(s.mt?" (codice impianto "+s.mt+")":"")+".");
   if(s[p+"er"])o.push("Codice errore: "+String(s[p+"er"]).trim()+".");
   if(s[p+"pb"])o.push("Problematica riscontrata: "+String(s[p+"pb"]).trim());
   if(s[p+"pr"])o.push("Interventi eseguiti: "+String(s[p+"pr"]).trim());
@@ -316,7 +316,7 @@ function altroText(s){var o=[(s.tp||"Attività")+(s.ti?": "+s.ti:"")+"."],d=[s.m
 function notes(s){var sn=s.sng==="Android"?"SNG 3":s.sng==="Windows"?"SNG Suite":"…",n=devN(s),o=[],l=[],big=0,ic=0,ts=1,i,pl=n>1;
  for(i=1;i<=n;i++){var m=s["m"+i]||"[modello]",p=PX[s["m"+i]]||"";if(s["m"+i]&&m!=="CI-5")big=1;
   if(s["d"+i+"_7"])ic=1;if(!s["d"+i+"_8"])ts=0;
-  o.push("Installato dispositivo Glory "+m+".","RBW"+p+"-"+(s["a"+i]||"…"),"RCW"+p+"-"+(s["c"+i]||"…"),"Matricola impianto: "+(s["mt"+i]||"…"),"")}
+  o.push("Installato dispositivo Glory "+m+".","RBW"+p+"-"+(s["a"+i]||"…"),"RCW"+p+"-"+(s["c"+i]||"…"),"Codice impianto: "+(s["mt"+i]||"…"),"")}
  if(ts)l.push("Eseguiti test di funzionamento "+(pl?"dei dispositivi":"del dispositivo")+" con esito positivo.");
  if(ic)l.push("Eseguita interconnessione con il gestionale del cliente.");
  if(s.bo==="Sì"&&(s.bi||s.bc))l.push((s.bi&&s.bc?"Installato e configurato":s.bi?"Installato":"Configurato")+" "+sn+".");
@@ -335,7 +335,7 @@ function check(bl){var bad=[],warn=[],s=S,i,n,sec="",sub="";
  function want(k,t){if(!has(k))warn.push(t)}
  want("tec","Nome del tecnico");
  if(view==="inst"){n=devN(s);if(!n)bad.push("Almeno un dispositivo: tocca CI-5, CI-10 o CI-10X");
-  for(i=1;i<=n;i++){need("m"+i,"Modello del dispositivo "+i);need("a"+i,"Matricola banconote del dispositivo "+i);need("c"+i,"Matricola monete del dispositivo "+i);want("mt"+i,"Matricola impianto del dispositivo "+i)}
+  for(i=1;i<=n;i++){need("m"+i,"Modello del dispositivo "+i);need("a"+i,"Matricola banconote del dispositivo "+i);need("c"+i,"Matricola monete del dispositivo "+i);want("mt"+i,"Codice impianto del dispositivo "+i)}
   if(s.bo==="Sì")need("sng","Sistema del gestionale del cliente (Windows o Android)");
   want("cv","Codice contratto (CV)");if(s.rv)want("rvn","Rivenditore");want("cl","Cliente");if(s.f3)want("ric","Nome di chi riceve le chiavi")}
  else if(view==="loc"){need("rf","Riferimento dell'intervento");need("sc","Su cosa è stato fatto l'intervento");if(s.sc==="Dispositivo / altro")need("sp","Specifica il dispositivo o l'oggetto dell'intervento");else need("md","Modello del dispositivo");if(s.rv)want("rvn","Rivenditore");want("cl","Cliente");
@@ -473,7 +473,7 @@ function pdfRows(bl){var r=[];bl.forEach(function(x){
 function fmtDate(dt){return p2(dt.getDate())+"/"+p2(dt.getMonth()+1)+"/"+dt.getFullYear()+" "+p2(dt.getHours())+":"+p2(dt.getMinutes())}
 function pdfMeta(bl,when){var pr=prog(bl,S,0),dt=when?new Date(when):new Date();
  var tt={inst:"Checklist installazione Glory",prep:"Checklist preparazione macchine Glory",rip:"Checklist riparazione Glory",loc:"Checklist intervento in loco Glory",altro:"Attività Glory"},
-  hl={inst:["CV: "+(S.cv||"-")].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],["Cliente: "+(S.cl||"-"),"Sede: "+(S.se||"-")]),prep:["CV: "+(S.cvc||"da associare")].concat(prepMode(S)==="Completa"&&prepMat("mtM")?["Matricola monete: "+prepMat("mtM")]:[],prepMode(S)==="Completa"&&prepMat("mtB")?["Matricola banconote: "+prepMat("mtB")]:[],prepMode(S)==="Completa"&&S.mtD?["Matricola impianto: "+S.mtD]:[]),rip:["RMA: "+(S.rma||"-")].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],S.cl?["Cliente: "+S.cl]:[]),loc:["Riferimento: "+(S.rf||"-")].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],["Cliente: "+(S.cl||"-"),"Sede: "+(S.se||"-")]),altro:[(S.tp||"Attività")+(S.ti?": "+S.ti:""),S.rf?S.rf+": "+(S.rc||"-"):"Riferimento: -"]};
+  hl={inst:["CV: "+(S.cv||"-")].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],["Cliente: "+(S.cl||"-"),"Sede: "+(S.se||"-")]),prep:["CV: "+(S.cvc||"da associare")].concat(prepMode(S)==="Completa"&&prepMat("mtM")?["Matricola monete: "+prepMat("mtM")]:[],prepMode(S)==="Completa"&&prepMat("mtB")?["Matricola banconote: "+prepMat("mtB")]:[],prepMode(S)==="Completa"&&S.mtD?["Codice impianto: "+S.mtD]:[]),rip:["RMA: "+(S.rma||"-")].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],S.cl?["Cliente: "+S.cl]:[]),loc:["Riferimento: "+(S.rf||"-")].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],["Cliente: "+(S.cl||"-"),"Sede: "+(S.se||"-")]),altro:[(S.tp||"Attività")+(S.ti?": "+S.ti:""),S.rf?S.rf+": "+(S.rc||"-"):"Riferimento: -"]};
  hl[view]=["Tecnico: "+(S.tec||"-")].concat(hl[view]);
  return {title:tt[view],date:fmtDate(dt),
   lines:hl[view].concat(["Voci completate: "+pr.d+" di "+pr.t])}}
@@ -742,8 +742,10 @@ function render(){
    fc.append(el("label",0,"Dispositivi: tocca un modello per aggiungerne uno"));
    sc.className="seg cnt3";var MD=["CI-5","CI-10","CI-10X"];
    MD.forEach(function(o){sc.append(el("div","lbl",cc[o]>1?"Dispositivi "+cc[o]:""))});
-   MD.forEach(function(o){var bc=btn(cc[o]?"on":"",o,function(){addDev(o)});bc.setAttribute("aria-label","Aggiungi un "+o+(cc[o]?" (ora "+cc[o]+")":""));sc.append(bc)});
-   fc.append(sc);app.append(fc)}
+   MD.forEach(function(o){var bc=btn(cc[o]?"on":"",o,function(){ui.addAsk=o;render()});bc.setAttribute("aria-label","Aggiungi un "+o+(cc[o]?" (ora "+cc[o]+")":""));sc.append(bc)});
+   fc.append(sc);app.append(fc);
+   if(ui.addAsk){var ab=el("div","box wn"),as=el("div","seg"),am=ui.addAsk;ab.setAttribute("role","alert");ab.append(el("div",0,"Aggiungere un dispositivo "+am+"? Diventerà il "+(((cc[am]||0)+1))+"° "+am+" dell'installazione."));
+    as.append(btn("on","Aggiungi",function(){ui.addAsk=0;addDev(am)}),btn("","Annulla",function(){ui.addAsk=0;render()}));ab.append(as);app.append(ab)}}
   else if(x.t==="sw"){var fw=el("div","fld"),rw3=el("div","sw3"),hf=el("div","half");fw.append(el("label",0,"Software"));
    var bo=btn(S.bo==="Sì"?"on":"","SNG Cloud",function(){S.bo=S.bo==="Sì"?0:"Sì";save();render()});bo.setAttribute("aria-pressed",S.bo==="Sì"?"true":"false");
    ["Windows","Android"].forEach(function(o){var bw=btn(S.sng===o?"on":"",o,function(){S.sng=S.sng===o?0:o;save();render()});bw.setAttribute("aria-pressed",S.sng===o?"true":"false");hf.append(bw)});
