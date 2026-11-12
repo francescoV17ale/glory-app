@@ -85,6 +85,11 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .cnt3{display:grid!important;grid-template-columns:repeat(3,1fr);gap:2px 8px}
 .cnt3 button{min-width:0}
 .cnt3 .lbl{min-height:18px;font-size:12px;line-height:18px;color:var(--ac);font-weight:650;text-align:center}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:8px 0 12px}
+.mcard{background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:8px 10px 10px;min-width:0}
+.mcard b{display:block;font-size:14px;margin-bottom:2px}
+.mcard label{display:block;font-size:12px;color:var(--mu);margin:6px 0 2px}
+.mcard input[type=text]{min-height:40px;padding:8px;font-size:15px}
 .numv{flex:1;min-height:52px;display:grid;place-items:center;font-size:20px;font-weight:650;border:1px solid var(--ln);border-radius:10px;background:var(--sf)}
 .sw3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .sw3 button{min-height:52px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);border-radius:10px;font:inherit;font-size:14px;padding:0 6px;line-height:1.15}
@@ -138,7 +143,7 @@ inst:{title:"Installazione",blocks:function(s){
  function DL(i){var m=s["m"+i];return "Dispositivo "+i+(m?" · "+m:"")}
  if(n){
   b.push(H("Matricole"));
-  for(i=1;i<=n;i++){var p=PX[s["m"+i]]||"";b.push(H3(DL(i)),T("a"+i,"RBW"+p+"- (banconote)","Numero di matricola"),T("c"+i,"RCW"+p+"- (monete)","Numero di matricola"),T("mt"+i,"Codice impianto","Numero"))}
+  for(i=1;i<=n;i++){var p=PX[s["m"+i]]||"";b.push({t:"mat",i:i,lab:DL(i),p:p})}
   b.push(H("Installazione hardware"));
   for(i=1;i<=n;i++){var k="d"+i+"_";b.push(H3(DL(i)),C(k+"1","Posizionamento e fissaggio"),C(k+"2","Cablaggio e alimentazione dispositivo"));if(s.mon!=="No")b.push(C(k+"3","Cablaggio e alimentazione monitor"));b.push(C(k+"4","Avvio e verifica accensione"))}
   b.push(H("Configurazione"));
@@ -246,7 +251,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=45,svEl=null;
+var VER=46,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function load(v){var s=null;try{s=JSON.parse(lsGet("gla_"+v))}catch(e){}if(!s||typeof s!=="object"||Array.isArray(s))s={};if(v==="inst")migInst(s);if(!s.tec){var tc=lsGet("gla_tec");if(tc)s.tec=tc}return s}
@@ -474,6 +479,7 @@ function pdfRows(bl){var r=[];bl.forEach(function(x){
  else if(x.t==="sw")r.push({k:"f",x:"SNG Cloud",v:S.bo==="Sì"?"Sì":"No"},{k:"f",x:"Sistema gestionale",v:S.sng?S.sng+(S.sng==="Android"?" (SNG 3)":" (SNG Suite)"):"-"},{k:"f",x:"App SNG Cloud",v:S.bo==="Sì"?"Non necessaria":(S.app&&S.sng!=="Android")?"Sì":"No"});
  else if(view==="prep"&&prepMode(S)==="Downgrade CI-5"&&x.id==="m"){}
  else if(view==="prep"&&prepMode(S)==="Downgrade CI-5"&&x.id==="pt")r.push({k:"f",x:"Tipo di preparazione",v:"Downgrade CI-5 (modulo monete)"})
+ else if(x.t==="mat")r.push({k:"h3",x:x.lab},{k:"f",x:"RBW"+x.p+"- banconote",v:S["a"+x.i]||"-"},{k:"f",x:"RCW"+x.p+"- monete",v:S["c"+x.i]||"-"},{k:"f",x:"Codice impianto",v:S["mt"+x.i]||"-"});
  else if(x.t==="num")r.push({k:"f",x:x.x,v:String(+S[x.id]||0)});
  else if((x.t==="g"||x.t==="t"||x.t==="sel")&&PSKIP[view].indexOf(x.id)<0){if(x.opt&&!S[x.id])return;r.push({k:"f",x:x.x,v:S[x.id]||"-"})}});
  var nt=String(S.nte||"").trim();if(nt){r.push({k:"h",x:"Note tecniche"});pdfWrap(nt,100).forEach(function(l){r.push({k:"li",x:l})})}
@@ -744,8 +750,13 @@ function render(){
 
  var bar=el("div","bar"),fi=document.createElement("i");fi.style.width=(pr.t?pr.d/pr.t*100:0)+"%";bar.append(fi);
  app.append(bar,el("div","cnt",pr.d+" di "+pr.t+" completati"));
+ var mg=null;
  bl.forEach(function(x){
-  if(x.t==="h")app.append(el("h2",0,x.x));
+  if(x.t!=="mat")mg=null;
+  if(x.t==="mat"){if(!mg){mg=el("div","mgrid");app.append(mg)}var mc=el("div","mcard");mc.append(el("b",0,x.lab));
+   [["a"+x.i,"RBW"+x.p+"- banconote"],["c"+x.i,"RCW"+x.p+"- monete"],["mt"+x.i,"Codice impianto"]].forEach(function(f){var lb=el("label",0,f[1]),inp=document.createElement("input");inp.type="text";inp.value=S[f[0]]||"";inp.setAttribute("aria-label",x.lab+" "+f[1]);
+    inp.oninput=function(){S[f[0]]=inp.value;save();if(noteTa)noteTa.value=noteText()};mc.append(lb,inp)});mg.append(mc)}
+  else if(x.t==="h")app.append(el("h2",0,x.x));
   else if(x.t==="h3")app.append(el("h3",0,x.x));
   else if(x.t==="cnt"){var fc=el("div","fld"),sc=el("div","seg"),cc={},q;for(q=1;q<=devN(S);q++)cc[S["m"+q]]=(cc[S["m"+q]]||0)+1;
    fc.append(el("label",0,"Dispositivi: tocca un modello per aggiungerne uno"));
