@@ -17,7 +17,7 @@ Apri il link con Chrome → tasto "Installa l'app su questo dispositivo" nel men
 
 ## Aggiornare l'app
 1. Carica il nuovo `index.html` sul repository (sovrascrive il vecchio).
-2. In `sw.js` aumenta il numero di `CACHE` (es. `glory-v36`) e caricalo.
+2. In `sw.js` aumenta il numero di `CACHE` (es. `glory-v37`) e caricalo.
 3. Sui telefoni la nuova versione compare alla seconda apertura dell'app.
 
 ## Dove stanno i dati
