@@ -144,7 +144,7 @@ inst:{title:"Installazione",blocks:function(s){
   b.push(H("Configurazione"));
   for(i=1;i<=n;i++){var k="d"+i+"_";b.push(H3(DL(i)),C(k+"5","Indirizzo IP impostato"),C(k+"6","Collegato alla rete del cliente"),C(k+"7","Interconnessione con il gestionale verificata"))}
   b.push(H3(n>1?"Per tutti i dispositivi":"Software"));
-  if(s.bo==="Sì"||(s.app&&s.sng!=="Android"))b.push(C("g11","App SNG Cloud installata"));
+  if(s.bo!=="Sì"&&s.app&&s.sng!=="Android")b.push(C("g11","App SNG Cloud installata"));
   b.push(C("g12","Cartella assistenza Glory trasferita"),C("g13","Cash Tools installato"));
   b.push(H("Collaudo"));
   for(i=1;i<=n;i++){var k="d"+i+"_";b.push(H3(DL(i)));if(s["m"+i]==="CI-5")b.push(C(k+"s8","Dip switch 8 verificato"),C(k+"sd","Verificati diverter"),C(k+"sv","Verificato sensore valigetta"));
@@ -246,7 +246,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=44,svEl=null;
+var VER=45,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function load(v){var s=null;try{s=JSON.parse(lsGet("gla_"+v))}catch(e){}if(!s||typeof s!=="object"||Array.isArray(s))s={};if(v==="inst")migInst(s);if(!s.tec){var tc=lsGet("gla_tec");if(tc)s.tec=tc}return s}
@@ -471,7 +471,7 @@ function pdfRows(bl){var r=[];bl.forEach(function(x){
  if(x.t==="h")r.push({k:"h",x:x.x});else if(x.t==="h3")r.push({k:"h3",x:x.x});
  else if(x.t==="c"){if(x.memo||(x.opt&&!S[x.id]))return;if(x.dv&&view==="prep"&&prepMode(S)==="Downgrade CI-5")return;r.push({k:"c",x:x.pl||x.x,d:!!S[x.id]});if(S["nt_"+x.id])r.push({k:"nt",x:S["nt_"+x.id]})}
  else if(view==="prep"&&x.t==="t"&&/^mtM\d*$/.test(x.id)&&prepMode(S)==="Downgrade CI-5"){{var mi=x.id==="mtM"?1:+x.id.slice(3);if(mi===1)r.push({k:"tl",x:"Configurati e testati i seguenti dispositivi:"});r.push({k:"f",x:"Dispositivo "+mi,v:String(S[x.id]||"").trim()||"-"})}}
- else if(x.t==="sw")r.push({k:"f",x:"SNG Cloud",v:S.bo==="Sì"?"Sì":"No"},{k:"f",x:"Sistema gestionale",v:S.sng?S.sng+(S.sng==="Android"?" (SNG 3)":" (SNG Suite)"):"-"},{k:"f",x:"App SNG Cloud",v:S.bo==="Sì"?"Sì (inclusa)":(S.app&&S.sng!=="Android")?"Sì":"No"});
+ else if(x.t==="sw")r.push({k:"f",x:"SNG Cloud",v:S.bo==="Sì"?"Sì":"No"},{k:"f",x:"Sistema gestionale",v:S.sng?S.sng+(S.sng==="Android"?" (SNG 3)":" (SNG Suite)"):"-"},{k:"f",x:"App SNG Cloud",v:S.bo==="Sì"?"Non necessaria":(S.app&&S.sng!=="Android")?"Sì":"No"});
  else if(view==="prep"&&prepMode(S)==="Downgrade CI-5"&&x.id==="m"){}
  else if(view==="prep"&&prepMode(S)==="Downgrade CI-5"&&x.id==="pt")r.push({k:"f",x:"Tipo di preparazione",v:"Downgrade CI-5 (modulo monete)"})
  else if(x.t==="num")r.push({k:"f",x:x.x,v:String(+S[x.id]||0)});
@@ -761,8 +761,8 @@ function render(){
   else if(x.t==="sw"){var fw=el("div","fld"),rw3=el("div","sw3"),hf=el("div","half");fw.append(el("label",0,"Software"));
    var bo=btn(S.bo==="Sì"?"on":"","SNG Cloud",function(){S.bo=S.bo==="Sì"?0:"Sì";save();render()});bo.setAttribute("aria-pressed",S.bo==="Sì"?"true":"false");
    ["Windows","Android"].forEach(function(o){var bw=btn(S.sng===o?"on":"",o,function(){S.sng=S.sng===o?0:o;save();render()});bw.setAttribute("aria-pressed",S.sng===o?"true":"false");hf.append(bw)});
-   var inc=S.bo==="Sì",no=!inc&&S.sng==="Android",ap=inc||(!no&&S.app),ba=btn(ap?"on":"",inc?"App SNG Cloud inclusa":no?"App non disponibile":"App SNG Cloud",function(){if(inc||no)return;S.app=S.app?0:1;save();render()});ba.setAttribute("aria-pressed",ap?"true":"false");if(inc||no){ba.disabled=true;ba.style.opacity=inc?".75":".5";ba.style.cursor="default"}
-   rw3.append(bo,hf,ba);fw.append(rw3,el("div","cnt","Windows = SNG Suite · Android = SNG 3"+(S.bo==="Sì"?" · con SNG Cloud l'app è inclusa":S.sng==="Android"?" · su Android senza SNG Cloud l'app non c'è":"")));app.append(fw)}
+   var inc=S.bo==="Sì",no=!inc&&S.sng==="Android",ap=!inc&&!no&&S.app,ba=btn(ap?"on":"",inc?"App non necessaria":no?"App non disponibile":"App SNG Cloud",function(){if(inc||no)return;S.app=S.app?0:1;save();render()});ba.setAttribute("aria-pressed",ap?"true":"false");if(inc||no){ba.disabled=true;ba.style.opacity=".5";ba.style.cursor="default"}
+   rw3.append(bo,hf,ba);fw.append(rw3,el("div","cnt","Windows = SNG Suite · Android = SNG 3"+(S.bo==="Sì"?" · con SNG Cloud l'app non serve":S.sng==="Android"?" · su Android senza SNG Cloud l'app non c'è":"")));app.append(fw)}
   else if(x.t==="del"){var nn=devN(S);if(nn>=1){
    if(!ui.del)app.append(btn("reset dgo tight","Elimina dispositivo",function(){ui.del=1;ui.delSel=0;render()}));
    else{app.append(pick("Seleziona il dispositivo da eliminare",nn,ui.delSel,function(k){return "Dispositivo "+k+(S["m"+k]?" · "+S["m"+k]:"")},function(k){ui.delSel=k;render()}));
