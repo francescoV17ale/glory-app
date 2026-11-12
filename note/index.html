@@ -212,24 +212,30 @@ h1{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.
       saved: 0,
       edited: false,
       areas: [
-        { id: 'a1', title: 'Comunicazione gestionale e rete', items: [
-          it('Gestionale non comunica', 'Segnalata mancata comunicazione tra gestionale e cassa automatica. Verificati cavo di rete, indirizzo IP e porta di comunicazione. Comunicazione ripristinata e test di pagamento eseguito con esito positivo.'),
-          it('Rete del cliente non raggiungibile', 'Cassa automatica non raggiungibile in rete. Il dispositivo risulta funzionante: il problema dipende dalla rete del cliente. Segnalato al referente del gestionale per la verifica della rete.'),
-          it('Cambio indirizzo IP', 'Modificato l\'indirizzo IP della cassa automatica su richiesta del cliente. Verificata la comunicazione con il gestionale dopo la modifica.')
+        { id: "a1", title: "Comunicazione e gestionale", items: [
+          it("Comunicazione col gestionale", "Liberata memoria event dispositivo, ripristinata la comunicazione con il gestionale, eseguita prova di transazione con esito positivo, si lascia la macchina operativa."),
+          it("Riavvio per mancata comunicazione", "Riavviato dispositivo, liberata memoria event, ripristinata la comunicazione con il gestionale, eseguita prova di transazione con esito positivo, si lascia la macchina operativa."),
+          it("Resto non erogato", "Erogazione non andata a buon fine a causa di un mancato collegamento con il gestionale, poi ristabilito. Liberata memoria event di collegamento, eseguita verifica stato inventario, eseguito test di funzionamento con esito positivo, si lascia la macchina operativa."),
+          it("C-helper · allineamento contabile", "Eseguito allineamento contabile, eseguito test di carico con esito positivo, ristabilita comunicazione con il software del gestionale, eseguito test di pagamento con esito positivo, si lascia la macchina operativa.")
         ] },
-        { id: 'a2', title: 'Inceppamenti', items: [
-          it('Inceppamento banconote', 'Rilevato inceppamento banconote. Rimosso il corpo estraneo con il supporto del cliente e ripristinato il funzionamento. Verificate ricezione ed erogazione.'),
-          it('Inceppamento monete', 'Rilevato inceppamento monete. Rimosso il corpo estraneo con il supporto del cliente e ripristinato il funzionamento. Verificate ricezione ed erogazione.'),
-          it('Corpo estraneo nella macchina', 'Presenza di un corpo estraneo all\'interno della macchina che ne impediva il funzionamento. Rimosso con il supporto del cliente, funzionamento ripristinato.')
+        { id: "a2", title: "Inceppamenti e sensori", items: [
+          it("Banconote inceppate", "Segnalato inceppamento banconote. Seguito il cliente nell'identificare l'inceppamento. Pulito il percorso e i sensori. Eseguito reset e test di versamento e prelievo, eseguito test di funzionamento con esito positivo, si lascia la macchina operativa."),
+          it("C-001 · sensore monete ostruito", "Seguito il cliente nel liberare sensore ostruito su accettatore monete, eseguito test di funzionamento con esito positivo, si lascia la macchina operativa."),
+          it("Errore sensore", "Segnalato errore sensore. Eseguita pulizia dei sensori e verifica dei connettori. Eseguito reset e test di funzionamento: errore non più presente. Macchina operativa.")
         ] },
-        { id: 'a3', title: 'Guasti hardware', items: [
-          it('Guasto scheda', 'Rilevato guasto a una scheda del dispositivo, non risolvibile da remoto. Necessario l\'intervento di un tecnico in loco: richiesta uscita aperta.'),
-          it('Guasto motore o meccanica', 'Rilevato guasto a un motore o a un organo meccanico del dispositivo. Necessario l\'intervento del tecnico sul posto per la sostituzione del componente.')
+        { id: "a3", title: "Dispositivo e software", items: [
+          it("Riavvio / reset", "Problema risolto in teleassistenza con riavvio del dispositivo e reset dell'errore. Eseguiti test di versamento e prelievo con esito positivo. Macchina operativa."),
+          it("Configurazione parametri", "Verificati e corretti i parametri di configurazione del dispositivo. Salvata la configurazione, eseguito test con esito positivo. Cliente informato delle modifiche."),
+          it("Aggiornamento software", "Eseguito aggiornamento software/firmware del dispositivo. Verificato il corretto avvio e il funzionamento dopo l'aggiornamento. Eseguiti test con esito positivo."),
+          it("Manutenzione ordinaria", "Eseguita manutenzione ordinaria: pulizia delle parti interne, controllo dei sensori e dei componenti soggetti a usura. Test finale con esito positivo."),
+          it("Intervento in loco necessario", "Problema non risolvibile in teleassistenza. Concordato con il cliente un intervento in loco. Da verificare: componenti hardware e necessità di ricambi.")
         ] },
-        { id: 'a4', title: 'Software e configurazione', items: [
-          it('Riavvio applicativo', 'Riavviato il software della cassa automatica in teleassistenza. Funzionamento regolare dopo il riavvio.'),
-          it('Parametri riconfigurati', 'Verificati e riconfigurati i parametri della macchina in teleassistenza. Test eseguito con esito positivo.'),
-          it('Aggiornamento software', 'Eseguito l\'aggiornamento del software della macchina in teleassistenza. Verificato il corretto funzionamento al termine.')
+        { id: "a4", title: "Cliente e chiusure", items: [
+          it("Chiusura standard", "Eseguito test di funzionamento con esito positivo, si lascia la macchina operativa."),
+          it("Risolve in autonomia", "Il cliente risolve in autonomia, si lascia la macchina operativa."),
+          it("Errore operatore", "Il problema era dovuto a un utilizzo non corretto. Spiegata al cliente la procedura corretta. Nessun guasto rilevato, macchina operativa."),
+          it("Vuotatura valigetta RCW-200", "Seguito il cliente nell'identificare ed eseguire la corretta procedura di vuotatura del cassetto monete, eseguito test di funzionamento con esito positivo, si lascia la macchina operativa."),
+          it("Gestito su ticket successivo", "Gestito su ticket successivo.")
         ] }
       ]
     };
@@ -260,7 +266,9 @@ h1{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.
     catch (e) { statusEl.textContent = 'Salvataggio non riuscito: le modifiche si perdono alla chiusura'; }
   }
 
-  var state = loadLocal() || defaults();
+  /* i tasti di esempio mai modificati vengono aggiornati alla nuova lista */
+  var stored = loadLocal();
+  var state = stored && stored.edited ? stored : defaults();
 
   var areasEl = document.getElementById('areas');
   var hintEl = document.getElementById('hint');
@@ -349,7 +357,7 @@ h1{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.
     } else if (editing) {
       hintEl.textContent = 'Trascina i tasti dall’icona ⋮⋮ oppure usa le frecce ◀ ▶. Clicca un tasto per cambiarne titolo, testo e area.';
     } else if (!state.edited) {
-      hintEl.textContent = 'Questi sono tasti di esempio. Premi Modifica per cambiarli, spostarli e crearne di nuovi.';
+      hintEl.textContent = 'Un click su un tasto copia il testo. Con Componi unisci più frasi; con Modifica cambi, sposti o aggiungi tasti.';
     } else {
       hintEl.textContent = 'Un click su un tasto copia il testo. Con Componi unisci più frasi in un’unica nota.';
     }
