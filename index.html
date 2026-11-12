@@ -253,7 +253,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=48,svEl=null;
+var VER=49,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function load(v){var s=null;try{s=JSON.parse(lsGet("gla_"+v))}catch(e){}if(!s||typeof s!=="object"||Array.isArray(s))s={};if(v==="inst")migInst(s);if(!s.tec){var tc=lsGet("gla_tec");if(tc)s.tec=tc}return s}
@@ -602,9 +602,16 @@ function rmaView(){view="";ttl.textContent="Genera RMA";back.hidden=false;app.te
  app.append(el("h2",0,"Codice RMA"),out);upd();
  var cb=btn("reset ac tight","Copia RMA",function(){var g=rmaGen(R);if(!g){om.textContent="Compila almeno cliente, modello e matricola.";return}cpy(g,function(){cb.textContent="Copiato";setTimeout(function(){cb.textContent="Copia RMA"},1800)},function(){om.textContent="Copia non riuscita: seleziona il codice e copialo a mano."})});
  var ub=btn("reset ac tight","Apri una riparazione con questi dati",function(){var cur=load("rip");if(hasData(cur)&&!ui.rmaOk){ui.rmaOk=1;rmaView();return}rmaToRip(R)});
- app.append(cb,ub,om);
+ var ab=btn("reset ac tight","Archivia RMA: macchina in attesa di riparazione",function(){rmaArc(R,om)});
+ app.append(cb,ab,ub,om);
  if(ui.rmaOk)app.append(confirmBox("In Riparazioni in laboratorio c'è già una scheda in corso: verrà sostituita. Continuare?","Sostituisci",function(){ui.rmaOk=0;rmaToRip(R)},function(){ui.rmaOk=0;rmaView()}));
  app.append(btn("reset tight","Nuovo RMA (svuota i campi)",function(){R={};sv();rmaView()}))}
+function rmaArc(R,om){var g=rmaGen(R);
+ if(!String(R.cl||R.rvn||"").trim()||!R.r1_md||!String(R.r1_mat||"").trim()){om.textContent="Per archiviare servono almeno cliente, modello e matricola.";return}
+ if(!IDB){om.textContent="Archivio non disponibile in questo browser.";return}
+ var tc=load("rip").tec,s={grm:1};if(tc)s.tec=tc;["rv","rvn","cl","r1_tp","r1_md","r1_mat","r1_er"].forEach(function(k){if(R[k])s[k]=R[k]});s.rma=g;
+ var r={id:Date.now(),v:"rip",d:Date.now(),n:g+(R.cl?" - "+fcut(R.cl,30):""),s:s,ph:[],st:"attesa"};
+ arcPut(r,function(){lsSet("gla_rmagen","{}");rmaView();var m2=app.querySelector("[role=status]");topMsg="";if(m2)m2.textContent="RMA "+g+" archiviato. Quando fai la riparazione: Archivio → tocca il lavoro → Riapri."},function(){om.textContent="Archiviazione non riuscita."})}
 function rmaToRip(R){var tc=load("rip").tec,s={grm:1};if(tc)s.tec=tc;["rv","rvn","cl","r1_tp","r1_md","r1_mat","r1_er"].forEach(function(k){if(R[k])s[k]=R[k]});s.rma=rmaGen(s);
  lsSet("gla_rip",JSON.stringify(s));PH.rip=[];phSave("rip");topMsg="Scheda riparazione aperta con i dati dell'RMA.";location.hash="#rip"}
 
@@ -634,16 +641,16 @@ function arcView(){view="";ttl.textContent="Archivio lavori";back.hidden=false;a
  var q=document.createElement("input");q.type="text";q.placeholder="Cerca cliente, CV, RMA, matricola…";q.setAttribute("aria-label","Cerca nell'archivio");q.value=ui.q||"";
  var fs=el("div","fld");fs.append(q);
  var tf=el("div","seg");tf.className="seg fsm";tf.style.marginBottom="12px";
- [["","Tutti"],["inst","Installazioni"],["prep","Preparazioni"],["rip","Riparazioni"],["loc","In loco"],["altro","Altro"]].forEach(function(o){tf.append(btn((ui.tf||"")===o[0]?"on":"",o[1],function(){ui.tf=o[0];arcView()}))});
+ [["","Tutti"],["att","In attesa"],["inst","Installazioni"],["prep","Preparazioni"],["rip","Riparazioni"],["loc","In loco"],["altro","Altro"]].forEach(function(o){tf.append(btn((ui.tf||"")===o[0]?"on":"",o[1],function(){ui.tf=o[0];arcView()}))});
  var L=el("div");
  function draw(){L.textContent="";var t=String(q.value||"").toLowerCase().trim(),
-   F=ARC.filter(function(r){return (!ui.tf||r.v===ui.tf)&&(!t||arcTxt(r).indexOf(t)>=0)});
+   F=ARC.filter(function(r){return (!ui.tf||(ui.tf==="att"?r.st==="attesa":r.v===ui.tf))&&(!t||arcTxt(r).indexOf(t)>=0)});
   if(!ARC.length){L.append(el("p","cnt","Nessun lavoro archiviato. Dalla scheda usa «Archivia lavoro» a fine intervento."));return}
   if(!F.length){L.append(el("p","cnt","Nessun risultato."));return}
   L.append(el("p","cnt",F.length+(F.length===1?" lavoro":" lavori")));
   F.forEach(function(r){var c=btn("card"+(ui.ao===r.id?" arcc":""),null,function(){ui.ao=ui.ao===r.id?0:r.id;ui.ad=0;ui.ap=0;draw()});
    var np=(r.ph&&r.ph.length)||0;
-   c.append(el("b",0,r.n),el("span",0,(V[r.v]?V[r.v].title:r.v)+" · "+fmtDate(new Date(r.d))+(np?" · "+np+" foto":"")));
+   c.append(el("b",0,r.n),el("span",0,(r.st==="attesa"?"In attesa di riparazione":(V[r.v]?V[r.v].title:r.v))+" · "+fmtDate(new Date(r.d))+(np?" · "+np+" foto":"")));
    c.setAttribute("aria-expanded",ui.ao===r.id?"true":"false");L.append(c);
    if(ui.ao!==r.id)return;
    var sg=el("div","seg");sg.style.marginBottom="10px";
@@ -668,7 +675,7 @@ function bkOk(s){return s&&typeof s==="object"&&!Array.isArray(s)}
 function bkRead(txt){var o,it=[],arc=[];try{o=JSON.parse(txt)}catch(e){return null}
  if(!o||o.glory!==2)return null;
  if(o.all){NEWS.forEach(function(r){var x=o.sc&&o.sc[r[0]];if(x&&bkOk(x.s))it.push({v:r[0],s:x.s,ph:bkPh(x.ph)})});
-  if(Array.isArray(o.arc))arc=o.arc.filter(function(x){return x&&x.id&&V[x.v]&&bkOk(x.s)}).map(function(x){return {id:x.id,v:x.v,d:+x.d||Date.now(),n:String(x.n||V[x.v].title),s:x.s,ph:Array.isArray(x.ph)?x.ph:[]}});
+  if(Array.isArray(o.arc))arc=o.arc.filter(function(x){return x&&x.id&&V[x.v]&&bkOk(x.s)}).map(function(x){return {id:x.id,v:x.v,d:+x.d||Date.now(),n:String(x.n||V[x.v].title),s:x.s,ph:Array.isArray(x.ph)?x.ph:[],st:x.st==="attesa"?"attesa":undefined}});
   return (it.length||arc.length)?{all:1,it:it,arc:arc}:null}
  if(!V[o.view]||!bkOk(o.s))return null;
  return {all:0,it:[{v:o.view,s:o.s,ph:bkPh(o.ph)}]}}
