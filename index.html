@@ -76,6 +76,12 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .box.wn{border-color:var(--wn)}
 .box .seg{margin-top:10px}
 .fsm button{min-width:0;flex:1 1 30%;min-height:44px;font-size:14px;padding:0 6px}
+.lock{max-width:380px;margin:12vh auto 0;text-align:center}
+.lock img{width:88px;height:88px;border-radius:20px;margin-bottom:12px}
+.lock h2{border:0;margin:0 0 4px}
+.lock input[type=password]{width:100%;min-height:52px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);border-radius:10px;font:inherit;padding:12px;margin:16px 0 10px;text-align:center}
+.lock label.rm{display:flex;align-items:center;justify-content:center;gap:10px;min-height:44px;color:var(--mu)}
+.lock label.rm input{width:22px;height:22px}
 .wl{margin:6px 0 8px;padding-left:20px;font-size:14px}
 </style>
 </head>
@@ -222,7 +228,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=37,svEl=null;
+var VER=38,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function load(v){var s=null;try{s=JSON.parse(lsGet("gla_"+v))}catch(e){}if(!s||typeof s!=="object"||Array.isArray(s))s={};if(!s.tec){var tc=lsGet("gla_tec");if(tc)s.tec=tc}return s}
@@ -661,8 +667,8 @@ function pick(label,n,sel,name,onSel){var bx=el("div","fld");bx.append(el("label
 
 /* ---------- installazione come app ---------- */
 var BIP=null;
-window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();BIP=e;if(!view&&!location.hash.replace("#",""))home()});
-window.addEventListener("appinstalled",function(){BIP=null;if(!view&&!location.hash.replace("#",""))home()});
+window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();BIP=e;if(started&&!view&&!location.hash.replace("#",""))home()});
+window.addEventListener("appinstalled",function(){BIP=null;if(started&&!view&&!location.hash.replace("#",""))home()});
 
 /* ---------- aggiornamenti ---------- */
 var NEWV=0,updMsg="";
@@ -769,7 +775,25 @@ function route(){
  else{ui.bkPend=null;bkMsg="";bkNext="";home();window.scrollTo(0,0)}}
 back.onclick=function(){location.hash=""};
 window.addEventListener("hashchange",route);
-phInit(function(){route();if(navigator.onLine)setTimeout(function(){updCheck(0)},1500)});
+/* ---------- accesso con password ---------- */
+var PWH="2d8d2915503397a4a266bd3e83ea3cc893c657e4510c47f5d6c4d014a14bf025";
+function okGet(){try{if(localStorage.getItem("gla_ok")===PWH)return 1}catch(e){}try{if(sessionStorage.getItem("gla_ok")===PWH)return 1}catch(e){}return 0}
+function sha(t){try{return crypto.subtle.digest("SHA-256",new TextEncoder().encode(t)).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(x){return ("0"+x.toString(16)).slice(-2)}).join("")})}catch(e){return Promise.reject(e)}}
+function lockScreen(go){ttl.textContent="Glory";back.hidden=true;app.textContent="";
+ var w=el("div","lock"),ic=document.createElement("img"),pw=document.createElement("input"),rl=el("label","rm"),rc=document.createElement("input"),m=el("div","cnt","");
+ ic.src="icon-192.png";ic.alt="";pw.type="password";pw.placeholder="Password";pw.setAttribute("aria-label","Password");pw.autocomplete="current-password";
+ rc.type="checkbox";rc.checked=true;rl.append(rc,document.createTextNode("Ricordami su questo dispositivo"));m.setAttribute("role","alert");m.style.color="var(--dg)";
+ function tryIn(){var v=String(pw.value||"").toLowerCase().replace(/\s+/g,"");if(!v){m.textContent="Inserisci la password.";return}
+  sha(v).then(function(h){if(h!==PWH){m.textContent="Password errata.";pw.select();return}
+   try{(rc.checked?localStorage:sessionStorage).setItem("gla_ok",PWH)}catch(e){}go()},function(){m.textContent="Questo browser non supporta l'accesso: aggiorna Chrome."})}
+ pw.onkeydown=function(e){if(e.key==="Enter")tryIn()};
+ w.append(ic,el("h2",0,"Glory · Attività tecniche"),el("p","cnt","Strumento interno: inserisci la password per entrare."),pw,rl,btn("reset ac tight","Entra",tryIn),m);
+ app.append(w);setTimeout(function(){try{pw.focus()}catch(e){}},50)}
+var started=0;
+function startApp(){if(started)return;started=1;route();if(navigator.onLine)setTimeout(function(){updCheck(0)},1500)}
+window.removeEventListener("hashchange",route);
+window.addEventListener("hashchange",function(){if(started)route()});
+phInit(function(){if(okGet())startApp();else lockScreen(startApp)});
 
 /* ---------- funzionamento offline ---------- */
 if("serviceWorker" in navigator&&location.protocol==="https:"&&!CL){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
