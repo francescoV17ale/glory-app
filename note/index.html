@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d5f7a">
+<title>Note rapportino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Quattro aree in griglia 2x2 (una colonna su schermo stretto). Ogni area ha il suo colore, il titolo rinominabile e tasti grandi che copiano il testo. */
+:root{
+  --bg:#edf0f4;--surface:#ffffff;--ink:#18212d;--muted:#5a6778;--line:#d3dae3;--accent:#0d5f7a;--accent-ink:#ffffff;
+  --danger:#b3261e;--on-danger:#ffffff;--scrim:rgba(14,20,28,.5);
+  --a1:#1f6fb5;--a2:#9a5b00;--a3:#b3382c;--a4:#5b52a8;
+  --font-display:'Space Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:light;box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12171e;--surface:#1b232d;--ink:#e8edf3;--muted:#9aa7b7;--line:#2f3b49;--accent:#5cc0de;--accent-ink:#06222c;
+    --danger:#ff8a80;--on-danger:#2a0a08;--scrim:rgba(0,0,0,.6);
+    --a1:#6db3f2;--a2:#f0b04a;--a3:#f08a7e;--a4:#a9a1f0;color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+[hidden]{display:none!important}
+body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.45}
+button,input,textarea,select{font:inherit;color:inherit}
+
+.page{max-width:1200px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:18px}
+.top>div{min-width:0}
+h1{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.15;margin:0 0 4px;text-wrap:balance}
+.hint{margin:0;color:var(--muted);max-width:60ch}
+.tools{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap}
+.status{font-size:12.5px;color:var(--muted)}
+.mode{min-height:40px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:600;cursor:pointer}
+.mode:hover{border-color:var(--accent)}
+.mode[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.xfer{display:flex;gap:10px;flex-wrap:wrap;margin:-6px 0 16px}
+
+.areas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:860px){.areas{grid-template-columns:minmax(0,1fr)}}
+.area{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}
+.area-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.area-head h2,.area-title{flex:1;min-width:0;margin:0;font-family:var(--font-display);font-weight:600;font-size:18px;line-height:1.2;color:var(--a)}
+.area-title{border:1px dashed var(--line);border-radius:8px;background:transparent;padding:6px 8px}
+.area-title:focus{outline:2px solid var(--accent);outline-offset:1px;border-style:solid}
+.count{flex:none;min-width:26px;padding:1px 8px;border-radius:999px;text-align:center;font-size:12px;font-weight:600;color:var(--a);background:color-mix(in srgb,var(--a) 14%,var(--surface))}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.tile{position:relative;min-width:0}
+.tile-main{display:flex;flex-direction:column;align-items:flex-start;gap:6px;width:100%;height:100%;min-height:92px;padding:12px 14px;text-align:left;cursor:pointer;border-radius:10px;border:1px solid color-mix(in srgb,var(--a) 38%,var(--line));background:color-mix(in srgb,var(--a) 11%,var(--surface))}
+.tile-main:hover{border-color:var(--a);background:color-mix(in srgb,var(--a) 18%,var(--surface))}
+.tile-main:active{background:color-mix(in srgb,var(--a) 28%,var(--surface))}
+.tile-main:focus-visible,.add:focus-visible,.mode:focus-visible,.del:focus-visible,.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.tile .t{font-family:var(--font-display);font-weight:600;font-size:16.5px;line-height:1.25;overflow-wrap:anywhere}
+.tile .p{font-size:12.5px;line-height:1.35;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tile .ok{position:absolute;top:8px;right:10px;font-size:12px;font-weight:600;color:var(--surface);background:var(--a);padding:2px 9px;border-radius:999px;opacity:0;pointer-events:none}
+.tile.copied .ok{opacity:1}
+.tile.copied .tile-main{border-color:var(--a);background:color-mix(in srgb,var(--a) 30%,var(--surface))}
+.tile.sel .tile-main{border:2px solid var(--a);background:color-mix(in srgb,var(--a) 26%,var(--surface));padding-right:44px}
+.num{position:absolute;top:8px;right:10px;min-width:24px;height:24px;padding:0 6px;border-radius:999px;background:var(--a);color:var(--surface);font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;pointer-events:none}
+
+.editing .tile{cursor:grab}
+.editing .tile-main{cursor:grab;padding-right:48px;padding-left:46px;border-style:dashed;padding-bottom:44px}
+.mv{position:absolute;right:7px;bottom:7px;display:flex;gap:4px}
+.mv button{min-width:34px;height:30px;padding:0 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer}
+.mv button:hover{border-color:var(--accent);color:var(--accent)}
+.mv button:disabled{opacity:.35;cursor:default}
+.mv button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.field select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg)}
+.field select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.del{position:absolute;top:7px;right:7px;min-width:30px;height:30px;padding:0 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer}
+.del:hover{border-color:var(--danger);color:var(--danger)}
+.del.armed{background:var(--danger);border-color:var(--danger);color:var(--on-danger)}
+.tile.dragging{opacity:.35}
+.editing .tile{user-select:none;-webkit-user-select:none}
+.grip{position:absolute;left:6px;top:6px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;color:var(--muted);font-size:18px;letter-spacing:-3px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;z-index:1}
+.grip:hover{color:var(--accent)}
+.tile.stacked.drop-before::before{left:0;right:0;top:-7px;bottom:auto;width:auto;height:4px}
+.tile.stacked.drop-after::after{left:0;right:0;bottom:-7px;top:auto;width:auto;height:4px}
+.ghost{position:fixed;z-index:30;pointer-events:none;max-width:240px;padding:10px 14px;border-radius:10px;border:1px solid var(--accent);background:var(--surface);color:var(--ink);font-family:var(--font-display);font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.tile.drop-before::before,.tile.drop-after::after{content:"";position:absolute;top:0;bottom:0;width:4px;border-radius:2px;background:var(--accent);z-index:2}
+.tile.drop-before::before{left:-7px}
+.tile.drop-after::after{right:-7px}
+.tiles.drop-end{outline:2px dashed var(--accent);outline-offset:4px;border-radius:6px}
+.add{min-height:92px;border-radius:10px;border:2px dashed var(--line);background:transparent;color:var(--muted);font-weight:600;cursor:pointer}
+.add:hover{border-color:var(--a);color:var(--a)}
+
+.combar{position:fixed;left:0;right:0;bottom:0;z-index:15;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line);font-weight:500}
+.combar .btn:disabled{opacity:.4;cursor:default}
+.composing .page{padding-bottom:140px}
+.composing .toast{bottom:90px}
+
+.toast{position:fixed;left:0;right:0;bottom:0;z-index:16;display:flex;justify-content:center;padding:0 16px calc(18px + env(safe-area-inset-bottom,0px));pointer-events:none}
+.toast span{background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:500;max-width:100%;overflow-wrap:anywhere;opacity:0;transform:translateY(8px);transition:opacity .15s,transform .15s}
+.toast.show span{opacity:1;transform:none}
+
+.overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:var(--scrim);padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.panel{width:min(560px,100%);max-height:100%;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.panel h3{margin:0;font-family:var(--font-display);font-size:19px;font-weight:600}
+.panel p{margin:0;color:var(--muted)}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--muted)}
+.field input,.field textarea{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg)}
+.field textarea{min-height:150px;resize:vertical;line-height:1.45}
+.field input:focus,.field textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+.err{min-height:1.2em;margin:0;font-size:13px;color:var(--danger)}
+.actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.btn{min-height:40px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:600;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{background:var(--danger);border-color:var(--danger);color:var(--on-danger)}
+@media (prefers-reduced-motion:reduce){.toast span{transition:none}}
+</style>
+</head>
+<body>
+<div class="page" id="page">
+  <header class="top">
+    <div>
+      <h1>Note rapportino</h1>
+      <p class="hint" id="hint"></p>
+    </div>
+    <div class="tools">
+      <span class="status" id="status" role="status"></span>
+      <button class="mode" id="btn-comp" type="button" aria-pressed="false">Componi</button>
+      <button class="mode" id="btn-edit" type="button" aria-pressed="false">Modifica</button>
+    </div>
+  </header>
+  <div class="xfer" id="xfer" hidden>
+    <button class="btn" id="x-copy" type="button">Copia tutti i tasti</button>
+    <button class="btn" id="x-paste" type="button">Incolla tasti da un altro dispositivo</button>
+  </div>
+  <main class="areas" id="areas"></main>
+</div>
+
+<div class="combar" id="combar" hidden>
+  <span id="com-count" role="status"></span>
+  <button class="btn primary" id="com-copy" type="button">Copia nota</button>
+  <button class="btn" id="com-clear" type="button">Svuota</button>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toast-text"></span></div>
+
+<div class="overlay" id="editor" hidden>
+  <form class="panel" id="editor-form" novalidate>
+    <h3 id="editor-head">Tasto</h3>
+    <div class="field">
+      <label for="f-area">Area</label>
+      <select id="f-area"></select>
+    </div>
+    <div class="field">
+      <label for="f-title">Titolo</label>
+      <input id="f-title" type="text" maxlength="60" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="f-text">Testo da copiare nel rapportino</label>
+      <textarea id="f-text"></textarea>
+    </div>
+    <p class="err" id="f-err" role="alert"></p>
+    <div class="actions">
+      <button class="btn" type="button" id="f-cancel">Annulla</button>
+      <button class="btn primary" type="submit" id="f-save">Salva</button>
+    </div>
+  </form>
+</div>
+
+<div class="overlay" id="importer" hidden>
+  <form class="panel" id="import-form" novalidate>
+    <h3>Incolla tasti</h3>
+    <p>Sull'altro dispositivo apri Modifica, tocca «Copia tutti i tasti» e incolla qui il testo. I tasti di questo dispositivo verranno sostituiti.</p>
+    <div class="field">
+      <label for="i-text">Testo copiato</label>
+      <textarea id="i-text" spellcheck="false"></textarea>
+    </div>
+    <p class="err" id="i-err" role="alert"></p>
+    <div class="actions">
+      <button class="btn" type="button" id="i-cancel">Annulla</button>
+      <button class="btn danger" type="submit">Sostituisci i tasti</button>
+    </div>
+  </form>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORE_KEY = 'noteRapportino.v1';
+  var AREA_VARS = ['--a1', '--a2', '--a3', '--a4'];
+  var editing = false;
+  var composing = false;
+  var sel = [];
+  var dragId = null;
+  var editorTarget = null;
+  var editorStart = '';
+  var toastTimer = null;
+
+  function uid() { return 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function defaults() {
+    function it(t, x) { return { id: uid(), title: t, text: x }; }
+    return {
+      saved: 0,
+      edited: false,
+      areas: [
+        { id: 'a1', title: 'Comunicazione gestionale e rete', items: [
+          it('Gestionale non comunica', 'Segnalata mancata comunicazione tra gestionale e cassa automatica. Verificati cavo di rete, indirizzo IP e porta di comunicazione. Comunicazione ripristinata e test di pagamento eseguito con esito positivo.'),
+          it('Rete del cliente non raggiungibile', 'Cassa automatica non raggiungibile in rete. Il dispositivo risulta funzionante: il problema dipende dalla rete del cliente. Segnalato al referente del gestionale per la verifica della rete.'),
+          it('Cambio indirizzo IP', 'Modificato l\'indirizzo IP della cassa automatica su richiesta del cliente. Verificata la comunicazione con il gestionale dopo la modifica.')
+        ] },
+        { id: 'a2', title: 'Inceppamenti', items: [
+          it('Inceppamento banconote', 'Rilevato inceppamento banconote. Rimosso il corpo estraneo con il supporto del cliente e ripristinato il funzionamento. Verificate ricezione ed erogazione.'),
+          it('Inceppamento monete', 'Rilevato inceppamento monete. Rimosso il corpo estraneo con il supporto del cliente e ripristinato il funzionamento. Verificate ricezione ed erogazione.'),
+          it('Corpo estraneo nella macchina', 'Presenza di un corpo estraneo all\'interno della macchina che ne impediva il funzionamento. Rimosso con il supporto del cliente, funzionamento ripristinato.')
+        ] },
+        { id: 'a3', title: 'Guasti hardware', items: [
+          it('Guasto scheda', 'Rilevato guasto a una scheda del dispositivo, non risolvibile da remoto. Necessario l\'intervento di un tecnico in loco: richiesta uscita aperta.'),
+          it('Guasto motore o meccanica', 'Rilevato guasto a un motore o a un organo meccanico del dispositivo. Necessario l\'intervento del tecnico sul posto per la sostituzione del componente.')
+        ] },
+        { id: 'a4', title: 'Software e configurazione', items: [
+          it('Riavvio applicativo', 'Riavviato il software della cassa automatica in teleassistenza. Funzionamento regolare dopo il riavvio.'),
+          it('Parametri riconfigurati', 'Verificati e riconfigurati i parametri della macchina in teleassistenza. Test eseguito con esito positivo.'),
+          it('Aggiornamento software', 'Eseguito l\'aggiornamento del software della macchina in teleassistenza. Verificato il corretto funzionamento al termine.')
+        ] }
+      ]
+    };
+  }
+
+  function valid(d) {
+    return !!d && Array.isArray(d.areas) && d.areas.length === 4 && d.areas.every(function (a) {
+      return a && typeof a.id === 'string' && typeof a.title === 'string' && Array.isArray(a.items) &&
+        a.items.every(function (i) {
+          return i && typeof i.id === 'string' && typeof i.title === 'string' && typeof i.text === 'string';
+        });
+    });
+  }
+
+  var canStore = false;
+  try { localStorage.setItem('noteRapportino.t', '1'); localStorage.removeItem('noteRapportino.t'); canStore = true; } catch (e) {}
+
+  function loadLocal() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return null;
+      var d = JSON.parse(raw);
+      return valid(d) ? d : null;
+    } catch (e) { return null; }
+  }
+  function saveLocal() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); setStatus(); }
+    catch (e) { statusEl.textContent = 'Salvataggio non riuscito: le modifiche si perdono alla chiusura'; }
+  }
+
+  var state = loadLocal() || defaults();
+
+  var areasEl = document.getElementById('areas');
+  var hintEl = document.getElementById('hint');
+  var statusEl = document.getElementById('status');
+  var btnEdit = document.getElementById('btn-edit');
+  var btnComp = document.getElementById('btn-comp');
+  var xferEl = document.getElementById('xfer');
+  var comBar = document.getElementById('combar');
+  var comCount = document.getElementById('com-count');
+  var comCopy = document.getElementById('com-copy');
+  var comClear = document.getElementById('com-clear');
+  var toastEl = document.getElementById('toast');
+  var toastText = document.getElementById('toast-text');
+  var ed = document.getElementById('editor');
+  var edForm = document.getElementById('editor-form');
+  var edHead = document.getElementById('editor-head');
+  var fArea = document.getElementById('f-area');
+  var fTitle = document.getElementById('f-title');
+  var fText = document.getElementById('f-text');
+  var fErr = document.getElementById('f-err');
+  var imp = document.getElementById('importer');
+  var impForm = document.getElementById('import-form');
+  var iText = document.getElementById('i-text');
+  var iErr = document.getElementById('i-err');
+
+  function setStatus() {
+    statusEl.textContent = canStore
+      ? 'Le modifiche si salvano su questo dispositivo'
+      : 'Questo browser non salva: le modifiche si perdono alla chiusura';
+  }
+  function persist() {
+    state.saved = Date.now();
+    state.edited = true;
+    saveLocal();
+  }
+
+  /* ---------- rendering ---------- */
+  function render() {
+    var h = '';
+    sel = sel.filter(function (id) { return !!findItem(id); });
+    state.areas.forEach(function (a, ai) {
+      h += '<section class="area" style="--a:var(' + AREA_VARS[ai] + ')">';
+      h += '<div class="area-head">';
+      if (editing) {
+        h += '<input class="area-title" data-area="' + a.id + '" value="' + esc(a.title) + '" maxlength="60" aria-label="Titolo area">';
+      } else {
+        h += '<h2>' + esc(a.title) + '</h2>';
+      }
+      h += '<span class="count">' + a.items.length + '</span></div>';
+      h += '<div class="tiles" data-area="' + a.id + '">';
+      a.items.forEach(function (it, ii) {
+        var si = composing ? sel.indexOf(it.id) : -1;
+        h += '<div class="tile' + (si >= 0 ? ' sel' : '') + '" data-id="' + it.id + '">';
+        if (editing) h += '<span class="grip" aria-hidden="true">⋮⋮</span>';
+        h += '<button type="button" class="tile-main" data-open="' + it.id + '"' + (composing ? ' aria-pressed="' + (si >= 0 ? 'true' : 'false') + '"' : '') + '>';
+        h += '<span class="t">' + esc(it.title) + '</span><span class="p">' + esc(it.text) + '</span></button>';
+        h += '<span class="ok" aria-hidden="true">Copiato</span>';
+        if (si >= 0) h += '<span class="num" aria-hidden="true">' + (si + 1) + '</span>';
+        if (editing) {
+          h += '<button type="button" class="del" data-del="' + it.id + '" aria-label="Elimina il tasto ' + esc(it.title) + '">✕</button>';
+          h += '<div class="mv">';
+          h += '<button type="button" data-mv="-1" data-id="' + it.id + '" aria-label="Sposta prima"' + (ii === 0 ? ' disabled' : '') + '>◀</button>';
+          h += '<button type="button" data-mv="1" data-id="' + it.id + '" aria-label="Sposta dopo"' + (ii === a.items.length - 1 ? ' disabled' : '') + '>▶</button>';
+          h += '</div>';
+        }
+        h += '</div>';
+      });
+      if (editing) h += '<button type="button" class="add" data-add="' + a.id + '">+ Aggiungi tasto</button>';
+      h += '</div></section>';
+    });
+    areasEl.innerHTML = h;
+    document.body.classList.toggle('editing', editing);
+    document.body.classList.toggle('composing', composing);
+    xferEl.hidden = !editing;
+    comBar.hidden = !composing;
+    comCount.textContent = sel.length
+      ? sel.length + (sel.length === 1 ? ' frase selezionata' : ' frasi selezionate')
+      : 'Nessuna frase selezionata';
+    comCopy.disabled = !sel.length;
+    comClear.disabled = !sel.length;
+  }
+
+  function updateHint() {
+    if (composing) {
+      hintEl.textContent = 'Tocca i tasti nell’ordine in cui vuoi le frasi, poi premi Copia nota: ogni frase va su una riga.';
+    } else if (editing) {
+      hintEl.textContent = 'Trascina i tasti dall’icona ⋮⋮ oppure usa le frecce ◀ ▶. Clicca un tasto per cambiarne titolo, testo e area.';
+    } else if (!state.edited) {
+      hintEl.textContent = 'Questi sono tasti di esempio. Premi Modifica per cambiarli, spostarli e crearne di nuovi.';
+    } else {
+      hintEl.textContent = 'Un click su un tasto copia il testo. Con Componi unisci più frasi in un’unica nota.';
+    }
+  }
+
+  function findItem(id) {
+    for (var i = 0; i < state.areas.length; i++) {
+      var a = state.areas[i];
+      for (var j = 0; j < a.items.length; j++) {
+        if (a.items[j].id === id) return { item: a.items[j], area: a, index: j };
+      }
+    }
+    return null;
+  }
+  function findArea(id) {
+    for (var i = 0; i < state.areas.length; i++) if (state.areas[i].id === id) return state.areas[i];
+    return null;
+  }
+
+  /* ---------- copia ---------- */
+  function showToast(msg) {
+    toastText.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 1800);
+  }
+  function fallbackCopy(t) {
+    return new Promise(function (resolve, reject) {
+      var ta = document.createElement('textarea');
+      ta.value = t;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      if (ok) resolve(); else reject();
+    });
+  }
+  function copyText(t) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(t).catch(function () { return fallbackCopy(t); });
+    }
+    return fallbackCopy(t);
+  }
+  function copyItem(id, tileEl) {
+    var f = findItem(id);
+    if (!f) return;
+    copyText(f.item.text).then(function () {
+      showToast('Copiato: ' + f.item.title);
+      if (tileEl) {
+        tileEl.classList.add('copied');
+        setTimeout(function () { tileEl.classList.remove('copied'); }, 1200);
+      }
+    }).catch(function () {
+      showToast('Copia non riuscita. Riprova dopo aver toccato la pagina.');
+    });
+  }
+
+  /* ---------- composizione di piu frasi ---------- */
+  function setComp(on) {
+    composing = on;
+    sel = [];
+    btnComp.textContent = on ? 'Fine' : 'Componi';
+    btnComp.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+  function setEdit(on) {
+    editing = on;
+    btnEdit.textContent = on ? 'Fatto' : 'Modifica';
+    btnEdit.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+  btnComp.addEventListener('click', function () {
+    setComp(!composing);
+    if (composing && editing) setEdit(false);
+    render();
+    updateHint();
+  });
+  comClear.addEventListener('click', function () { sel = []; render(); });
+  comCopy.addEventListener('click', function () {
+    var parts = [];
+    sel.forEach(function (id) { var f = findItem(id); if (f) parts.push(f.item.text); });
+    if (!parts.length) return;
+    copyText(parts.join('\n')).then(function () {
+      showToast('Nota copiata: ' + parts.length + (parts.length === 1 ? ' frase' : ' frasi'));
+      sel = [];
+      render();
+    }).catch(function () {
+      showToast('Copia non riuscita. Riprova dopo aver toccato la pagina.');
+    });
+  });
+
+  /* ---------- trasferimento tasti tra dispositivi ---------- */
+  document.getElementById('x-copy').addEventListener('click', function () {
+    copyText(JSON.stringify({ noteRapportino: 1, areas: state.areas })).then(function () {
+      showToast('Tasti copiati: incollali sull’altro dispositivo');
+    }).catch(function () { showToast('Copia non riuscita. Riprova.'); });
+  });
+  document.getElementById('x-paste').addEventListener('click', function () {
+    iText.value = ''; iErr.textContent = ''; imp.hidden = false; iText.focus();
+  });
+  document.getElementById('i-cancel').addEventListener('click', function () { imp.hidden = true; });
+  impForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var d = null;
+    try { d = JSON.parse(iText.value.trim()); } catch (err) {}
+    if (!d || !d.noteRapportino || !valid(d)) { iErr.textContent = 'Testo non valido: copia di nuovo i tasti dall’altro dispositivo.'; return; }
+    state.areas = d.areas;
+    persist();
+    imp.hidden = true;
+    sel = [];
+    render();
+    updateHint();
+    showToast('Tasti sostituiti');
+  });
+
+  /* ---------- editor del tasto ---------- */
+  function editorValue() { return fArea.value + '\n' + fTitle.value + '\n' + fText.value; }
+  function openEditor(id, areaId) {
+    var f = id ? findItem(id) : null;
+    editorTarget = { id: id || null, areaId: areaId || (f && f.area.id) };
+    edHead.textContent = id ? 'Modifica tasto' : 'Nuovo tasto';
+    fArea.innerHTML = state.areas.map(function (a) {
+      return '<option value="' + a.id + '">' + esc(a.title) + '</option>';
+    }).join('');
+    fArea.value = editorTarget.areaId;
+    fTitle.value = f ? f.item.title : '';
+    fText.value = f ? f.item.text : '';
+    fErr.textContent = '';
+    editorStart = editorValue();
+    ed.hidden = false;
+    fTitle.focus();
+  }
+  function closeEditor() {
+    ed.hidden = true;
+    editorTarget = null;
+  }
+  /* chiude solo se non hai scritto nulla, per non perdere il testo */
+  function tryCloseEditor() {
+    if (editorValue() === editorStart) closeEditor();
+    else fErr.textContent = 'Hai modifiche non salvate: premi Salva oppure Annulla.';
+  }
+  edForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!editorTarget) return;
+    var t = fTitle.value.trim();
+    var x = fText.value.replace(/\s+$/, '');
+    if (!t) { fErr.textContent = 'Scrivi un titolo per il tasto.'; fTitle.focus(); return; }
+    if (!x) { fErr.textContent = 'Scrivi il testo da copiare.'; fText.focus(); return; }
+    var target = findArea(fArea.value);
+    if (editorTarget.id) {
+      var f = findItem(editorTarget.id);
+      if (f) {
+        f.item.title = t;
+        f.item.text = x;
+        if (target && target.id !== f.area.id) {
+          f.area.items.splice(f.index, 1);
+          target.items.push(f.item);
+        }
+      }
+    } else if (target) {
+      target.items.push({ id: uid(), title: t, text: x });
+    }
+    closeEditor();
+    persist();
+    render();
+    updateHint();
+  });
+  document.getElementById('f-cancel').addEventListener('click', closeEditor);
+  ed.addEventListener('mousedown', function (e) { if (e.target === ed) tryCloseEditor(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (!ed.hidden) tryCloseEditor();
+    else if (!imp.hidden) imp.hidden = true;
+  });
+  fText.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); edForm.requestSubmit(); }
+  });
+
+  /* ---------- eventi sulle aree ---------- */
+  areasEl.addEventListener('click', function (e) {
+    if (justDragged) return;
+    var add = e.target.closest('[data-add]');
+    if (add) { openEditor(null, add.getAttribute('data-add')); return; }
+
+    var mv = e.target.closest('[data-mv]');
+    if (mv) {
+      var mf = findItem(mv.getAttribute('data-id'));
+      var step = parseInt(mv.getAttribute('data-mv'), 10);
+      if (mf) {
+        var ni = mf.index + step;
+        if (ni >= 0 && ni < mf.area.items.length) {
+          var moved = mf.area.items.splice(mf.index, 1)[0];
+          mf.area.items.splice(ni, 0, moved);
+          persist();
+          render();
+        }
+      }
+      return;
+    }
+
+    var del = e.target.closest('[data-del]');
+    if (del) {
+      if (del.getAttribute('data-armed') === '1') {
+        var f = findItem(del.getAttribute('data-del'));
+        if (f) {
+          f.area.items.splice(f.index, 1);
+          persist();
+          render();
+          updateHint();
+        }
+      } else {
+        del.setAttribute('data-armed', '1');
+        del.classList.add('armed');
+        del.textContent = 'Elimina?';
+        setTimeout(function () {
+          if (del.isConnected) {
+            del.removeAttribute('data-armed');
+            del.classList.remove('armed');
+            del.textContent = '✕';
+          }
+        }, 3000);
+      }
+      return;
+    }
+
+    var main = e.target.closest('[data-open]');
+    var tile = e.target.closest('.tile');
+    var id = main ? main.getAttribute('data-open') : (editing && tile && !e.target.closest('.grip') ? tile.getAttribute('data-id') : null);
+    if (!id) return;
+    if (editing) openEditor(id);
+    else if (composing) {
+      var k = sel.indexOf(id);
+      if (k >= 0) sel.splice(k, 1); else sel.push(id);
+      render();
+    } else copyItem(id, tile);
+  });
+
+  areasEl.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.classList && t.classList.contains('area-title')) {
+      var a = findArea(t.getAttribute('data-area'));
+      if (a) { a.title = t.value; persist(); }
+    }
+  });
+  areasEl.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.classList && t.classList.contains('area-title') && !t.value.trim()) {
+      var a = findArea(t.getAttribute('data-area'));
+      if (a) { a.title = 'Senza titolo'; t.value = a.title; persist(); }
+    }
+  });
+
+  /* ---------- trascinamento (mouse e touch) ---------- */
+  var press = null, ghost = null, scrollTimer = null, justDragged = false;
+  var last = { x: 0, y: 0 };
+
+  function clearDropMarks() {
+    areasEl.querySelectorAll('.drop-before,.drop-after,.drop-end,.stacked').forEach(function (n) {
+      n.classList.remove('drop-before', 'drop-after', 'drop-end', 'stacked');
+    });
+  }
+  function dropAt(x, y) {
+    var el = document.elementFromPoint(x, y);
+    if (!el || !el.closest) return null;
+    var tiles = el.closest('.tiles');
+    if (!tiles) {
+      var area = el.closest('.area');
+      if (area) tiles = area.querySelector('.tiles');
+    }
+    if (!tiles) return null;
+    var tile = el.closest('.tile');
+    var info = { areaId: tiles.getAttribute('data-area'), refId: null, before: false, tile: null, tiles: tiles, self: false, stacked: false };
+    if (tile) {
+      if (tile.getAttribute('data-id') === dragId) { info.self = true; return info; }
+      var r = tile.getBoundingClientRect();
+      info.refId = tile.getAttribute('data-id');
+      info.tile = tile;
+      info.stacked = r.width > tiles.clientWidth * 0.8;
+      info.before = info.stacked ? (y - r.top) < r.height / 2 : (x - r.left) < r.width / 2;
+    }
+    return info;
+  }
+  function markTarget(info) {
+    clearDropMarks();
+    if (!info || info.self) return;
+    if (info.tile) {
+      info.tile.classList.add(info.before ? 'drop-before' : 'drop-after');
+      if (info.stacked) info.tile.classList.add('stacked');
+    } else {
+      info.tiles.classList.add('drop-end');
+    }
+  }
+  function applyMove(id, info) {
+    var from = findItem(id);
+    var to = findArea(info.areaId);
+    if (!from || !to) return;
+    var item = from.area.items.splice(from.index, 1)[0];
+    var idx = to.items.length;
+    if (info.refId) {
+      for (var i = 0; i < to.items.length; i++) {
+        if (to.items[i].id === info.refId) { idx = info.before ? i : i + 1; break; }
+      }
+    }
+    to.items.splice(idx, 0, item);
+    persist();
+    render();
+  }
+  function moveGhost(x, y) {
+    if (!ghost) return;
+    ghost.style.left = (x + 14) + 'px';
+    ghost.style.top = (y + 14) + 'px';
+  }
+  function beginDrag(x, y) {
+    var f = findItem(press.id);
+    if (!f) return;
+    press.active = true;
+    dragId = press.id;
+    press.tile.classList.add('dragging');
+    ghost = document.createElement('div');
+    ghost.className = 'ghost';
+    ghost.textContent = f.item.title;
+    document.body.appendChild(ghost);
+    moveGhost(x, y);
+    scrollTimer = setInterval(function () {
+      if (!press || !press.active) return;
+      var dy = 0;
+      if (last.y < 70) dy = -14; else if (last.y > window.innerHeight - 70) dy = 14;
+      if (dy) { window.scrollBy(0, dy); markTarget(dropAt(last.x, last.y)); }
+    }, 30);
+  }
+  function endDrag() {
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onCancel);
+    if (press) { try { press.tile.releasePointerCapture(press.pid); } catch (e) {} }
+    if (ghost && ghost.parentNode) ghost.parentNode.removeChild(ghost);
+    ghost = null;
+    clearInterval(scrollTimer);
+    scrollTimer = null;
+    areasEl.querySelectorAll('.dragging').forEach(function (n) { n.classList.remove('dragging'); });
+    clearDropMarks();
+    press = null;
+    dragId = null;
+  }
+  function onMove(e) {
+    if (!press || e.pointerId !== press.pid) return;
+    last.x = e.clientX;
+    last.y = e.clientY;
+    if (!press.active) {
+      if (Math.abs(e.clientX - press.x) + Math.abs(e.clientY - press.y) < 7) return;
+      beginDrag(e.clientX, e.clientY);
+      if (!press || !press.active) return;
+    }
+    if (e.cancelable) e.preventDefault();
+    moveGhost(e.clientX, e.clientY);
+    markTarget(dropAt(e.clientX, e.clientY));
+  }
+  function onUp(e) {
+    if (!press || e.pointerId !== press.pid) return;
+    var wasActive = press.active;
+    var id = press.id;
+    var info = wasActive ? dropAt(e.clientX, e.clientY) : null;
+    endDrag();
+    if (wasActive) {
+      justDragged = true;
+      setTimeout(function () { justDragged = false; }, 60);
+      if (info && !info.self) applyMove(id, info);
+    }
+  }
+  function onCancel(e) {
+    if (!press || e.pointerId !== press.pid) return;
+    endDrag();
+  }
+  areasEl.addEventListener('pointerdown', function (e) {
+    if (!editing || !e.isPrimary || press) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    var tile = e.target.closest ? e.target.closest('.tile') : null;
+    if (!tile) return;
+    var onGrip = !!e.target.closest('.grip');
+    if (!onGrip && (e.pointerType !== 'mouse' || e.target.closest('.del,.mv'))) return;
+    press = { id: tile.getAttribute('data-id'), tile: tile, pid: e.pointerId, x: e.clientX, y: e.clientY, active: false };
+    last.x = e.clientX;
+    last.y = e.clientY;
+    try { tile.setPointerCapture(e.pointerId); } catch (err) {}
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onCancel);
+    if (onGrip) beginDrag(e.clientX, e.clientY);
+  });
+  areasEl.addEventListener('contextmenu', function (e) {
+    if (editing && e.target.closest && e.target.closest('.grip')) e.preventDefault();
+  });
+
+  /* ---------- modalita modifica ---------- */
+  btnEdit.addEventListener('click', function () {
+    setEdit(!editing);
+    if (editing && composing) setComp(false);
+    render();
+    updateHint();
+  });
+
+  render();
+  updateHint();
+  setStatus();
+})();
+</script>
+</body>
+</html>
