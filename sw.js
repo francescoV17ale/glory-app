@@ -1,6 +1,6 @@
 /* Glory · Attività tecniche — service worker (funzionamento offline)
    Quando pubblichi una nuova versione dell'app, aumenta il numero qui sotto. */
-const CACHE = "glory-v33";
+const CACHE = "glory-v34";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 
 self.addEventListener("install", e => {

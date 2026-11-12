@@ -222,7 +222,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=33,svEl=null;
+var VER=34,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function load(v){var s=null;try{s=JSON.parse(lsGet("gla_"+v))}catch(e){}if(!s||typeof s!=="object"||Array.isArray(s))s={};if(!s.tec){var tc=lsGet("gla_tec");if(tc)s.tec=tc}return s}
@@ -545,7 +545,7 @@ function pvBuild(c,pb){var bl=V[view].blocks(S),mt=pdfMeta(bl),R=pdfRows(bl),F=P
 
 /* ---------- archivio lavori ---------- */
 function arcBox(){app.append(el("h2",0,"Archivio"));var m=el("div","cnt",arcMsg);m.setAttribute("role","status");arcMsg="";
- if(!IDB){app.append(el("p","cnt","Archivio non disponibile in questo browser: usa Salva backup."));return}
+ if(!IDB){app.append(el("p","cnt","Archivio non disponibile in questo browser: usa Scarica backup dal menù."));return}
  if(!ui.arc){app.append(btn("reset ac tight",S._arc?"Aggiorna nell'archivio":"Archivia lavoro",function(){if(!hasData(S)){arcMsg="Scheda vuota: niente da archiviare.";render();return}ui.arc=1;render()}))}
  else{var bx=el("div","box wn"),sg=el("div","seg");
   bx.append(el("div",0,(S._arc?"Aggiorno nell'archivio il lavoro «":"Salvo nell'archivio di questo dispositivo il lavoro «")+fnBase()+"», con note e foto."));
@@ -556,7 +556,7 @@ function arcSave(clr){var id=S._arc||Date.now(),s=JSON.parse(JSON.stringify(S));
  arcPut(r,function(){ui.arc=0;
   if(clr){var tc=S.tec;S={};if(tc)S.tec=tc;PH[view]=[];phSave(view);arcMsg="Lavoro archiviato. Scheda svuotata."}
   else{S._arc=id;arcMsg="Lavoro archiviato."}
-  save();render()},function(){ui.arc=0;arcMsg="Archiviazione non riuscita: salva un backup.";render()})}
+  save();render()},function(){ui.arc=0;arcMsg="Archiviazione non riuscita: scarica un backup dal menù.";render()})}
 function arcApply(r){var s=JSON.parse(JSON.stringify(r.s));s._arc=r.id;lsSet("gla_"+r.v,JSON.stringify(s));PH[r.v]=bkPh(r.ph);phSave(r.v);topMsg="Lavoro riaperto dall'archivio. Quando hai finito usa «Aggiorna nell'archivio» in fondo alla scheda.";location.hash="#"+r.v}
 function arcPdf(r,m){var v0=view,s0=S,p0=PH[r.v],out=null;view=r.v;S=r.s;PH[r.v]=bkPh(r.ph);
  try{var bl=V[r.v].blocks(S),mt=pdfMeta(bl,r.d);mt.fn=r.n+".pdf";out={u:buildPdf(mt,pdfRows(bl)),fn:r.n+".pdf"}}catch(e){out=null}
@@ -636,10 +636,7 @@ function bkUi(refresh,cls){var m=el("div","cnt",bkMsg),fi=document.createElement
   rd.onerror=function(){bkMsg="Lettura del file non riuscita.";refresh()};rd.readAsText(f)};
  return {m:m,fi:fi,load:btn(cls||"","Carica backup",function(){fi.click()})}}
 function bkRow(u,get,empty){var row=el("div","seg");
- row.append(btn("","Salva backup",function(){var r=get();if(!r){u.m.textContent=empty;return}saveFile(new Blob([r.t],{type:"application/json"}),r.fn,function(){bkMark();u.m.textContent="Backup salvato."},function(){u.m.textContent="Salvataggio non riuscito."})}));
- if(navigator.canShare&&!CL)row.append(btn("","Condividi backup",function(){var r=get(),file;if(!r){u.m.textContent=empty;return}try{file=new File([r.t],r.fn,{type:"application/json"})}catch(e){u.m.textContent="Condivisione non disponibile qui. Usa Salva backup.";return}
-  if(!navigator.canShare({files:[file]})){u.m.textContent="Condivisione non disponibile qui. Usa Salva backup.";return}
-  navigator.share({files:[file],title:r.fn}).then(function(){bkMark();u.m.textContent="Backup condiviso."},function(e){if(!e||e.name!=="AbortError")u.m.textContent="Condivisione non riuscita."})}));
+ row.append(btn("","Scarica backup",function(){var r=get();if(!r){u.m.textContent=empty;return}saveFile(new Blob([r.t],{type:"application/json"}),r.fn,function(){bkMark();u.m.textContent="Backup salvato."},function(){u.m.textContent="Salvataggio non riuscito."})}));
  row.append(u.load);return row}
 function bkBox(){
  app.append(el("h2",0,"Backup"));var u=bkUi(render);
@@ -744,8 +741,7 @@ function render(){
    i.oninput=function(){if(dgm){var dj=dupOf(x.id,i.value);if(dj){i.style.borderColor="var(--dg)";er.textContent="Già inserita nel Dispositivo "+dj+": non viene salvata";return}i.style.borderColor="";er.textContent=""}S[x.id]=i.value;if(view==="rip"&&S.grm){if(x.id==="rma")S.rmaM=1;else if(!S.rmaM&&rmaEl){S.rma=rmaGen(S);rmaEl.value=S.rma}}if(x.id==="tec")lsSet("gla_tec",i.value.trim());save();if(noteTa)noteTa.value=noteText();if(x.cmp)grow(i)};ft.append(i);if(er)ft.append(er);app.append(ft);if(x.cmp){i.style.minHeight="56px";i.style.overflowY="auto";grow(i)}}
  });
  if(view==="prep")pdfBox();
- arcBox();
- bkBox()}
+ arcBox()}
 
 /* ---------- navigazione ---------- */
 function route(){
