@@ -6,11 +6,11 @@
 <meta name="theme-color" content="#1f5f99">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Glory">
+<meta name="apple-mobile-web-app-title" content="Glory 2.0">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Glory · Attività tecniche</title>
+<title>Glory 2.0</title>
 <style>
 :root{--bg:#f2f4f5;--sf:#fff;--tx:#14191d;--mu:#5b6770;--ln:#d5dbdf;--ac:#1f5f99;--on:#fff;--ok:#1f7a4d;--dg:#c23b22;--dgo:#fff;--wn:#9a5b00;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101417;--sf:#1a2025;--tx:#e8edf0;--mu:#97a4ad;--ln:#2d363d;--ac:#6fb3ea;--on:#0b1620;--ok:#5fc78f;--dg:#ff8a75;--dgo:#2a0a06;--wn:#f0b04a;color-scheme:dark}}
@@ -253,7 +253,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=47,svEl=null;
+var VER=48,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function load(v){var s=null;try{s=JSON.parse(lsGet("gla_"+v))}catch(e){}if(!s||typeof s!=="object"||Array.isArray(s))s={};if(v==="inst")migInst(s);if(!s.tec){var tc=lsGet("gla_tec");if(tc)s.tec=tc}return s}
@@ -875,7 +875,7 @@ function lockScreen(go){ttl.textContent="Glory";back.hidden=true;app.textContent
   sha(v).then(function(h){if(h!==PWH){m.textContent="Password errata.";pw.select();return}
    try{(rc.checked?localStorage:sessionStorage).setItem("gla_ok",PWH)}catch(e){}go()},function(){m.textContent="Questo browser non supporta l'accesso: aggiorna Chrome."})}
  pw.onkeydown=function(e){if(e.key==="Enter")tryIn()};
- w.append(ic,el("h2",0,"Glory · Attività tecniche"),el("p","cnt","Strumento interno: inserisci la password per entrare."),pw,rl,btn("reset ac tight","Entra",tryIn),m);
+ w.append(ic,el("h2",0,"Glory 2.0"),el("p","cnt","Strumento interno: inserisci la password per entrare."),pw,rl,btn("reset ac tight","Entra",tryIn),m);
  app.append(w);setTimeout(function(){try{pw.focus()}catch(e){}},50)}
 var started=0;
 function startApp(){if(started)return;started=1;route();if(navigator.onLine)setTimeout(function(){updCheck(0)},1500)}
