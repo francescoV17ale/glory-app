@@ -222,7 +222,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=34,svEl=null;
+var VER=35,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function load(v){var s=null;try{s=JSON.parse(lsGet("gla_"+v))}catch(e){}if(!s||typeof s!=="object"||Array.isArray(s))s={};if(!s.tec){var tc=lsGet("gla_tec");if(tc)s.tec=tc}return s}
@@ -674,7 +674,7 @@ function home(){
  var ac=el("a","card arcc");ac.href="#arc";ac.append(el("b",0,"Archivio lavori"),el("span",0,ARC.length?ARC.length+(ARC.length===1?" lavoro archiviato":" lavori archiviati"):"Lavori conclusi, salvati su questo dispositivo"));app.append(ac);
  app.append(el("h2",0,"Backup"));var u=bkUi(home);app.append(bkLast(),el("p","cnt","Il backup completo comprende le schede in corso e tutto l'archivio."),bkRow(u,function(){var r=bkAll();return r.n?r:null},"Niente da salvare: nessuna scheda compilata e archivio vuoto."),u.fi,u.m);if(ui.bkPend)app.append(pendBox(home));
  if(!LS)app.append(el("p","cnt","Questo browser non conserva i dati: genera PDF e note prima di chiudere la pagina."));
- var vp=el("p","cnt","Versione "+VER);vp.style.cssText="text-align:center;margin-top:24px";app.append(vp)}
+ var vp=el("p","cnt","Glory 2.0");vp.title="Build "+VER;vp.style.cssText="text-align:center;margin-top:24px";app.append(vp)}
 
 /* ---------- scheda ---------- */
 function rstBox(){
