@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f5f99">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Glory">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Glory · Attività tecniche</title>
+<style>
+:root{--bg:#f2f4f5;--sf:#fff;--tx:#14191d;--mu:#5b6770;--ln:#d5dbdf;--ac:#1f5f99;--on:#fff;--ok:#1f7a4d;--dg:#c23b22;--dgo:#fff;--wn:#9a5b00;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101417;--sf:#1a2025;--tx:#e8edf0;--mu:#97a4ad;--ln:#2d363d;--ac:#6fb3ea;--on:#0b1620;--ok:#5fc78f;--dg:#ff8a75;--dgo:#2a0a06;--wn:#f0b04a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101417;--sf:#1a2025;--tx:#e8edf0;--mu:#97a4ad;--ln:#2d363d;--ac:#6fb3ea;--on:#0b1620;--ok:#5fc78f;--dg:#ff8a75;--dgo:#2a0a06;--wn:#f0b04a;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+button{cursor:pointer}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--ln);padding:12px 16px;display:flex;align-items:center;gap:12px}
+header h1{font-size:18px;margin:0;flex:1;font-weight:650}
+.back{min-height:44px;min-width:44px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);border-radius:10px;font-size:15px;padding:0 12px}
+main{max-width:640px;margin:0 auto;padding:16px 16px 48px}
+.card{display:block;width:100%;text-align:left;background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:14px 16px;margin-bottom:10px;color:var(--tx);font:inherit;min-height:64px;text-decoration:none}
+.card b{display:block;font-size:17px;margin-bottom:2px;overflow-wrap:anywhere}
+.card span{color:var(--mu);font-size:14px}
+.card.arcc{border-color:var(--ac)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.new{min-height:64px;border:1px solid var(--ac);background:var(--sf);color:var(--ac);border-radius:12px;font:inherit;font-weight:650;padding:8px 10px}
+.bar{height:6px;background:var(--ln);border-radius:3px;margin:0 0 4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);width:0}
+.cnt{color:var(--mu);font-size:13px;margin:0 0 12px}
+.cnt.bw{color:var(--dg);font-weight:600}
+h2{font-size:17px;margin:24px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--ac)}
+h3{font-size:15px;margin:16px 0 6px;color:var(--mu);font-weight:600}
+.rowc{display:flex;gap:8px;margin-bottom:8px}
+.pvw{border:1px solid var(--ln);border-radius:10px;padding:10px;margin:10px 0 12px;background:var(--sf);font-size:13px}
+.pvh{display:flex;justify-content:space-between;gap:8px;background:var(--ac);color:var(--on);border-radius:6px;padding:8px 10px;margin-bottom:8px}
+.pvi{background:var(--bg);border-left:3px solid var(--ac);padding:6px 10px;margin-bottom:8px;display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}
+.pvs{background:var(--bg);border-left:3px solid var(--ac);padding:4px 8px;margin:10px 0 4px;font-weight:700}
+.pvt{color:var(--ac);font-size:11px;font-weight:700;text-transform:uppercase;margin:6px 0 2px}
+.pvc{padding:2px 0;color:var(--mu)}.pvc.on{color:var(--tx);font-weight:700}
+.pvf{display:flex;justify-content:space-between;gap:10px;padding:2px 0;border-bottom:1px solid var(--ln)}.pvf span{color:var(--mu)}.pvf b{text-align:right;font-weight:400;overflow-wrap:anywhere}
+.pvn{color:var(--mu);font-style:italic;padding:2px 0}
+.pvp{display:flex;flex-wrap:wrap;gap:6px}.pvp img{width:72px;height:72px;object-fit:cover;border-radius:6px;border:1px solid var(--ln)}
+.chk{display:flex;align-items:center;gap:14px;width:100%;min-height:56px;padding:10px 14px;margin-bottom:8px;background:var(--sf);border:1px solid var(--ln);border-radius:10px;color:var(--tx);font:inherit;text-align:left}
+.rowc .chk{margin:0;flex:1;min-width:0}
+.chk .bx{flex:none;width:28px;height:28px;border:2px solid var(--mu);border-radius:7px;display:grid;place-items:center;font-weight:700;color:var(--on)}
+.chk.on{border-color:var(--ok)}
+.chk.on .bx{background:var(--ok);border-color:var(--ok)}
+.chk.on .lb{color:var(--mu);text-decoration:line-through}
+.chk.dg{border-color:var(--dg)}
+.chk.dg .bx{background:var(--dg);border-color:var(--dg);color:var(--dgo)}
+.chk.dg .lb{color:var(--tx);text-decoration:none}
+.nb{flex:none;min-width:58px;border:1px solid var(--ln);background:var(--sf);color:var(--mu);border-radius:10px;font:inherit;font-size:13px}
+.nb.has{border-color:var(--ac);color:var(--ac);font-weight:650}
+.nta{min-height:72px;margin:0 0 10px}
+.fld{margin-bottom:12px}
+.fld>label{display:block;font-size:14px;color:var(--mu);margin-bottom:6px}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1;min-width:96px;min-height:52px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);border-radius:10px;font:inherit;padding:0 10px}
+.seg button.on{background:var(--ac);color:var(--on);border-color:var(--ac);font-weight:650}
+.seg button.dgf{background:var(--dg);border-color:var(--dg);color:var(--dgo);font-weight:650}
+input[type=text],textarea,select{width:100%;min-height:52px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);border-radius:10px;font:inherit;padding:12px}
+textarea{min-height:110px;resize:vertical}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.reset{display:block;margin-top:28px;width:100%;min-height:52px;border:1px solid var(--ln);background:none;color:var(--mu);border-radius:10px;font:inherit}
+.reset.ac{color:var(--ac);border-color:var(--ac);font-weight:650}
+.reset.dgo{color:var(--dg);border-color:var(--dg)}
+.reset.tight{margin:0 0 12px}
+.box{border:2px solid var(--dg);border-radius:10px;padding:12px;margin:10px 0 12px}
+.box.wn{border-color:var(--wn)}
+.box .seg{margin-top:10px}
+.fsm button{min-width:0;flex:1 1 30%;min-height:44px;font-size:14px;padding:0 6px}
+.wl{margin:6px 0 8px;padding-left:20px;font-size:14px}
+</style>
+</head>
+
+<body>
+<header><button class="back" id="back" type="button" hidden>Menù</button><h1 id="ttl">Attività tecniche</h1></header>
+<main id="app"></main>
+<script>
+"use strict";
+var app=document.getElementById("app"),ttl=document.getElementById("ttl"),back=document.getElementById("back");
+var S={},view="",ui={},noteTa=null,bkTxt="",bkMsg="",bkNext="",arcMsg="",topMsg="";
+var CL=!!(window.claude&&typeof window.claude.use==="function");
+function rui(){ui={phDel:null,phMsg:"",del:0,delSel:0,pd:0,pdSel:0,md:0,rst:0,notes:{},foc:null,bkPend:null,arc:0,ao:0,ad:0,ap:0,q:""}}
+rui();
+
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function btn(c,x,fn){var b=el("button",c,x);b.type="button";b.onclick=fn;return b}
+function p2(v){return v<10?"0"+v:""+v}
+function C(id,x){return {t:"c",id:id,x:x}}
+function G(id,x,o){return {t:"g",id:id,x:x,o:o}}
+function H(x){return {t:"h",x:x}}
+function H3(x){return {t:"h3",x:x}}
+function T(id,x,a,area){return {t:"t",id:id,x:x,a:a,area:area}}
+function RVC(){var c=C("rv","Tramite rivenditore");c.memo=1;return c}
+function NT(){var t=T("nte","Note tecniche","Solo nel PDF, non nelle note per il rapportino",1);t.cmp=1;return t}
+function grow(t){t.style.height="auto";t.style.height=Math.min(Math.max(t.scrollHeight+2,56),200)+"px"}
+function UPD(s,id,x){var c=C(id,x);c.opt=1;return [c].concat(s[id]?[T(id+"_a","Versione precedente","Es. 1.2.3"),T(id+"_n","Versione installata ora","Es. 1.2.4")]:[])}
+function GRM(){var c=C("grm","Genera RMA automaticamente");c.memo=1;return c}
+var rmaEl=null;
+function rmaGen(s){var src=(s.rv&&String(s.rvn||"").trim())?s.rvn:s.cl,
+ l3=String(src||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z]/g,"").slice(0,3).toUpperCase(),
+ num=[PX[s.r1_md],String(s.r1_mat||"").trim()].filter(Boolean).join("-"),er=String(s.r1_er||"").replace(/\s+/g,"").toUpperCase();
+ return [l3,num,er].filter(Boolean).join("-")}
+function TEC(){return T("tec","Tecnico","Nome del tecnico che esegue l'intervento")}
+
+/* ---------- schede ---------- */
+var PX={"CI-5":"50","CI-10":"100","CI-10X":"200"};
+var V={
+inst:{title:"Installazione",blocks:function(s){
+ var n=+s.n||1,b=[TEC(),T("cv","CV","Codice contratto"),RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),T("se","Sede","Sede"),H("Contratto"),G("bo","SNG Cloud incluso",["Sì","No"]),G("mon","Monitor presente",["Sì","No"])]),i;
+ for(i=1;i<=n;i++){b.push(G("m"+i,"Modello dispositivo "+i,["CI-5","CI-10","CI-10X"]))}
+ b.push({t:"add"},{t:"del"},H("Prima di iniziare"));
+ ["Sito e punto di installazione verificati","Adesivi presenti (codice assistenza e contatti azienda)","Dotazione verificata (cavi, chiavi, manuali)","Pre-configurazione di magazzino verificata","Matricole comunicate al Magazzino","DDT ricevuto","Cliente contattato: punto di installazione predisposto (prese elettriche adeguate, rete attiva e presente)"].forEach(function(t,k){b.push(C("p"+k,t))});
+ var cr=C("car","Carrettino trasporto Glory");cr.memo=1;b.splice(b.length-7,0,cr);
+ b.push(G("sng","Sistema del gestionale del cliente",["Windows","Android"]));
+ if(s.bo==="Sì")["Licenza SNG Cloud creata correttamente","Cliente contattato per informazioni su SNG Cloud e postazioni"].forEach(function(t,k){b.push(C("b"+k,t))});
+ for(i=1;i<=n;i++){var m=s["m"+i],p=PX[m]||"",k="d"+i+"_";
+  b.push(H("Dispositivo "+i+(m?" · "+m:"")),T("a"+i,"RBW"+p+"- (banconote)","Numero di matricola"),T("c"+i,"RCW"+p+"- (monete)","Numero di matricola"),T("mt"+i,"Matricolina dispositivo","Numero"),
+  H3("Installazione"),C(k+"1","Posizionamento e fissaggio"),C(k+"2","Cablaggio e alimentazione dispositivo"));
+  if(s.mon!=="No")b.push(C(k+"3","Cablaggio e alimentazione monitor"));
+  b.push(C(k+"4","Avvio e verifica accensione"),H3("Configurazione"),C(k+"5","Indirizzo IP impostato"),C(k+"6","Collegato alla rete del cliente"),C(k+"7","Interconnessione con il gestionale verificata"),C(k+"11","App cloud SNG installata"),C(k+"12","Cartella assistenza Glory trasferita"),C(k+"13","Cash Tools installato"),
+  H3("Collaudo"));
+  if(m==="CI-5")b.push(C(k+"s8","Deep switch 8 verificato"),C(k+"sd","Verificati diverter"),C(k+"sv","Verificato sensore valigetta"));
+  b.push(C(k+"8","Test di deposito e prelievo"),C(k+"9","Test trasferimento e azzeramento livelli valigetta"),C(k+"10","Sensori e sportelli verificati"))}
+ b.push(H("Tutti i dispositivi"),C("adx","Adesivi di assistenza posizionati"),C("mtx","Matricolina applicata"));
+ if(s.bo==="Sì")b.push(H("SNG Cloud"),C("bi","Software installato"),C("bc","Software configurato"),C("bs","Cliente istruito sul software"));
+ b.push(H("Consegna"),C("f1","Eseguita formazione sul corretto utilizzo del dispositivo"),C("f2","Imballi puliti e ritirati"),C("f3","Chiavi e staffe di fissaggio consegnate"),T("ric","Chiavi consegnate a","Nome"),{t:"sx"},C("f4","Firma del cliente sul rapporto"),NT(),{t:"n"});
+ return b}},
+prep:{title:"Preparazione macchine",blocks:function(s){
+ var b=[TEC(),T("cvc","CV","Codice contratto"),G("m","Modello",["CI-5","CI-10","CI-10X"])];
+ if(!s.m)return b;
+ var c5=s.m==="CI-5";
+ if(!c5){b.push(G("bt","Tipo di basamento a contratto",["Standard","Altro"]));if(s.bt==="Altro")b.push(T("bto","Specifica il basamento","Descrizione"))}
+ var pm=prepMode(s),full=!c5||pm==="Completa",k=1,pf=PX[s.m]?"R":"",t1;
+ if(!c5)b.push(G("mon","Monitor presente nel contratto",["Sì","No"]));
+ else{b.push(G("pt","Tipo di preparazione",["Downgrade CI-5","Completa"]));
+  if(!pm)return b;
+  if(pm==="Completa"){t1=T("mtM","Matricola modulo monete RCW50-","Numero di matricola");t1.opt=1;b.push(t1);
+   t1=T("mtB","Matricola modulo banconote RBW50-","Numero di matricola");t1.opt=1;b.push(t1);
+   t1=T("mtD","Matricolina dispositivo","Numero matricolina");t1.opt=1;b.push(t1);
+   b.push(G("mon","Monitor presente nel contratto",["Sì","No"]))}
+  }
+ if(full){b.push(H(k++ +" · Hardware"));
+  if(c5){
+   b.push(H3("Modulo banconote"),C("nasB","Rimossi i nastri di protezione"),C("dvB","Eseguito settaggio dei diverter"),C("svB","Verificato sensore valigetta"),C("azB","Eseguito azzeramento valigetta"),C("adB","Adesivo BANCONOTE"));
+   b.push(H3("Modulo monete"),C("nas","Rimossi i nastri di protezione"),C("ds8","Deep switch 8 impostato"),C("adM","Adesivo MONETE"))}
+  else{[["b","banconote"],["m","monete"]].forEach(function(p){var k2=p[0],n=p[1];
+   b.push(H3("Modulo "+n),C("bas"+k2,"Basamento collegato"),C("nas"+k2,"Rimossi i nastri di protezione"),G("val"+k2,"Valigetta "+n,["Standard","Motorizzata"]),C("cab"+k2,"Eseguito cablaggio: alimentazione e USB"),C("ad"+k2,"Adesivo "+n.toUpperCase()))});
+   b.push(G("fw","Firmware modulo monete versione 47",["Sì","No"]));if(s.fw==="Sì")b.push(C("ds4","Deep switch 4 impostato"))}}
+ if(c5&&pm==="Downgrade CI-5"){var nd=+s.dn||1,dd,c1;
+  for(dd=1;dd<=nd;dd++){t1=T(mrk(dd),(nd>1?"Dispositivo "+dd+" · matricola ":"Matricola modulo monete ")+"RCW50-","Numero di matricola");t1.opt=1;b.push(t1);
+   c1=C(dgk(dd),"Eseguito downgrade FCC");c1.dv=dd;b.push(c1);c1=C(bkk(dd),"Caricato backup di configurazione base");c1.dv=dd;b.push(c1);c1=C(tsk(dd),"Eseguito test di configurazione");c1.dv=dd;b.push(c1)}
+  b.push({t:"addm"},{t:"delm"})}
+ else b.push(H(k++ +" · Configurazione software"),C("fcc","FCC alimentato a macchina assemblata"),C("dg",c5?"Eseguito downgrade FCC (modulo monete)":"Eseguito downgrade FCC (su basamento modulo banconote)"),C("bk","Caricato backup di configurazione base FCC"),C("tst","Eseguito test di configurazione"));
+ if(!(c5&&!full))b.push(H(k++ +" · Chiusura"));
+ if(c5&&!full){t1=C("imb",(+s.dn||1)>1?"Moduli reimballati con nastro SNG":"Modulo monete reimballato con nastro SNG");t1.pl="Reimballo eseguito";b.push(t1);t1=C("ass","Associato a modulo banconote imballato");t1.opt=1;b.push(t1)}
+ else{if(full){var kc=c5?"rosse e gialle":"rosse, gialle e blu",kt=C("chv","Chiavi macchina ("+kc+")"+(s.mon==="Sì"?" inserite nella scatola del monitor":""));b.push(kt);
+   if(s.mon!=="Sì"){t1=T("chp","Dove sono state messe le chiavi","Es. nella valigetta banconote");t1.opt=1;b.push(t1)}}
+  b.push(C("imb","Reimballo eseguito"));
+  if(c5)b.push(C("cv","Cavi di alimentazione e rete inseriti nell'imballo"));
+  else if(s.mon==="Sì")b.push(C("hd","Cavo HDMI 3 m inserito nell'imballo"),C("et","Cavo Ethernet (min. 3 m) inserito nell'imballo"))}
+ b.push(NT());
+ return b}},
+rip:{title:"Riparazioni in laboratorio",blocks:function(s){
+ var rn=+s.rn||1,i,b=[TEC(),RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),GRM(),T("rma","RMA","Codice RMA"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]}]);
+ for(i=1;i<=rn;i++){var p="r"+i+"_",mi=modInfo(s,p);
+  b.push(H("Modulo "+i+(mi.t?" · "+mi.n+(mi.m?" · "+mi.m:""):"")),G(p+"tp","Tipo di modulo",["Banconote","Monete"]),G(p+"md","Modello",["CI-5","CI-10","CI-10X"]),T(p+"mat","Matricola"+(mi.sig?" "+mi.sig:""),"Numero di matricola"),
+   H3("Diagnosi e intervento"),T(p+"er","Codice errore","Es. 1234"),T(p+"pb","Problematica riscontrata","Descrivi il problema",1));
+  for(var pi=1;pi<=(+s[p+"np"]||0);pi++)b.push(T(p+"pz"+pi,"Pezzo sostituito "+pi,"Quale pezzo"));
+  b.push({t:"addp",p:p},{t:"delp",p:p},T(p+"pr","Interventi eseguiti","Descrivi gli interventi (es. rimozione corpo estraneo, disassemblaggio)",1),
+   H3("Aggiornamenti"));
+  b=b.concat(UPD(s,p+"ucp","Aggiornamento firmware CPU"));
+  if(mi.t!=="C")b=b.concat(UPD(s,p+"ubv","Aggiornamento BV (lettore banconote)"));
+  b.push(H3("Test"),C(p+"acc","Test di accensione"),C(p+"res","Reset"),C(p+"cnt","Prova con "+(mi.t==="C"?"monete":mi.t==="B"?"banconote":"contante")),
+   H3("Esito"),C(p+"ok","Dispositivo riparato"),C(p+"nr","Macchina non riparabile"));
+  if(s[p+"ok"]&&!s[p+"nr"]){b.push(G(p+"de","Destinazione",["Reimballo","Reinstallazione in loco","Spedizione"]));
+   if(s[p+"de"]==="Spedizione")b.push(G(p+"sp","Spedire a",["Cliente","Rivenditore","Tecnico di zona"]))}}
+ b.push({t:"mod"},NT(),{t:"n"});
+ return b}},
+loc:{title:"Interventi in loco",blocks:function(s){
+ var U=locUnits(s),i,fl=C("fl","Contratto full: aggiornamenti inclusi");fl.memo=1;
+ var b=[TEC(),T("rf","Riferimento intervento","Codice chiamata o ticket"),RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),T("se","Sede","Sede"),fl,{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},
+  G("sc","Intervento su",["Modulo banconote","Modulo monete","Entrambi i moduli","Dispositivo / altro"]),G("md","Modello dispositivo",["CI-5","CI-10","CI-10X"]),T("mt","Matricolina dispositivo","Facoltativo"),
+  H("Controlli effettuati"),C("ct1","Alimentazione e cavi verificati"),C("ct2","Collegamento di rete verificato"),C("ct3","Sportelli e sensori verificati")]);
+ if(s.sc==="Dispositivo / altro"){var si=0;b.forEach(function(x,k){if(x.id==="sc")si=k});b.splice(si+1,0,T("sp","Specifica","Es. monitor, stampante, PC"))}
+ if(U.length)b.push(H("Guasto e intervento"));
+ U.forEach(function(u){var p=u.p;
+  b.push(H3(u.l));
+  if(u.m)b.push(T(p+"mat","Matricola"+(u.sig?" "+u.sig:""),"Numero di matricola"));
+  b.push(T(p+"er","Codice errore","Es. 1234"),T(p+"pb","Problematica riscontrata","Descrivi il problema",1),T(p+"pr","Interventi eseguiti","Descrivi gli interventi (anche pezzi riparati in loco)",1));
+  for(var pi=1;pi<=(+s[p+"np"]||0);pi++)b.push(T(p+"pz"+pi,"Pezzo sostituito "+pi,"Quale pezzo"));
+  b.push({t:"addp",p:p},{t:"delp",p:p})});
+ b.push(H("Aggiornamenti"));
+ b.push(H3("Modulo banconote"));b=b.concat(UPD(s,"ubc","Aggiornamento firmware CPU"),UPD(s,"ubb","Aggiornamento BV (lettore banconote)"));
+ b.push(H3("Modulo monete"));b=b.concat(UPD(s,"umc","Aggiornamento firmware CPU"));
+ b.push(H3("FCC"));b=b.concat(UPD(s,"ufc","Aggiornamento FCC"));
+ if(U.length){var rv=C("rev","Pulizia e revisione del dispositivo");rv.opt=1;b.push(H("Collaudo finale"),rv);
+  U.forEach(function(u){var p=u.p;
+   b.push(H3(u.l),C(p+"acc","Test di accensione"),C(p+"res","Reset"),C(p+"cnt","Prova con "+(u.t==="C"?"monete":u.t==="B"?"banconote":"contante")),
+    C(p+"ok","Problema risolto"),C(p+"nr","Problema non risolto"));
+   if(s[p+"nr"]&&!s[p+"ok"])b.push(G(p+"de","Destinazione",["Ritiro per riparazione in laboratorio","Nuovo intervento"]))})}
+ b.push(NT(),{t:"n"});
+ return b}},
+altro:{title:"Altre attività",blocks:function(s){
+ var b=[TEC(),G("tp","Tipo di attività",["Installazione","Riparazione","Altro"]),G("rf","Riferimento",["CV","RMA"])];
+ if(s.rf)b.push(T("rc",s.rf,"Codice "+(s.rf==="CV"?"contratto":"RMA")));
+ b.push(T("ti","Titolo","Es. Installazione blindatura"),T("mt","Modello","Facoltativo"),T("ma","Matricola","Facoltativo"),
+  T("de","Descrizione dell'intervento","Descrivi cosa è stato fatto",1),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},G("es","Esito",["Eseguito","Non eseguito"]),NT(),{t:"n"});
+ return b}}
+};
+var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Riparazione in laboratorio"],["loc","Intervento in loco"],["altro","Altra attività"]];
+
+/* ---------- salvataggio della scheda in corso (solo su questo dispositivo) ---------- */
+var LS=null;
+try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
+function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
+var VER=33,svEl=null;
+function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
+function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
+function load(v){var s=null;try{s=JSON.parse(lsGet("gla_"+v))}catch(e){}if(!s||typeof s!=="object"||Array.isArray(s))s={};if(!s.tec){var tc=lsGet("gla_tec");if(tc)s.tec=tc}return s}
+function save(){if(view)lsSet("gla_"+view,JSON.stringify(S))}
+
+/* ---------- testi per il rapportino ---------- */
+var DLP=null;
+try{if(CL)window.claude.use("downloads").then(function(d){DLP=d||null},function(){})}catch(e){}
+function prepMode(s){return s.pt==="Downgrade FCC"?"Downgrade CI-5":(s.pt||(s.cfull?"Completa":""))}
+function mrk(i){return i===1?"mtM":"mtM"+i}
+function dgk(i){return i===1?"dg":"dg"+i}
+function bkk(i){return i===1?"bk":"bk"+i}
+function tsk(i){return i===1?"tst":"tst"+i}
+function dgCount(){return +S.dn||1}
+function mnorm(v){return String(v||"").replace(/\s+/g,"").toUpperCase()}
+function mIdx(id){return id==="mtM"?1:+id.slice(3)}
+function dupOf(id,val){var v=mnorm(val),n=+S.dn||1,k,me=mIdx(id);if(!v)return 0;for(k=1;k<=n;k++)if(k!==me&&mnorm(S[mrk(k)])===v)return k;return 0}
+function delRow(j){var n=+S.dn||1,i,f=[mrk,dgk,bkk,tsk];for(i=j;i<n;i++)f.forEach(function(g){if(S[g(i+1)])S[g(i)]=S[g(i+1)];else delete S[g(i)]});f.forEach(function(g){delete S[g(n)]});S.dn=Math.max(1,n-1);save()}
+function prepMat(k){var pf={mtM:"RCW50-",mtB:"RBW50-"}[k],v=String(S[k]||"").trim();return v?pf+v:""}
+function modInfo(s,p){var t=s[p+"tp"]==="Banconote"?"B":s[p+"tp"]==="Monete"?"C":"",m=s[p+"md"]||"",n=PX[m]||"",sg=t&&n?"R"+t+"W"+n+"-":"";
+ return {t:t,n:t==="B"?"banconote":t==="C"?"monete":"",m:m,sig:sg,full:sg+(s[p+"mat"]||"…")}}
+function ripText(s){var rn=+s.rn||1,o=[],i,j;
+ o.push("RMA: "+(s.rma||"…"));
+ for(i=1;i<=rn;i++){var p="r"+i+"_",mi=modInfo(s,p),pz=[],ag=[],ts=s[p+"acc"]||s[p+"res"]||s[p+"cnt"];
+  for(j=1;j<=(+s[p+"np"]||0);j++)if(s[p+"pz"+j])pz.push(s[p+"pz"+j]);
+  o.push("","Modulo "+(mi.n||"")+(mi.m?" "+mi.m:"")+" "+mi.full+".");
+  if(s[p+"er"])o.push("Codice errore: "+String(s[p+"er"]).trim()+".");
+  if(s[p+"pb"])o.push("Problematica riscontrata: "+String(s[p+"pb"]).trim());
+  if(s[p+"pr"])o.push("Interventi eseguiti: "+String(s[p+"pr"]).trim());
+  if(pz.length)o.push("Per ripristinare il corretto funzionamento "+(pz.length>1?"sono stati sostituiti i componenti: ":"è stato sostituito il componente: ")+pz.join(", ")+".");
+  if(ts)o.push("Eseguite prove di funzionamento"+(s[p+"ok"]?" con esito positivo":"")+".");
+  if(s[p+"ucp"])ag.push("firmware CPU");if(s[p+"ubv"])ag.push("BV");
+  if(ag.length)o.push("Eseguito aggiornamento "+ag.join(" e ")+".");
+  if(s[p+"ok"])o.push("Dispositivo ripristinato.");else if(s[p+"nr"])o.push("Macchina non riparabile.")}
+ return o.join("\n")}
+function locUnits(s){var P=PX[s.md]||"",o=[];
+ function mod(p,t){var sg=P?"R"+t+"W"+P+"-":"";o.push({p:p,t:t,m:1,l:t==="B"?"Modulo banconote":"Modulo monete",n:t==="B"?"banconote":"monete",sig:sg,full:sg+(s[p+"mat"]||"…")})}
+ if(s.sc==="Modulo banconote")mod("r1_","B");else if(s.sc==="Modulo monete")mod("r1_","C");
+ else if(s.sc==="Entrambi i moduli"){mod("r1_","B");mod("r2_","C")}
+ else if(s.sc==="Dispositivo / altro")o.push({p:"d_",t:"",m:0,l:String(s.sp||"").trim()||"Dispositivo",n:"",sig:"",full:""});
+ return o}
+function locText(s){var U=locUnits(s),o=[],ag=[],i,j,m=U.length>1;
+ U.forEach(function(u,k){var p=u.p,pz=[];
+  for(j=1;j<=(+s[p+"np"]||0);j++)if(s[p+"pz"+j])pz.push(s[p+"pz"+j]);
+  if(k)o.push("");
+  o.push(u.m?"Modulo "+u.n+(s.md?" "+s.md:"")+" "+u.full+".":(String(s.sp||"").trim()?"Intervento su "+String(s.sp).trim():"Dispositivo"+(s.md?" "+s.md:""))+(s.mt?" (matricolina "+s.mt+")":"")+".");
+  if(s[p+"er"])o.push("Codice errore: "+String(s[p+"er"]).trim()+".");
+  if(s[p+"pb"])o.push("Problematica riscontrata: "+String(s[p+"pb"]).trim());
+  if(s[p+"pr"])o.push("Interventi eseguiti: "+String(s[p+"pr"]).trim());
+  if(pz.length)o.push("Per ripristinare il corretto funzionamento "+(pz.length>1?"sono stati sostituiti i componenti: ":"è stato sostituito il componente: ")+pz.join(", ")+".")});
+ if(s.rev){if(U.length>1)o.push("");o.push("Contestualmente eseguita revisione generale del dispositivo.")}
+ var ap=[];if(s.ubb)ap.push("BV");if(s.ubc&&s.umc)ap.push("firmware CPU di entrambi i moduli");else if(s.ubc)ap.push("firmware CPU del modulo banconote");else if(s.umc)ap.push("firmware CPU del modulo monete");if(s.ufc)ap.push("FCC");
+ if(ap.length)ag.push("Eseguito aggiornamento "+(ap.length>1?ap.slice(0,-1).join(", ")+" e "+ap[ap.length-1]:ap[0])+".");
+ if(ag.length){o.push("");ag.forEach(function(l){o.push(l)})}
+ var te=[],st=[];
+ U.forEach(function(u){var p=u.p,ok=s[p+"ok"],nr=s[p+"nr"]&&!ok;
+  if(s[p+"acc"]||s[p+"res"]||s[p+"cnt"])te.push("Eseguite prove di funzionamento"+(m&&u.m?" del modulo "+u.n:"")+(ok?" con esito positivo":"")+".");
+  if(ok)st.push({u:u,k:"ok"});else if(nr)st.push({u:u,k:"nr",d:s[p+"de"]||""})});
+ if(te.length){o.push("");te.forEach(function(l){o.push(l)})}
+ if(st.length){o.push("");
+  var same=st.every(function(x){return x.k===st[0].k}),dsame=st.every(function(x){return x.d===st[0].d});
+  function dl(d){return d==="Nuovo intervento"?"Necessario nuovo intervento.":d?"Dispositivo da ritirare per riparazione in laboratorio.":""}
+  if(same&&st[0].k==="ok"&&st.length===U.length)o.push("Dispositivo ripristinato e lasciato operativo.");
+  else if(same&&st[0].k==="nr"&&st.length===U.length&&dsame){o.push("Problema non risolto.");if(dl(st[0].d))o.push(dl(st[0].d))}
+  else st.forEach(function(x){var t=x.u.m?"Modulo "+x.u.n+": ":"";
+   if(x.k==="ok")o.push(t+"dispositivo ripristinato e lasciato operativo.");else{o.push(t+"problema non risolto."+(dl(x.d)?" "+dl(x.d):""))}})}
+ return o.join("\n")}
+function altroText(s){var o=[(s.tp||"Attività")+(s.ti?": "+s.ti:"")+"."],d=[s.mt,s.ma].filter(Boolean).join(" ");
+ if(d)o.push("Dispositivo: "+d+".");if(s.de)o.push(String(s.de).trim());if(s.es)o.push("Esito: "+s.es.toLowerCase()+".");
+ return o.join("\n")}
+function notes(s){var sn=s.sng==="Android"?"SNG 3":s.sng==="Windows"?"SNG Suite":"…",n=+s.n||1,o=[],l=[],big=0,ic=0,ts=1,i,pl=n>1;
+ for(i=1;i<=n;i++){var m=s["m"+i]||"[modello]",p=PX[s["m"+i]]||"";if(s["m"+i]&&m!=="CI-5")big=1;
+  if(s["d"+i+"_7"])ic=1;if(!s["d"+i+"_8"])ts=0;
+  o.push("Installato dispositivo Glory "+m+".","RBW"+p+"-"+(s["a"+i]||"…"),"RCW"+p+"-"+(s["c"+i]||"…"),"Matricolina dispositivo: "+(s["mt"+i]||"…"),"")}
+ if(ts)l.push("Eseguiti test di funzionamento "+(pl?"dei dispositivi":"del dispositivo")+" con esito positivo.");
+ if(ic)l.push("Eseguita interconnessione con il gestionale del cliente.");
+ if(s.bo==="Sì"&&(s.bi||s.bc))l.push((s.bi&&s.bc?"Installato e configurato":s.bi?"Installato":"Configurato")+" "+sn+".");
+ if(l.length)o.push(l.join(" "),"");
+ if(s.f1)o.push("Illustrato al cliente il corretto utilizzo "+(pl?"dei dispositivi":"del dispositivo")+" e le principali manovre di ripristino.","");
+ if(s.bo==="Sì"&&s.bs)o.push("Illustrato al cliente il corretto utilizzo di "+sn+" e le principali funzionalità.","");
+ o.push("Istruito il cliente sul fissaggio "+(pl?"dei dispositivi":"del dispositivo")+", a suo carico. Consigliata l’alimentazione "+(pl?"dei dispositivi":"del dispositivo")+" tramite UPS.");
+ if(s.f3)o.push("","Consegnate "+(s.ge==="F"?(s.tt==="D"?"alla dott.ssa ":s.tt==="S"?"alla sig.ra ":"alla dott.ssa/sig.ra "):(s.tt==="D"?"al dott. ":s.tt==="S"?"al sig. ":"al dott./sig. "))+(s.ric||"______________")+" le chiavi "+(pl?"dei dispositivi":"del dispositivo")+": rosse, gialle"+(big?" e blu":"")+".");
+ return o.join("\n")}
+function noteText(){return view==="inst"?notes(S):view==="rip"?ripText(S):view==="loc"?locText(S):altroText(S)}
+
+/* ---------- controllo prima di copiare ---------- */
+function check(bl){var bad=[],warn=[],s=S,i,n,sec="";
+ function has(k){return !!String(s[k]||"").trim()}
+ function need(k,t){if(!has(k))bad.push(t)}
+ function want(k,t){if(!has(k))warn.push(t)}
+ want("tec","Nome del tecnico");
+ if(view==="inst"){n=+s.n||1;
+  for(i=1;i<=n;i++){need("m"+i,"Modello del dispositivo "+i);need("a"+i,"Matricola banconote del dispositivo "+i);need("c"+i,"Matricola monete del dispositivo "+i);want("mt"+i,"Matricolina del dispositivo "+i)}
+  if(s.bo==="Sì")need("sng","Sistema del gestionale del cliente (Windows o Android)");
+  want("cv","Codice contratto (CV)");if(s.rv)want("rvn","Rivenditore");want("cl","Cliente");if(s.f3)want("ric","Nome di chi riceve le chiavi")}
+ else if(view==="loc"){need("rf","Riferimento dell'intervento");need("sc","Su cosa è stato fatto l'intervento");if(s.sc==="Dispositivo / altro")need("sp","Specifica il dispositivo o l'oggetto dell'intervento");else need("md","Modello del dispositivo");if(s.rv)want("rvn","Rivenditore");want("cl","Cliente");
+  locUnits(s).forEach(function(u){var q=u.p;if(u.m)need(q+"mat","Matricola del "+u.l.toLowerCase());
+   if(!s[q+"ok"]&&!s[q+"nr"])bad.push("Esito: "+u.l+" (risolto o non risolto)");
+   want(q+"pb","Problematica riscontrata ("+u.l.toLowerCase()+")");want(q+"pr","Interventi eseguiti ("+u.l.toLowerCase()+")")});
+  if(s.fl){if(!s.rev)warn.push("Contratto full: pulizia e revisione del dispositivo non eseguita");if(!s.ufc&&!s.ubc&&!s.ubb&&!s.umc)warn.push("Contratto full: nessun aggiornamento eseguito (firmware CPU, BV, FCC)")}
+  want("ore","Ore di manodopera")}
+ else if(view==="rip"){need("rma","Codice RMA");n=+s.rn||1;
+  for(i=1;i<=n;i++){var p="r"+i+"_";need(p+"tp","Tipo del modulo "+i);need(p+"md","Modello del modulo "+i);need(p+"mat","Matricola del modulo "+i);
+   if(!s[p+"ok"]&&!s[p+"nr"])bad.push("Esito del modulo "+i+" (riparato o non riparabile)");
+   want(p+"pb","Problematica riscontrata sul modulo "+i);want(p+"pr","Interventi eseguiti sul modulo "+i)}
+  want("ore","Ore di manodopera")}
+ else if(view==="prep"){if(s.m&&(s.m!=="CI-5"||prepMode(s)==="Completa")&&s.mon!=="Sì"&&!has("chp"))warn.push("Dove sono state messe le chiavi (monitor assente)");if(prepMode(s)==="Downgrade CI-5"){var sn={},dk,dv0;for(dk=1;dk<=(+s.dn||1);dk++){dv0=mnorm(s[mrk(dk)]);if(!dv0)continue;if(sn[dv0])warn.push("Matricola duplicata: "+s[mrk(dk)]+" (dispositivi "+sn[dv0]+" e "+dk+")");else sn[dv0]=dk}}}
+  else{need("ti","Titolo dell'attività");need("de","Descrizione dell'intervento");
+  if(s.rf)want("rc","Codice "+s.rf);else warn.push("Riferimento CV o RMA");want("es","Esito");want("ore","Ore di manodopera")}
+ bl.forEach(function(x){if(x.t==="h")sec=x.x;else if(x.t==="c"&&!x.memo&&!x.opt&&!s[x.id]&&!/^(r\d_|d_)(ok|nr|agc|agb)$/.test(x.id))warn.push("Non spuntata: "+x.x+(x.dv?" · dispositivo "+x.dv:"")+(sec?" ("+sec+")":""))});
+ return {bad:bad,warn:warn}}
+function cpy(t,ok,ko){var f=function(){var a=document.createElement("textarea"),r=false;a.value=t;a.style.position="fixed";a.style.opacity="0";document.body.append(a);a.select();try{r=document.execCommand("copy")}catch(e){}a.remove();if(r)ok();else if(ko)ko()};
+ try{navigator.clipboard.writeText(t).then(ok,f)}catch(e){f()}}
+function wlist(bx,a){var u=el("ul","wl");a.slice(0,12).forEach(function(t){u.append(el("li",0,t))});if(a.length>12)u.append(el("li",0,"e altre "+(a.length-12)+" voci"));bx.append(u)}
+function doCopy(cb,cm){var t=noteText();if(noteTa)noteTa.value=t;cm.textContent="";
+ cpy(t,function(){cb.textContent="Copiato";setTimeout(function(){cb.textContent="Copia note"},1800)},function(){cm.textContent="Copia non riuscita: seleziona il testo qui sopra e copialo a mano."})}
+function tryCopy(cb,cm){var r=check(V[view].blocks(S));cm.textContent="";
+ if(!r.bad.length&&!r.warn.length){doCopy(cb,cm);return}
+ var bx=el("div",r.bad.length?"box":"box wn");bx.setAttribute("role","alert");
+ if(r.bad.length){bx.append(el("b",0,"Non copio: mancano dati fondamentali"));wlist(bx,r.bad)}
+ if(r.warn.length){bx.append(el("b",0,r.bad.length?"Da controllare":"Prima di copiare, controlla"));wlist(bx,r.warn)}
+ if(!r.bad.length){var sg=el("div","seg");sg.append(btn("on","Copia comunque",function(){doCopy(cb,cm)}),btn("","Annulla",function(){cm.textContent=""}));bx.append(sg)}
+ cm.append(bx)}
+/* ---------- PDF ---------- */
+function prog(bl,s,all){var t=0,d=0;bl.forEach(function(x){if(x.memo||x.opt)return;if(x.t==="c"||(all&&(x.t==="g"||x.t==="sel"))){if(/^(r\d_|d_)nr$/.test(x.id))return;t++;
+  if(s[x.id]||(/^(r\d_|d_)ok$/.test(x.id)&&s[x.id.replace("_ok","_nr")]))d++}});return {t:t,d:d}}
+function pdfBase(){var v=view==="inst"?S.cl:view==="prep"?S.cvc:view==="rip"?S.rma:view==="loc"?(S.cl||S.rf):S.ti;return String(v||view)}
+var PSKIP={inst:["tec","cv","cl","se","rvn","nte"],prep:["tec","cvc","nte","mtM","mtB","mtD"],rip:["tec","rma","rvn","cl","nte"],loc:["tec","rf","cl","se","rvn","nte"],altro:["tec","nte"]};
+function pdfEnc(t){return String(t==null?"":t).replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,"-").replace(/≥/g,">=").replace(/…/g,"...").replace(/\s/g," ").replace(/[^\x20-\xFF]/g,"?")}
+function pdfEsc(t){return pdfEnc(t).replace(/[\\()]/g,"\\$&")}
+function pdfWrap(t,n){var l=[];String(t==null?"":t).split(/\r?\n/).forEach(function(par){var c="";
+  par.split(" ").forEach(function(z){while(z.length>n){if(c){l.push(c);c=""}l.push(z.slice(0,n));z=z.slice(n)}
+   if(c&&(c+" "+z).length>n){l.push(c);c=z}else c=c?c+" "+z:z});
+  l.push(c)});
+ return l.length?l:[""]}
+function buildPdf(meta,rows){
+ var W=595,HH=842,M=42,BLUE=[0.12,0.37,0.60],GREEN=[0.12,0.48,0.30],RED=[0.76,0.23,0.13],G1=[0.95,0.96,0.97],G2=[0.90,0.92,0.94],TXT=[0.08,0.10,0.11],MUT=[0.42,0.46,0.50],pages=[],ops,y,i,k;
+ function c3(a){return a.map(function(v){return v.toFixed(3)}).join(" ")}
+ function np(){ops=[];pages.push(ops);y=HH-M;if(pages.length>1){ops.push(c3(BLUE)+" RG 1.2 w "+M+" "+(HH-26)+" m "+(W-M)+" "+(HH-26)+" l S");y=HH-M-8}}
+ function need(h){if(y-h<M+22)np()}
+ function rect(x,yy,w,h,col){ops.push(c3(col)+" rg "+x.toFixed(1)+" "+yy.toFixed(1)+" "+w.toFixed(1)+" "+h.toFixed(1)+" re f")}
+ function frame(x,yy,w,h,col,lw){ops.push(c3(col)+" RG "+(lw||0.6)+" w "+x.toFixed(1)+" "+yy.toFixed(1)+" "+w.toFixed(1)+" "+h.toFixed(1)+" re S")}
+ function tx(f,s,x,yy,t,col){ops.push("BT /"+f+" "+s+" Tf "+c3(col||TXT)+" rg "+x.toFixed(1)+" "+yy.toFixed(1)+" Td ("+pdfEsc(t)+") Tj ET")}
+ function tw(t,s){return pdfEnc(t).length*s*0.5}
+ function cl(t,n){t=String(t==null?"":t);return t.length>n?t.slice(0,n-3)+"...":t}
+ np();
+ var bandH=52,pn=(meta.fn||pdfName()).replace(/\.pdf$/,"");
+ rect(0,HH-bandH,W,bandH,BLUE);tx("F2",16,M,HH-27,meta.title,[1,1,1]);tx("F1",8,M,HH-42,"Documento interno",[0.82,0.90,0.97]);
+ tx("F1",8,W-M-tw(meta.date,8),HH-27,meta.date,[1,1,1]);
+ y=HH-bandH-14;
+ var info=[],prg="";
+ meta.lines.forEach(function(l){if(/^Voci completate/.test(l)){prg=l;return}var j=l.indexOf(": ");info.push(j<0?["",l]:[l.slice(0,j),l.slice(j+2)])});
+ var bh=Math.ceil(info.length/2)*25+8;
+ rect(M,y-bh,W-2*M,bh,G1);rect(M,y-bh,3,bh,BLUE);
+ info.forEach(function(p,j){var col=j%2,row=Math.floor(j/2),x=M+14+col*((W-2*M)/2),yy=y-15-row*25;tx("F2",7,x,yy,p[0].toUpperCase(),MUT);tx("F1",9,x,yy-9,cl(p[1],48),TXT)});
+ y-=bh+10;
+ var mm=/(\d+) di (\d+)/.exec(prg),dn=mm?+mm[1]:0,tt=mm?+mm[2]:0;
+ tx("F2",8,M,y-8,"Voci completate",MUT);tx("F1",8,M+74,y-8,dn+" di "+tt,TXT);
+ var bx=M+120,bw=W-2*M-120;rect(bx,y-10,bw,6,G2);rect(bx,y-10,tt?bw*dn/tt:0,6,GREEN);
+ y-=24;
+ var alt=0,R=rows.filter(function(r,j,a){return !(r.k==="h3"&&(!a[j+1]||a[j+1].k==="h"||a[j+1].k==="h3"))});
+ for(i=0;i<R.length;i++){var r=R[i];
+  if(r.k!=="f")alt=0;
+  if(r.k==="h"){need(34);y-=6;rect(M,y-17,W-2*M,17,G2);rect(M,y-17,4,17,BLUE);tx("F2",10,M+12,y-12,r.x,TXT);y-=22}
+  else if(r.k==="h3"){need(24);y-=2;tx("F2",7.5,M+2,y-8,r.x.toUpperCase(),BLUE);y-=13}
+  else if(r.k==="c"){var L=pdfWrap(r.x,96),hh=L.length*11+5;need(hh+2);
+   var es=/^(Problema (non )?risolto|Dispositivo riparato|Macchina non riparabile)$/.test(r.x)&&r.d,ko=es&&/non/.test(r.x);
+   if(es)rect(M,y-hh+1,W-2*M,hh-1,ko?[0.99,0.92,0.90]:[0.90,0.96,0.92]);
+   var col=r.d?(ko?RED:GREEN):null;
+   if(r.d){rect(M+6,y-10,9,9,col);ops.push("1 1 1 RG 1.4 w "+(M+7.9)+" "+(y-5.4)+" m "+(M+9.6)+" "+(y-7.8)+" l "+(M+13)+" "+(y-2.6)+" l S")}
+   else frame(M+6,y-10,9,9,[0.6,0.64,0.68],0.8);
+   L.forEach(function(s,j){tx(r.d?"F2":"F1",9,M+24,y-8.5-j*11,s,r.d?TXT:MUT)});
+   y-=hh}
+  else if(r.k==="f"){var L2=pdfWrap(r.v,76),LB=pdfWrap(r.x.toUpperCase(),28),h2=Math.max(L2.length,LB.length)*11+6;need(h2);
+   if(alt%2===0)rect(M,y-h2+2,W-2*M,h2,G1);alt++;
+   LB.forEach(function(s,j){tx("F2",7.5,M+8,y-8.5-j*11,s,MUT)});L2.forEach(function(s,j){tx("F1",9,M+160,y-8.5-j*11,s)});y-=h2}
+  else if(r.k==="dv"){need(18);if(alt%2===0)rect(M,y-16,W-2*M,16,G1);alt++;
+    tx("F2",7.5,M+8,y-11,r.x.toUpperCase(),MUT);tx("F1",9,M+100,y-11,r.v);
+    r.m.forEach(function(q,j){var bx=M+190+[0,95,200][j];if(q[1]){rect(bx,y-12,9,9,GREEN);ops.push("1 1 1 RG 1.4 w "+(bx+1.9)+" "+(y-7.4)+" m "+(bx+3.6)+" "+(y-9.8)+" l "+(bx+7)+" "+(y-4.6)+" l S")}else frame(bx,y-12,9,9,[0.6,0.64,0.68],0.8);
+     tx(q[1]?"F2":"F1",8,bx+13,y-10.5,q[0],q[1]?TXT:MUT)});y-=16;if(!R[i+1]||R[i+1].k!=="dv")y-=6}
+   else if(r.k==="tl"){need(20);y-=6;tx("F1",9,M+8,y-9,r.x,TXT);y-=16}
+   else if(r.k==="nt"){var L3=pdfWrap("Nota: "+r.x,106);need(L3.length*10+4);L3.forEach(function(s,j){tx("F3",8,M+24,y-8-j*10,s,MUT)});y-=L3.length*10+4}
+  else if(r.k==="li"){var g=[];while(i<R.length&&R[i].k==="li"){g.push(R[i].x);i++}i--;
+   var h4=g.length*11+10;need(h4+4);frame(M,y-h4,W-2*M,h4,[0.65,0.70,0.75],0.7);g.forEach(function(s,j){tx("F1",9,M+10,y-13-j*11,s)});y-=h4+5}
+ }
+ var F=PH[view]||[],tp=pages.length+F.length;
+ function foot(o,nr){o.push(c3([0.75,0.78,0.81])+" RG 0.5 w "+M+" 32 m "+(W-M)+" 32 l S");
+  o.push("BT /F1 8 Tf "+c3(MUT)+" rg "+M+" 20 Td ("+pdfEsc(pn)+") Tj ET");
+  var pg="Pagina "+nr+" di "+tp;o.push("BT /F1 8 Tf "+c3(MUT)+" rg "+(W-M-pg.length*4)+" 20 Td ("+pg+") Tj ET")}
+ pages.forEach(function(o,j){foot(o,j+1)});
+ var objs=[],n=pages.length,kids=[];
+ objs[1]="<</Type/Catalog/Pages 2 0 R>>";
+ objs[3]="<</Type/Font/Subtype/Type1/BaseFont/Helvetica/Encoding/WinAnsiEncoding>>";
+ objs[4]="<</Type/Font/Subtype/Type1/BaseFont/Helvetica-Bold/Encoding/WinAnsiEncoding>>";
+ objs[5]="<</Type/Font/Subtype/Type1/BaseFont/Helvetica-Oblique/Encoding/WinAnsiEncoding>>";
+ var FR="<</Font<</F1 3 0 R/F2 4 0 R/F3 5 0 R>>";
+ pages.forEach(function(o,j){var c=o.join("\n");objs[6+2*j]="<</Length "+c.length+">>\nstream\n"+c+"\nendstream";
+  objs[7+2*j]="<</Type/Page/Parent 2 0 R/MediaBox[0 0 "+W+" "+HH+"]/Resources"+FR+">>/Contents "+(6+2*j)+" 0 R>>";kids.push((7+2*j)+" 0 R")});
+ var base=6+2*n;
+ F.forEach(function(f,j){var io=base+3*j,mw=W-2*M,mh=HH-2*M-70,kk=Math.min(mw/f.w,mh/f.h),w=f.w*kk,h=f.h*kk,x=M+(mw-w)/2,yy=HH-M-60-h;ops=[];
+  rect(0,HH-64,W,64,BLUE);tx("F2",14,M,HH-38,"Foto "+(j+1),[1,1,1]);tx("F1",9,M,HH-54,f.n,[0.82,0.90,0.97]);
+  ops.push("q "+w.toFixed(1)+" 0 0 "+h.toFixed(1)+" "+x.toFixed(1)+" "+yy.toFixed(1)+" cm /Im0 Do Q");
+  frame(x,yy,w,h,[0.65,0.70,0.75],0.7);foot(ops,n+j+1);
+  var c=ops.join("\n");
+  objs[io]="<</Type/XObject/Subtype/Image/Width "+f.w+"/Height "+f.h+"/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length "+f.b.length+">>\nstream\n"+f.b+"\nendstream";
+  objs[io+1]="<</Length "+c.length+">>\nstream\n"+c+"\nendstream";
+  objs[io+2]="<</Type/Page/Parent 2 0 R/MediaBox[0 0 "+W+" "+HH+"]/Resources<</Font<</F1 3 0 R/F2 4 0 R>>/XObject<</Im0 "+io+" 0 R>>>>/Contents "+(io+1)+" 0 R>>";
+  kids.push((io+2)+" 0 R")});
+ objs[2]="<</Type/Pages/Kids["+kids.join(" ")+"]/Count "+kids.length+">>";
+ var out="%PDF-1.4\n",off=[];
+ for(k=1;k<objs.length;k++){off[k]=out.length;out+=k+" 0 obj\n"+objs[k]+"\nendobj\n"}
+ var xr=out.length;out+="xref\n0 "+objs.length+"\n0000000000 65535 f \n";
+ for(k=1;k<objs.length;k++)out+=("0000000000"+off[k]).slice(-10)+" 00000 n \n";
+ out+="trailer\n<</Size "+objs.length+"/Root 1 0 R>>\nstartxref\n"+xr+"\n%%EOF";
+ var u=new Uint8Array(out.length);for(k=0;k<out.length;k++)u[k]=out.charCodeAt(k)&255;
+ return u}
+function pdfRows(bl){var r=[];bl.forEach(function(x){
+ if(x.t==="h")r.push({k:"h",x:x.x});else if(x.t==="h3")r.push({k:"h3",x:x.x});
+ else if(x.t==="c"){if(x.memo||(x.opt&&!S[x.id]))return;if(x.dv&&view==="prep"&&prepMode(S)==="Downgrade CI-5")return;r.push({k:"c",x:x.pl||x.x,d:!!S[x.id]});if(S["nt_"+x.id])r.push({k:"nt",x:S["nt_"+x.id]})}
+ else if(view==="prep"&&x.t==="t"&&/^mtM\d*$/.test(x.id)&&prepMode(S)==="Downgrade CI-5"){{var mi=x.id==="mtM"?1:+x.id.slice(3);if(mi===1)r.push({k:"tl",x:"Configurati e testati i seguenti dispositivi:"});r.push({k:"f",x:"Dispositivo "+mi,v:String(S[x.id]||"").trim()||"-"})}}
+ else if(view==="prep"&&prepMode(S)==="Downgrade CI-5"&&x.id==="m"){}
+ else if(view==="prep"&&prepMode(S)==="Downgrade CI-5"&&x.id==="pt")r.push({k:"f",x:"Tipo di preparazione",v:"Downgrade CI-5 (modulo monete)"})
+ else if((x.t==="g"||x.t==="t"||x.t==="sel")&&PSKIP[view].indexOf(x.id)<0){if(x.opt&&!S[x.id])return;r.push({k:"f",x:x.x,v:S[x.id]||"-"})}});
+ var nt=String(S.nte||"").trim();if(nt){r.push({k:"h",x:"Note tecniche"});pdfWrap(nt,100).forEach(function(l){r.push({k:"li",x:l})})}
+ var F=PH[view]||[];if(F.length){r.push({k:"h",x:"Foto allegate"});F.forEach(function(f,j){r.push({k:"li",x:(j+1)+". "+f.n+" - in fondo al documento"})})}
+ return r}
+function fmtDate(dt){return p2(dt.getDate())+"/"+p2(dt.getMonth()+1)+"/"+dt.getFullYear()+" "+p2(dt.getHours())+":"+p2(dt.getMinutes())}
+function pdfMeta(bl,when){var pr=prog(bl,S,0),dt=when?new Date(when):new Date();
+ var tt={inst:"Checklist installazione Glory",prep:"Checklist preparazione macchine Glory",rip:"Checklist riparazione Glory",loc:"Checklist intervento in loco Glory",altro:"Attività Glory"},
+  hl={inst:["CV: "+(S.cv||"-")].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],["Cliente: "+(S.cl||"-"),"Sede: "+(S.se||"-")]),prep:["CV: "+(S.cvc||"da associare")].concat(prepMode(S)==="Completa"&&prepMat("mtM")?["Matricola monete: "+prepMat("mtM")]:[],prepMode(S)==="Completa"&&prepMat("mtB")?["Matricola banconote: "+prepMat("mtB")]:[],prepMode(S)==="Completa"&&S.mtD?["Matricolina: "+S.mtD]:[]),rip:["RMA: "+(S.rma||"-")].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],S.cl?["Cliente: "+S.cl]:[]),loc:["Riferimento: "+(S.rf||"-")].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],["Cliente: "+(S.cl||"-"),"Sede: "+(S.se||"-")]),altro:[(S.tp||"Attività")+(S.ti?": "+S.ti:""),S.rf?S.rf+": "+(S.rc||"-"):"Riferimento: -"]};
+ hl[view]=["Tecnico: "+(S.tec||"-")].concat(hl[view]);
+ return {title:tt[view],date:fmtDate(dt),
+  lines:hl[view].concat(["Voci completate: "+pr.d+" di "+pr.t])}}
+function day(){var dt=new Date();return dt.getFullYear()+"-"+p2(dt.getMonth()+1)+"-"+p2(dt.getDate())}
+function fcut(t,n){return String(t==null?"":t).replace(/[\\\/:*?"<>|\r\n\t]+/g," ").replace(/\s+/g," ").trim().slice(0,n).trim()}
+function fdate(){var d=new Date();return p2(d.getDate())+"-"+p2(d.getMonth()+1)+"-"+String(d.getFullYear()).slice(2)}
+function fnBase(){var o=[],rv=S.rv?fcut(S.rvn,20):"",er="";
+ if(view==="loc"){er=fcut(locUnits(S).map(function(u){return String(S[u.p+"er"]||"").trim()}).filter(Boolean).join("-"),12)}
+ if(view==="inst"||view==="loc")o=[rv,fcut(S.cl,30),er];
+ else if(view==="rip")o=[fcut(S.rma,40)||fcut(S.cl,30)];
+ else if(view==="prep")o=(S.m==="CI-5"&&prepMode(S)==="Downgrade CI-5")?["Downgrade CI-5"+(dgCount()?" - "+dgCount()+(dgCount()===1?" dispositivo":" dispositivi"):"")]:[fcut(S.cvc,30)||fcut(prepMat("mtM"),30)];
+ else o=[fcut(S.ti,40)];
+ o=o.filter(Boolean);if(!o.length)o=[V[view].title];
+ return o.join(" - ")+" - "+fdate()}
+function pdfName(){return fnBase()+".pdf"}
+function pdfFile(){var bl=V[view].blocks(S);return {u:buildPdf(pdfMeta(bl),pdfRows(bl)),fn:pdfName()}}
+function saveFile(blob,fn,ok,ko){
+ if(DLP){DLP.save({filename:fn,data:blob}).then(ok,function(e){if(!e||e.code!=="declined")ko()});return}
+ try{var a=document.createElement("a"),u=URL.createObjectURL(blob);a.href=u;a.download=fn;document.body.append(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},5000);ok()}catch(e){ko()}}
+/* ---------- foto e archivio (IndexedDB, su questo dispositivo) ---------- */
+var PH={},IDB=null,ARC=[];
+function phRec(f){var th=f.th||f.d;try{return {n:f.n,w:f.w,h:f.h,th:th,tn:f.tn||th,b:atob(th.split(",")[1])}}catch(e){return null}}
+function phSave(v){if(!IDB)return;try{var t=IDB.transaction("ph","readwrite"),F=(PH[v]||[]).map(function(f){return {n:f.n,w:f.w,h:f.h,th:f.th,tn:f.tn}});
+ if(F.length)t.objectStore("ph").put(F,v);else t.objectStore("ph").delete(v);t.onerror=t.onabort=function(){svWarn(1)}}catch(e){svWarn(1)}}
+function arcSort(){ARC.sort(function(a,b){return b.d-a.d})}
+function phInit(done){var fin=0;function go(){if(!fin){fin=1;done()}}
+ try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){})}catch(e){}
+ try{var rq=indexedDB.open("glory_archivio",2);
+  rq.onupgradeneeded=function(){var d=rq.result;if(!d.objectStoreNames.contains("ph"))d.createObjectStore("ph");if(!d.objectStoreNames.contains("arc"))d.createObjectStore("arc",{keyPath:"id"})};
+  rq.onerror=rq.onblocked=go;
+  rq.onsuccess=function(){IDB=rq.result;var cnt=0;function one(){if(++cnt===2)go()}
+   try{var tr=IDB.transaction(["ph","arc"]),c=tr.objectStore("ph").openCursor(),ra=tr.objectStore("arc").getAll();
+    c.onsuccess=function(){var k=c.result;if(!k){one();return}if(!PH[k.key]||!PH[k.key].length)PH[k.key]=(k.value||[]).map(phRec).filter(Boolean);k.continue()};c.onerror=one;
+    ra.onsuccess=function(){ARC=(ra.result||[]).filter(function(x){return x&&V[x.v]});arcSort();one()};ra.onerror=one}catch(e){go()}}}catch(e){go()}
+ setTimeout(go,4000)}
+function arcPut(r,ok,ko){if(!IDB){ko();return}
+ try{var t=IDB.transaction("arc","readwrite");t.objectStore("arc").put(r);
+  t.oncomplete=function(){ARC=ARC.filter(function(x){return x.id!==r.id});ARC.push(r);arcSort();ok()};t.onerror=t.onabort=function(){ko()}}catch(e){ko()}}
+function arcDel(id,ok,ko){if(!IDB){ko();return}
+ try{var t=IDB.transaction("arc","readwrite");t.objectStore("arc").delete(id);
+  t.oncomplete=function(){ARC=ARC.filter(function(x){return x.id!==id});ok()};t.onerror=t.onabort=function(){ko()}}catch(e){ko()}}
+function jpg(file){return new Promise(function(res){var u,im=new Image();try{u=URL.createObjectURL(file)}catch(e){res(null);return}
+ im.onload=function(){try{var w=im.naturalWidth,h=im.naturalHeight,k=Math.min(1,1600/Math.max(w,h)),c=document.createElement("canvas");
+  c.width=Math.max(1,Math.round(w*k));c.height=Math.max(1,Math.round(h*k));var x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);
+  var d=c.toDataURL("image/jpeg",0.82);URL.revokeObjectURL(u);if(d.indexOf("data:image/jpeg;base64,")!==0){res(null);return}
+  var tk=Math.min(1,480/Math.max(c.width,c.height)),tc=document.createElement("canvas");tc.width=Math.max(1,Math.round(c.width*tk));tc.height=Math.max(1,Math.round(c.height*tk));tc.getContext("2d").drawImage(c,0,0,tc.width,tc.height);
+  res({n:(file.name||"foto.jpg"),w:c.width,h:c.height,b:atob(d.split(",")[1]),th:d,tn:tc.toDataURL("image/jpeg",0.6)})}catch(e){URL.revokeObjectURL(u);res(null)}};
+ im.onerror=function(){URL.revokeObjectURL(u);res(null)};im.src=u})}
+function photoBox(){var F=PH[view]||(PH[view]=[]),m=el("div","cnt",ui.phMsg||"");m.setAttribute("role","status");ui.phMsg="";
+ app.append(el("h2",0,"Foto da allegare"+(F.length?" · "+F.length:"")),el("p","cnt","Ogni foto va in una pagina in fondo al PDF. "+(IDB?"Le foto restano salvate su questo dispositivo finché non azzeri la scheda.":"Le foto restano finché la pagina è aperta: genera il PDF prima di chiuderla.")));
+ F.forEach(function(f,j){var r=el("div","rowc"),th=document.createElement("img"),inf=el("div","in");th.src=f.tn||f.th;th.alt="";th.style.cssText="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--ln);flex:none";
+  inf.style.cssText="flex:1;min-width:0;align-self:center;overflow-wrap:anywhere;font-size:15px";inf.textContent=(j+1)+". "+f.n;
+  var d=ui.phDel===j?btn("nb","Elimina?",function(){F.splice(j,1);phSave(view);ui.phDel=null;render()}):btn("nb","Elimina",function(){ui.phDel=j;render()});
+  d.style.cssText+=";color:var(--dg);border-color:var(--dg)"+(ui.phDel===j?";background:var(--dg);color:var(--dgo)":"");d.setAttribute("aria-label","Elimina "+f.n);
+  r.append(th,inf,d);app.append(r)});
+ var fi=document.createElement("input");fi.type="file";fi.accept="image/jpeg,image/*";fi.multiple=true;fi.hidden=true;
+ fi.onchange=function(){var L=Array.prototype.slice.call(fi.files||[]),bad=[];fi.value="";if(!L.length)return;m.textContent="Caricamento foto…";
+  Promise.all(L.map(jpg)).then(function(R){R.forEach(function(r,i){if(r)F.push(r);else bad.push(L[i].name)});ui.phMsg=bad.length?"Non lette: "+bad.join(", ")+".":"";phSave(view);render()})};
+ app.append(btn("reset ac tight","+ Aggiungi foto",function(){fi.click()}),fi,m)}
+function pdfGate(act,lab,m){var r=check(V[view].blocks(S)),all=r.bad.concat(r.warn);m.textContent="";
+ if(!all.length){act();return}
+ var bx=el("div","box wn"),sg=el("div","seg");bx.setAttribute("role","alert");bx.append(el("b",0,"Prima di generare il PDF, controlla"));wlist(bx,all);
+ sg.append(btn("on",lab,function(){m.textContent="";act()}),btn("","Annulla",function(){m.textContent=""}));bx.append(sg);m.append(bx)}
+function pdfBox(){photoBox();var m=el("div","cnt","");m.setAttribute("role","status");
+ app.append(btn("reset ac","Genera PDF checklist",function(){pdfGate(function(){var r=pdfFile();
+  saveFile(new Blob([r.u],{type:"application/pdf"}),r.fn,function(){m.textContent="PDF salvato."},function(){m.textContent="Salvataggio non riuscito."})},"Scarica comunque",m)}));
+ if(navigator.canShare&&!CL){var no="Condivisione non disponibile qui. Usa Genera PDF e condividilo dai download.",
+  sh=btn("reset ac","Condividi PDF",function(){pdfGate(function(){var r=pdfFile(),file;try{file=new File([r.u],r.fn,{type:"application/pdf"})}catch(e){m.textContent=no;return}
+   if(!navigator.canShare({files:[file]})){m.textContent=no;return}
+   navigator.share({files:[file],title:r.fn}).then(function(){m.textContent="PDF condiviso."},function(e){if(!e||e.name!=="AbortError")m.textContent=no})},"Condividi comunque",m)});
+  sh.style.marginTop="10px";app.append(sh)}
+ var pv=el("div","pvw");pv.hidden=true;
+ var pb=btn("reset ac","Anteprima",function(){pvBuild(pv,pb);pv.hidden=false;pb.textContent="Aggiorna anteprima"});pb.style.marginTop="10px";
+ app.append(pb,m,pv)}
+function pvBuild(c,pb){var bl=V[view].blocks(S),mt=pdfMeta(bl),R=pdfRows(bl),F=PH[view]||[],h,x,u;c.textContent="";
+ h=el("div","pvh");h.append(el("b",0,mt.title),el("span",0,mt.date));c.append(h);
+ u=el("div","pvi");mt.lines.forEach(function(l){u.append(el("div",0,l))});c.append(u);
+ var stop=0;R.forEach(function(r){
+  if(r.k==="h"&&r.x==="Foto allegate")stop=1;if(stop)return;
+  if(r.k==="h")c.append(el("div","pvs",r.x));
+  else if(r.k==="h3")c.append(el("div","pvt",r.x));
+  else if(r.k==="c"){x=el("div","pvc"+(r.d?" on":""),(r.d?"☑ ":"☐ ")+r.x);c.append(x)}
+  else if(r.k==="f"){x=el("div","pvf");x.append(el("span",0,r.x),el("b",0,r.v));c.append(x)}
+  else if(r.k==="dv"){x=el("div","pvf");x.append(el("span",0,r.x+" · "+r.v),el("b",0,r.m.map(function(q){return (q[1]?"☑ ":"☐ ")+q[0]}).join("  ")));c.append(x)}
+  else if(r.k==="tl")c.append(el("div","pvc on",r.x));
+  else if(r.k==="nt")c.append(el("div","pvn","Nota: "+r.x));
+  else if(r.k==="li")c.append(el("div","pvn",r.x))});
+ if(F.length){c.append(el("div","pvs","Foto allegate"));x=el("div","pvp");F.forEach(function(f,j){var i=document.createElement("img");i.src=f.tn||f.th;i.alt=f.n;x.append(i)});c.append(x)}
+ var cl=btn("reset tight","Chiudi anteprima",function(){c.hidden=true;c.textContent="";pb.textContent="Anteprima"});c.append(cl)}
+
+/* ---------- archivio lavori ---------- */
+function arcBox(){app.append(el("h2",0,"Archivio"));var m=el("div","cnt",arcMsg);m.setAttribute("role","status");arcMsg="";
+ if(!IDB){app.append(el("p","cnt","Archivio non disponibile in questo browser: usa Salva backup."));return}
+ if(!ui.arc){app.append(btn("reset ac tight",S._arc?"Aggiorna nell'archivio":"Archivia lavoro",function(){if(!hasData(S)){arcMsg="Scheda vuota: niente da archiviare.";render();return}ui.arc=1;render()}))}
+ else{var bx=el("div","box wn"),sg=el("div","seg");
+  bx.append(el("div",0,(S._arc?"Aggiorno nell'archivio il lavoro «":"Salvo nell'archivio di questo dispositivo il lavoro «")+fnBase()+"», con note e foto."));
+  sg.append(btn("on","Archivia e svuota",function(){arcSave(1)}),btn("","Archivia e continua",function(){arcSave(0)}),btn("","Annulla",function(){ui.arc=0;render()}));bx.append(sg);app.append(bx)}
+ app.append(m)}
+function arcSave(clr){var id=S._arc||Date.now(),s=JSON.parse(JSON.stringify(S));delete s._arc;
+ var r={id:id,v:view,d:Date.now(),n:fnBase(),s:s,ph:phOf(view)};
+ arcPut(r,function(){ui.arc=0;
+  if(clr){var tc=S.tec;S={};if(tc)S.tec=tc;PH[view]=[];phSave(view);arcMsg="Lavoro archiviato. Scheda svuotata."}
+  else{S._arc=id;arcMsg="Lavoro archiviato."}
+  save();render()},function(){ui.arc=0;arcMsg="Archiviazione non riuscita: salva un backup.";render()})}
+function arcApply(r){var s=JSON.parse(JSON.stringify(r.s));s._arc=r.id;lsSet("gla_"+r.v,JSON.stringify(s));PH[r.v]=bkPh(r.ph);phSave(r.v);topMsg="Lavoro riaperto dall'archivio. Quando hai finito usa «Aggiorna nell'archivio» in fondo alla scheda.";location.hash="#"+r.v}
+function arcPdf(r,m){var v0=view,s0=S,p0=PH[r.v],out=null;view=r.v;S=r.s;PH[r.v]=bkPh(r.ph);
+ try{var bl=V[r.v].blocks(S),mt=pdfMeta(bl,r.d);mt.fn=r.n+".pdf";out={u:buildPdf(mt,pdfRows(bl)),fn:r.n+".pdf"}}catch(e){out=null}
+ view=v0;S=s0;PH[r.v]=p0;
+ if(!out){m.textContent="PDF non riuscito.";return}
+ saveFile(new Blob([out.u],{type:"application/pdf"}),out.fn,function(){m.textContent="PDF salvato."},function(){m.textContent="Salvataggio non riuscito."})}
+function arcTxt(r){var s=r.s||{};return (r.n+" "+(V[r.v]?V[r.v].title:"")+" "+Object.keys(s).map(function(k){return typeof s[k]==="string"?s[k]:""}).join(" ")).toLowerCase()}
+function arcView(){view="";ttl.textContent="Archivio lavori";back.hidden=false;app.textContent="";noteTa=null;
+ var m=el("div","cnt",arcMsg);m.setAttribute("role","status");arcMsg="";
+ var q=document.createElement("input");q.type="text";q.placeholder="Cerca cliente, CV, RMA, matricola…";q.setAttribute("aria-label","Cerca nell'archivio");q.value=ui.q||"";
+ var fs=el("div","fld");fs.append(q);
+ var tf=el("div","seg");tf.className="seg fsm";tf.style.marginBottom="12px";
+ [["","Tutti"],["inst","Installazioni"],["prep","Preparazioni"],["rip","Riparazioni"],["loc","In loco"],["altro","Altro"]].forEach(function(o){tf.append(btn((ui.tf||"")===o[0]?"on":"",o[1],function(){ui.tf=o[0];arcView()}))});
+ var L=el("div");
+ function draw(){L.textContent="";var t=String(q.value||"").toLowerCase().trim(),
+   F=ARC.filter(function(r){return (!ui.tf||r.v===ui.tf)&&(!t||arcTxt(r).indexOf(t)>=0)});
+  if(!ARC.length){L.append(el("p","cnt","Nessun lavoro archiviato. Dalla scheda usa «Archivia lavoro» a fine intervento."));return}
+  if(!F.length){L.append(el("p","cnt","Nessun risultato."));return}
+  L.append(el("p","cnt",F.length+(F.length===1?" lavoro":" lavori")));
+  F.forEach(function(r){var c=btn("card"+(ui.ao===r.id?" arcc":""),null,function(){ui.ao=ui.ao===r.id?0:r.id;ui.ad=0;ui.ap=0;draw()});
+   var np=(r.ph&&r.ph.length)||0;
+   c.append(el("b",0,r.n),el("span",0,(V[r.v]?V[r.v].title:r.v)+" · "+fmtDate(new Date(r.d))+(np?" · "+np+" foto":"")));
+   c.setAttribute("aria-expanded",ui.ao===r.id?"true":"false");L.append(c);
+   if(ui.ao!==r.id)return;
+   var sg=el("div","seg");sg.style.marginBottom="10px";
+   sg.append(btn("on","Riapri",function(){var cur=load(r.v);if(hasData(cur)&&cur._arc!==r.id){ui.ap=r.id;ui.ad=0;draw()}else arcApply(r)}),
+    btn("","PDF",function(){arcPdf(r,m)}),
+    btn("","Elimina",function(){ui.ad=r.id;ui.ap=0;draw()}));
+   L.append(sg);
+   if(ui.ap===r.id)L.append(confirmBox("Nella scheda "+V[r.v].title+" c'è un lavoro in corso non archiviato: verrà sostituito. Continuare?","Sostituisci",function(){arcApply(r)},function(){ui.ap=0;draw()}));
+   if(ui.ad===r.id)L.append(confirmBox("Eliminare definitivamente «"+r.n+"» dall'archivio?","Elimina",function(){arcDel(r.id,function(){ui.ad=0;ui.ao=0;arcMsg="Lavoro eliminato dall'archivio.";arcView()},function(){ui.ad=0;arcMsg="Eliminazione non riuscita.";arcView()})},function(){ui.ad=0;draw()}));
+   var sp=el("div");sp.style.height="8px";L.append(sp)})}
+ q.oninput=function(){ui.q=q.value;draw()};
+ app.append(fs,tf,m,L);draw();
+ if(!IDB)app.append(el("p","cnt","Archivio non disponibile in questo browser."))}
+
+/* ---------- backup della scheda (file) ---------- */
+function bkFile(){var F=phOf(view);
+ return {t:JSON.stringify({glory:2,view:view,saved:day(),s:S,ph:F}),fn:"Backup - "+fnBase()+".json"}}
+function hasData(s){return Object.keys(s).some(function(k){return k!=="tec"&&k!=="_arc"})}
+function phOf(v){return (PH[v]||[]).map(function(f){return {n:f.n,w:f.w,h:f.h,d:f.th}})}
+function bkPh(a){var ph=[];(Array.isArray(a)?a:[]).forEach(function(f){try{if(f&&typeof f.d==="string"&&f.d.indexOf("data:image/jpeg;base64,")===0)ph.push({n:String(f.n||"foto.jpg"),w:+f.w||1,h:+f.h||1,b:atob(f.d.split(",")[1]),th:f.d})}catch(e){}});return ph}
+function bkOk(s){return s&&typeof s==="object"&&!Array.isArray(s)}
+function bkRead(txt){var o,it=[],arc=[];try{o=JSON.parse(txt)}catch(e){return null}
+ if(!o||o.glory!==2)return null;
+ if(o.all){NEWS.forEach(function(r){var x=o.sc&&o.sc[r[0]];if(x&&bkOk(x.s))it.push({v:r[0],s:x.s,ph:bkPh(x.ph)})});
+  if(Array.isArray(o.arc))arc=o.arc.filter(function(x){return x&&x.id&&V[x.v]&&bkOk(x.s)}).map(function(x){return {id:x.id,v:x.v,d:+x.d||Date.now(),n:String(x.n||V[x.v].title),s:x.s,ph:Array.isArray(x.ph)?x.ph:[]}});
+  return (it.length||arc.length)?{all:1,it:it,arc:arc}:null}
+ if(!V[o.view]||!bkOk(o.s))return null;
+ return {all:0,it:[{v:o.view,s:o.s,ph:bkPh(o.ph)}]}}
+function bkAll(){var sc={},n=0;NEWS.forEach(function(r){var s=load(r[0]);if(hasData(s)){sc[r[0]]={s:s,ph:phOf(r[0])};n++}});
+ n+=ARC.length;
+ return {n:n,t:JSON.stringify({glory:2,all:1,saved:day(),sc:sc,arc:ARC}),fn:"Backup completo - "+fdate()+".json"}}
+function bkMark(){lsSet("gla_lastbk",String(Date.now()))}
+function bkApply(r){r.it.forEach(function(x){lsSet("gla_"+x.v,JSON.stringify(x.s));PH[x.v]=x.ph;phSave(x.v)});ui.bkPend=null;
+ if(r.all){var na=(r.arc||[]).length,parts=[];
+  if(r.it.length)parts.push("schede "+r.it.map(function(x){return V[x.v].title}).join(", "));
+  if(na)parts.push(na+(na===1?" lavoro":" lavori")+" in archivio");
+  bkMsg="Backup completo caricato: "+parts.join(" e ")+".";
+  if(!na){home();return}
+  var left=na,fail=0;(r.arc||[]).forEach(function(x){arcPut(x,fin,function(){fail++;fin()})});
+  function fin(){if(--left)return;if(fail)bkMsg+=" "+fail+" lavori non importati.";home()}
+  return}
+ var x=r.it[0];bkMsg="Backup caricato.";
+ if(view===x.v){S=x.s;var mm=bkMsg;rui();bkMsg=mm;render()}else{bkNext=bkMsg;location.hash="#"+x.v}}
+function pendBox(refresh){var r=ui.bkPend,x=r.it[0],t=r.it.map(function(y){return V[y.v].title}).join(", "),msg;
+ if(r.all)msg=(r.it.length?"Il backup completo sostituisce le schede: "+t+". Le altre non vengono toccate. ":"")+((r.arc&&r.arc.length)?"I "+r.arc.length+" lavori del backup vengono aggiunti all'archivio (quelli già presenti vengono aggiornati). ":"")+"Sei sicuro?";
+ else{var d=hasData(load(x.v));msg=(view&&view!==x.v?"Il file è un backup della scheda "+t+": verrà caricato lì. ":"")+(d?"Sei sicuro di voler sostituire i dati della scheda "+t+" con quelli del backup?":"Caricare il backup nella scheda "+t+"?")}
+ return confirmBox(msg,r.all?"Carica":(hasData(load(x.v))?"Sostituisci":"Carica"),function(){bkApply(r)},function(){ui.bkPend=null;refresh()})}
+function bkUi(refresh,cls){var m=el("div","cnt",bkMsg),fi=document.createElement("input");m.setAttribute("role","status");bkMsg="";
+ fi.type="file";fi.accept=".json,application/json,text/plain";fi.hidden=true;
+ fi.onchange=function(){var f=fi.files&&fi.files[0];fi.value="";if(!f)return;var rd=new FileReader();
+  rd.onload=function(){var r=bkRead(String(rd.result||""));if(!r){bkMsg="File non valido: scegli un backup Glory.";refresh();return}
+   if(r.all&&view){bkMsg="È un backup completo: caricalo dal menù principale.";refresh();return}
+   var mis=!r.all&&view&&r.it[0].v!==view,busy=r.it.some(function(x){return hasData(load(x.v))});
+   if(busy||mis||r.all){ui.bkPend=r;refresh()}else bkApply(r)};
+  rd.onerror=function(){bkMsg="Lettura del file non riuscita.";refresh()};rd.readAsText(f)};
+ return {m:m,fi:fi,load:btn(cls||"","Carica backup",function(){fi.click()})}}
+function bkRow(u,get,empty){var row=el("div","seg");
+ row.append(btn("","Salva backup",function(){var r=get();if(!r){u.m.textContent=empty;return}saveFile(new Blob([r.t],{type:"application/json"}),r.fn,function(){bkMark();u.m.textContent="Backup salvato."},function(){u.m.textContent="Salvataggio non riuscito."})}));
+ if(navigator.canShare&&!CL)row.append(btn("","Condividi backup",function(){var r=get(),file;if(!r){u.m.textContent=empty;return}try{file=new File([r.t],r.fn,{type:"application/json"})}catch(e){u.m.textContent="Condivisione non disponibile qui. Usa Salva backup.";return}
+  if(!navigator.canShare({files:[file]})){u.m.textContent="Condivisione non disponibile qui. Usa Salva backup.";return}
+  navigator.share({files:[file],title:r.fn}).then(function(){bkMark();u.m.textContent="Backup condiviso."},function(e){if(!e||e.name!=="AbortError")u.m.textContent="Condivisione non riuscita."})}));
+ row.append(u.load);return row}
+function bkBox(){
+ app.append(el("h2",0,"Backup"));var u=bkUi(render);
+ app.append(bkRow(u,bkFile,""),u.fi,u.m);
+ if(ui.bkPend)app.append(pendBox(render))}
+function bkLast(){var t=+lsGet("gla_lastbk")||0,busy=ARC.length||NEWS.some(function(r){return hasData(load(r[0]))}),d,x;
+ if(!t)x=el("div","cnt","Nessun backup eseguito");else{d=new Date(t);x=el("div","cnt","Ultimo backup: "+p2(d.getDate())+"-"+p2(d.getMonth()+1)+"-"+String(d.getFullYear()).slice(2)+" "+p2(d.getHours())+":"+p2(d.getMinutes()))}
+ if(busy&&(!t||Date.now()-t>864e5))x.classList.add("bw");return x}
+
+/* ---------- modifiche alla struttura della scheda ---------- */
+function delPz(pf,j){var N={},k,m,i,re=new RegExp("^"+pf+"pz(\\d+)$");for(k in S){m=re.exec(k);if(m){i=+m[1];if(i===j)continue;N[pf+"pz"+(i>j?i-1:i)]=S[k]}else N[k]=S[k]}N[pf+"np"]=(+S[pf+"np"]||1)-1;S=N;save()}
+function delDev(j){var n=+S.n||1,N={},k,m,d,i;
+ for(k in S){m=/^(m|a|c|mt)(\d+)$/.exec(k);d=/^(nt_)?d(\d+)_(.+)$/.exec(k);
+  if(m){i=+m[2];if(i===j)continue;N[m[1]+(i>j?i-1:i)]=S[k]}
+  else if(d){i=+d[2];if(i===j)continue;N[(d[1]||"")+"d"+(i>j?i-1:i)+"_"+d[3]]=S[k]}
+  else N[k]=S[k]}
+ N.n=n-1;S=N;save()}
+function confirmBox(msg,yes,onYes,onNo){var bx=el("div","box"),sg=el("div","seg");bx.append(el("div",0,msg));sg.append(btn("dgf",yes,onYes),btn("","Annulla",onNo));bx.append(sg);return bx}
+function pick(label,n,sel,name,onSel){var bx=el("div","fld");bx.append(el("label",0,label));
+ for(var k=1;k<=n;k++)(function(k){var r=btn("chk"+(sel===k?" on dg":""),null,function(){onSel(k)});r.append(el("span","bx",sel===k?"✓":""),el("span","lb",name(k)));bx.append(r)})(k);
+ return bx}
+
+/* ---------- installazione come app ---------- */
+var BIP=null;
+window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();BIP=e;if(!view&&!location.hash.replace("#",""))home()});
+window.addEventListener("appinstalled",function(){BIP=null;if(!view&&!location.hash.replace("#",""))home()});
+
+/* ---------- menù ---------- */
+var DESC={inst:"Checklist CI-5, CI-10, CI-10X e note rapportino",prep:"CI-5, CI-10 e CI-10X in magazzino",rip:"Moduli CI-5, CI-10X, CI-10 con RMA",loc:"Guasto, controlli e aggiornamenti dal cliente",altro:"Attività extra con CV o RMA"};
+function home(){
+ view="";ttl.textContent="Attività tecniche";back.hidden=true;app.textContent="";noteTa=null;
+ if(BIP)app.append(btn("reset ac tight","Installa l'app su questo dispositivo",function(){var p=BIP;BIP=null;try{p.prompt();p.userChoice.then(home,home)}catch(e){home()}}));
+ NEWS.forEach(function(r){var s=load(r[0]),p=prog(V[r[0]].blocks(s),s,1),a=el("a","card"),busy=hasData(s);
+  a.href="#"+r[0];a.append(el("b",0,V[r[0]].title),el("span",0,busy?(s._arc?"Lavoro riaperto dall'archivio · ":"Scheda in corso · ")+p.d+" di "+p.t:DESC[r[0]]));app.append(a)});
+ var ac=el("a","card arcc");ac.href="#arc";ac.append(el("b",0,"Archivio lavori"),el("span",0,ARC.length?ARC.length+(ARC.length===1?" lavoro archiviato":" lavori archiviati"):"Lavori conclusi, salvati su questo dispositivo"));app.append(ac);
+ app.append(el("h2",0,"Backup"));var u=bkUi(home);app.append(bkLast(),el("p","cnt","Il backup completo comprende le schede in corso e tutto l'archivio."),bkRow(u,function(){var r=bkAll();return r.n?r:null},"Niente da salvare: nessuna scheda compilata e archivio vuoto."),u.fi,u.m);if(ui.bkPend)app.append(pendBox(home));
+ if(!LS)app.append(el("p","cnt","Questo browser non conserva i dati: genera PDF e note prima di chiudere la pagina."));
+ var vp=el("p","cnt","Versione "+VER);vp.style.cssText="text-align:center;margin-top:24px";app.append(vp)}
+
+/* ---------- scheda ---------- */
+function rstBox(){
+ if(!ui.rst)app.append(btn("reset tight","Azzera la scheda",function(){ui.rst=1;render()}));
+ else app.append(confirmBox("Sei sicuro di voler azzerare tutte le voci di questa scheda?"+(S._arc?" Il lavoro resta comunque nell'archivio.":""),"Azzera",function(){var tc=S.tec;S={};if(tc)S.tec=tc;PH[view]=[];phSave(view);save();rui();render()},function(){ui.rst=0;render()}))}
+function render(){
+ if(view==="rip"&&S.grm&&!S.rmaM){var gg=rmaGen(S);if(S.rma!==gg){S.rma=gg;save()}}
+ var bl=V[view].blocks(S),pr=prog(bl,S,1);
+ app.textContent="";noteTa=null;
+ rstBox();
+ if(topMsg){var bm=el("div","cnt",topMsg);bm.setAttribute("role","status");app.append(bm);topMsg=""}
+
+ var bar=el("div","bar"),fi=document.createElement("i");fi.style.width=(pr.t?pr.d/pr.t*100:0)+"%";bar.append(fi);
+ app.append(bar,el("div","cnt",pr.d+" di "+pr.t+" completati"));
+ bl.forEach(function(x){
+  if(x.t==="h")app.append(el("h2",0,x.x));
+  else if(x.t==="h3")app.append(el("h3",0,x.x));
+  else if(x.t==="add")app.append(btn("reset ac tight","+ Aggiungi dispositivo",function(){S.n=(+S.n||1)+1;save();render()}));
+  else if(x.t==="del"){var nn=+S.n||1;if(nn>1){
+   if(!ui.del)app.append(btn("reset dgo tight","Elimina dispositivo",function(){ui.del=1;ui.delSel=0;render()}));
+   else{app.append(pick("Seleziona il dispositivo da eliminare",nn,ui.delSel,function(k){return "Dispositivo "+k+(S["m"+k]?" · "+S["m"+k]:"")},function(k){ui.delSel=k;render()}));
+    if(ui.delSel)app.append(confirmBox("Sei sicuro di voler eliminare il Dispositivo "+ui.delSel+"?","Elimina",function(){delDev(ui.delSel);ui.del=0;ui.delSel=0;render()},function(){ui.del=0;ui.delSel=0;render()}));
+    else app.append(btn("reset tight","Annulla",function(){ui.del=0;render()}))}}}
+  else if(x.t==="addm")app.append(btn("reset ac tight","+ Aggiungi dispositivo",function(){S.dn=(+S.dn||1)+1;save();render()}));
+  else if(x.t==="delm"){var nd=+S.dn||1;if(nd>1){
+   if(!ui.dm)app.append(btn("reset dgo tight","Elimina dispositivo",function(){ui.dm=1;ui.dmSel=0;render()}));
+   else{app.append(pick("Seleziona il dispositivo da eliminare",nd,ui.dmSel,function(k){return "Dispositivo "+k+(S[mrk(k)]?" · RCW50-"+S[mrk(k)]:"")},function(k){ui.dmSel=k;render()}));
+    if(ui.dmSel)app.append(confirmBox("Sei sicuro di voler eliminare il Dispositivo "+ui.dmSel+"?","Elimina",function(){delRow(ui.dmSel);ui.dm=0;ui.dmSel=0;render()},function(){ui.dm=0;ui.dmSel=0;render()}));
+    else app.append(btn("reset tight","Annulla",function(){ui.dm=0;render()}))}}}
+  else if(x.t==="addp")app.append(btn("reset ac tight","+ Aggiungi pezzo",function(){S[x.p+"np"]=(+S[x.p+"np"]||0)+1;save();render()}));
+  else if(x.t==="delp"){var np=+S[x.p+"np"]||0;if(np>=1){
+   if(ui.pd!==x.p)app.append(btn("reset dgo tight","Elimina pezzo",function(){ui.pd=x.p;ui.pdSel=0;render()}));
+   else{app.append(pick("Seleziona il pezzo da eliminare",np,ui.pdSel,function(k){return "Pezzo "+k+(S[x.p+"pz"+k]?" · "+S[x.p+"pz"+k]:"")},function(k){ui.pdSel=k;render()}));
+    if(ui.pdSel)app.append(confirmBox("Sei sicuro di voler eliminare il Pezzo "+ui.pdSel+"?","Elimina",function(){delPz(x.p,ui.pdSel);ui.pd=0;ui.pdSel=0;render()},function(){ui.pd=0;ui.pdSel=0;render()}));
+    else app.append(btn("reset tight","Annulla",function(){ui.pd=0;render()}))}}}
+  else if(x.t==="mod"){
+   if((+S.rn||1)<2)app.append(btn("reset ac tight","+ Aggiungi modulo",function(){S.rn=2;if(S.r1_tp)S.r2_tp=S.r1_tp==="Banconote"?"Monete":"Banconote";if(S.r1_md)S.r2_md=S.r1_md;save();render()}));
+   else if(!ui.md)app.append(btn("reset dgo tight","Elimina modulo 2",function(){ui.md=1;render()}));
+   else app.append(confirmBox("Sei sicuro di voler eliminare il Modulo 2?","Elimina",function(){var N={},k;for(k in S)if(!/^(nt_)?r2_/.test(k))N[k]=S[k];N.rn=1;S=N;save();ui.md=0;render()},function(){ui.md=0;render()}))}
+  else if(x.t==="sel"){var fs=el("div","fld"),se=document.createElement("select"),o0=el("option","","Seleziona");fs.append(el("label",0,x.x));o0.value="";se.append(o0);se.setAttribute("aria-label",x.x);
+   x.o.forEach(function(v){var op=el("option","",v+(v==="1"?" ora":" ore"));op.value=v;if(S[x.id]===v)op.selected=true;se.append(op)});
+   se.onchange=function(){S[x.id]=se.value||0;save();render()};fs.append(se);app.append(fs)}
+  else if(x.t==="sx"){var fx=el("div","fld"),sx=el("div","seg"),st=el("div","seg");
+   [["M","Uomo"],["F","Donna"]].forEach(function(o){sx.append(btn(S.ge===o[0]?"on":"",o[1],function(){S.ge=S.ge===o[0]?0:o[0];save();render()}))});
+   [["D","Dott."],["S","Sig."]].forEach(function(o){st.append(btn(S.tt===o[0]?"on":"",o[1],function(){S.tt=S.tt===o[0]?0:o[0];save();render()}))});
+   st.style.marginTop="8px";fx.append(sx,st);app.append(fx)}
+  else if(x.t==="n"){app.append(el("h2",0,"Note rapportino"));noteTa=el("textarea");noteTa.readOnly=true;noteTa.style.minHeight="300px";noteTa.value=noteText();noteTa.setAttribute("aria-label","Note per il rapportino");
+   var cm=el("div"),cb=btn("reset","Copia note",function(){tryCopy(cb,cm)});cb.style.marginTop="10px";app.append(noteTa,cb,cm);pdfBox()}
+  else if(x.t==="c"){var nk="nt_"+x.id,rw=el("div","rowc"),
+    b=btn("chk"+(S[x.id]?" on":""),null,function(){S[x.id]=S[x.id]?0:1;if(x.id==="grm"&&S.grm)S.rmaM=0;if((view==="rip"||view==="loc")&&S[x.id]){var xm=/^(r\d_|d_)(ok|nr)$/.exec(x.id);if(xm)S[xm[1]+(xm[2]==="ok"?"nr":"ok")]=0}save();render()}),
+    nb=btn("nb"+(S[nk]?" has":""),"Nota",function(){ui.notes[x.id]=!ui.notes[x.id];ui.foc=ui.notes[x.id]?x.id:null;render()});
+   b.setAttribute("aria-pressed",S[x.id]?"true":"false");b.append(el("span","bx",S[x.id]?"✓":""),el("span","lb",x.x));
+   nb.setAttribute("aria-label","Nota sulla voce: "+x.x);nb.setAttribute("aria-expanded",ui.notes[x.id]?"true":"false");
+   rw.append(b,nb);app.append(rw);
+   if(ui.notes[x.id]){var nt=el("textarea","nta");nt.placeholder="Nota su questa voce: resta nella scheda e nel PDF, non nel rapportino";nt.value=S[nk]||"";nt.setAttribute("aria-label","Nota sulla voce: "+x.x);
+    nt.oninput=function(){if(nt.value)S[nk]=nt.value;else delete S[nk];save();nb.className="nb"+(S[nk]?" has":"")};app.append(nt);
+    if(ui.foc===x.id){ui.foc=null;setTimeout(function(){try{nt.focus()}catch(e){}},0)}}}
+  else if(x.t==="g"){var f=el("div","fld"),sg=el("div","seg");f.append(el("label",0,x.x));
+   x.o.forEach(function(o){var gb=btn(S[x.id]===o?"on":"",o,function(){S[x.id]=S[x.id]===o?0:o;save();render()});gb.setAttribute("aria-pressed",S[x.id]===o?"true":"false");sg.append(gb)});f.append(sg);app.append(f)}
+  else if(x.t==="t"){var ft=el("div","fld"),i=document.createElement(x.area?"textarea":"input");ft.append(el("label",0,x.x));
+   if(!x.area)i.type="text";i.placeholder=x.a;i.setAttribute("aria-label",x.x);
+   if(x.id==="rma")rmaEl=i;i.value=S[x.id]||"";var er=null,dgm=view==="prep"&&/^mtM\d*$/.test(x.id)&&prepMode(S)==="Downgrade CI-5";
+   if(dgm){er=el("div","cnt","");er.style.color="var(--dg)";i.onblur=function(){if(dupOf(x.id,i.value)){var dq=dupOf(x.id,i.value);i.value=S[x.id]||"";i.style.borderColor="";er.textContent="Matricola non salvata: già inserita nel Dispositivo "+dq}}}
+   i.oninput=function(){if(dgm){var dj=dupOf(x.id,i.value);if(dj){i.style.borderColor="var(--dg)";er.textContent="Già inserita nel Dispositivo "+dj+": non viene salvata";return}i.style.borderColor="";er.textContent=""}S[x.id]=i.value;if(view==="rip"&&S.grm){if(x.id==="rma")S.rmaM=1;else if(!S.rmaM&&rmaEl){S.rma=rmaGen(S);rmaEl.value=S.rma}}if(x.id==="tec")lsSet("gla_tec",i.value.trim());save();if(noteTa)noteTa.value=noteText();if(x.cmp)grow(i)};ft.append(i);if(er)ft.append(er);app.append(ft);if(x.cmp){i.style.minHeight="56px";i.style.overflowY="auto";grow(i)}}
+ });
+ if(view==="prep")pdfBox();
+ arcBox();
+ bkBox()}
+
+/* ---------- navigazione ---------- */
+function route(){
+ var h=location.hash.replace("#","");
+ if(V[h]){view=h;S=load(h);rui();bkTxt="";bkMsg=bkNext;bkNext="";ttl.textContent=V[h].title;back.hidden=false;render();window.scrollTo(0,0)}
+ else if(h==="arc"){rui();bkMsg="";bkNext="";arcView();window.scrollTo(0,0)}
+ else{ui.bkPend=null;bkMsg="";bkNext="";home();window.scrollTo(0,0)}}
+back.onclick=function(){location.hash=""};
+window.addEventListener("hashchange",route);
+phInit(route);
+
+/* ---------- funzionamento offline ---------- */
+if("serviceWorker" in navigator&&location.protocol==="https:"&&!CL){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+</script>
+</body>
+</html>
