@@ -1,6 +1,6 @@
 /* Glory · Attività tecniche — service worker (funzionamento offline)
-   Quando pubblichi una nuova versione dell'app, aumenta il numero qui sotto. */
-const CACHE = "glory-v36";
+   Quando pubblichi una nuova versione: aumenta il numero qui sotto, VER in index.html e "ver" in version.json (tutti uguali). */
+const CACHE = "glory-v37";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 
 self.addEventListener("install", e => {
@@ -20,6 +20,7 @@ self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
   const u = new URL(e.request.url);
   if (u.origin !== location.origin) return;
+  if (e.request.cache === "no-store" || u.pathname.endsWith("version.json")) return; // controllo aggiornamenti: sempre dalla rete
   e.respondWith(
     caches.open(CACHE).then(c =>
       c.match(e.request, { ignoreSearch: true }).then(hit => {

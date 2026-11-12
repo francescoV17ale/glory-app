@@ -222,7 +222,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=36,svEl=null;
+var VER=37,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function load(v){var s=null;try{s=JSON.parse(lsGet("gla_"+v))}catch(e){}if(!s||typeof s!=="object"||Array.isArray(s))s={};if(!s.tec){var tc=lsGet("gla_tec");if(tc)s.tec=tc}return s}
@@ -664,16 +664,34 @@ var BIP=null;
 window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();BIP=e;if(!view&&!location.hash.replace("#",""))home()});
 window.addEventListener("appinstalled",function(){BIP=null;if(!view&&!location.hash.replace("#",""))home()});
 
+/* ---------- aggiornamenti ---------- */
+var NEWV=0,updMsg="";
+function updCheck(manual){
+ if(manual&&!navigator.onLine){updMsg="Sei offline: collegati a internet e riprova.";home();return}
+ if(manual){updMsg="Controllo in corso…";home()}
+ fetch("version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.json():Promise.reject()}).then(function(j){var nv=+(j&&j.ver)||0;
+  if(nv>VER){NEWV=nv;updMsg=""}else if(manual)updMsg="L'app è già aggiornata.";
+  if(manual||NEWV){if(!view&&!location.hash.replace("#",""))home()}},
+  function(){if(manual){updMsg="Controllo non riuscito: verifica la connessione e riprova.";if(!view&&!location.hash.replace("#",""))home()}})}
+function updApply(){updMsg="Aggiornamento in corso…";home();var p=[];
+ try{if(window.caches)p.push(caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}))}catch(e){}
+ try{if(navigator.serviceWorker)p.push(navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.update().catch(function(){})}))}))}catch(e){}
+ Promise.all(p).then(function(){location.reload()},function(){location.reload()})}
+
 /* ---------- menù ---------- */
 var DESC={inst:"Checklist CI-5, CI-10, CI-10X e note rapportino",prep:"CI-5, CI-10 e CI-10X in magazzino",rip:"Moduli CI-5, CI-10X, CI-10 con RMA",loc:"Guasto, controlli e aggiornamenti dal cliente",altro:"Attività extra con CV o RMA"};
 function home(){
  view="";ttl.textContent="Attività tecniche";back.hidden=true;app.textContent="";noteTa=null;
+ if(NEWV)app.append(btn("reset ac tight","È disponibile un aggiornamento: tocca per aggiornare",updApply));
  if(BIP)app.append(btn("reset ac tight","Installa l'app su questo dispositivo",function(){var p=BIP;BIP=null;try{p.prompt();p.userChoice.then(home,home)}catch(e){home()}}));
  NEWS.forEach(function(r){var s=load(r[0]),p=prog(V[r[0]].blocks(s),s,1),a=el("a","card"),busy=hasData(s);
   a.href="#"+r[0];a.append(el("b",0,V[r[0]].title),el("span",0,busy?(s._arc?"Lavoro riaperto dall'archivio · ":"Scheda in corso · ")+p.d+" di "+p.t:DESC[r[0]]));app.append(a)});
  var ac=el("a","card arcc");ac.href="#arc";ac.append(el("b",0,"Archivio lavori"),el("span",0,ARC.length?ARC.length+(ARC.length===1?" lavoro archiviato":" lavori archiviati"):"Lavori conclusi, salvati su questo dispositivo"));app.append(ac);
  app.append(el("h2",0,"Backup"));var u=bkUi(home);app.append(bkLast(),el("p","cnt","Il backup completo comprende le schede in corso e tutto l'archivio."),bkRow(u,function(){var r=bkAll();return r.n?r:null},"Niente da salvare: nessuna scheda compilata e archivio vuoto."),u.fi,u.m);if(ui.bkPend)app.append(pendBox(home));
  if(!LS)app.append(el("p","cnt","Questo browser non conserva i dati: genera PDF e note prima di chiudere la pagina."));
+ app.append(el("h2",0,"Aggiornamenti"));
+ app.append(btn("reset tight"+(NEWV?" ac":""),NEWV?"Aggiorna ora":"Cerca aggiornamenti",function(){if(NEWV)updApply();else updCheck(1)}));
+ if(updMsg){var um=el("div","cnt",updMsg);um.setAttribute("role","status");app.append(um)}
  var vp=el("p","cnt","Glory 2.0 beta");vp.title="Build "+VER;vp.style.cssText="text-align:center;margin-top:24px";app.append(vp)}
 
 /* ---------- scheda ---------- */
@@ -751,7 +769,7 @@ function route(){
  else{ui.bkPend=null;bkMsg="";bkNext="";home();window.scrollTo(0,0)}}
 back.onclick=function(){location.hash=""};
 window.addEventListener("hashchange",route);
-phInit(route);
+phInit(function(){route();if(navigator.onLine)setTimeout(function(){updCheck(0)},1500)});
 
 /* ---------- funzionamento offline ---------- */
 if("serviceWorker" in navigator&&location.protocol==="https:"&&!CL){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}

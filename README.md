@@ -16,9 +16,9 @@
 Apri il link con Chrome → tasto "Installa l'app su questo dispositivo" nel menù (oppure ⋮ → "Installa app").
 
 ## Aggiornare l'app
-1. Carica il nuovo `index.html` sul repository (sovrascrive il vecchio).
-2. In `sw.js` aumenta il numero di `CACHE` (es. `glory-v37`) e caricalo.
-3. Sui telefoni la nuova versione compare alla seconda apertura dell'app.
+1. Carica il nuovo `index.html` sul repository.
+2. Aumenta lo stesso numero in tre punti: `VER` in `index.html`, `"ver"` in `version.json`, `CACHE` in `sw.js` (es. 38 / `glory-v38`).
+3. Nell'app compare "È disponibile un aggiornamento"; in ogni caso il tasto "Cerca aggiornamenti" in fondo al menù lo controlla subito.
 
 ## Dove stanno i dati
 Tutto resta sul dispositivo (schede in corso, archivio e foto). Il backup completo dal menù comprende schede e archivio: salvalo ogni tanto.
