@@ -12,7 +12,7 @@
 :root{
   --bg:#edf0f4;--surface:#ffffff;--ink:#18212d;--muted:#5a6778;--line:#d3dae3;--accent:#0d5f7a;--accent-ink:#ffffff;
   --danger:#b3261e;--on-danger:#ffffff;--scrim:rgba(14,20,28,.5);
-  --a1:#1f6fb5;--a2:#9a5b00;--a3:#b3382c;--a4:#5b52a8;
+  --a1:#1f6fb5;--a2:#9a5b00;--a3:#b3382c;--a4:#5b52a8;--a5:#0f7d6e;--a6:#a8336f;--a7:#5f6f12;--a8:#44607a;
   --font-display:'Space Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
   --font-body:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   color-scheme:light;box-sizing:border-box;
@@ -22,7 +22,7 @@
   :root:not([data-theme="light"]){
     --bg:#12171e;--surface:#1b232d;--ink:#e8edf3;--muted:#9aa7b7;--line:#2f3b49;--accent:#5cc0de;--accent-ink:#06222c;
     --danger:#ff8a80;--on-danger:#2a0a08;--scrim:rgba(0,0,0,.6);
-    --a1:#6db3f2;--a2:#f0b04a;--a3:#f08a7e;--a4:#a9a1f0;color-scheme:dark;
+    --a1:#6db3f2;--a2:#f0b04a;--a3:#f08a7e;--a4:#a9a1f0;--a5:#4fd1bd;--a6:#f08cc0;--a7:#b9cc5a;--a8:#9fb8d0;color-scheme:dark;
   }
 }
 *{box-sizing:border-box}
@@ -115,6 +115,18 @@ h1{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.
 .btn{min-height:40px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:600;cursor:pointer}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .btn.danger{background:var(--danger);border-color:var(--danger);color:var(--on-danger)}
+.adel{flex:none;min-height:30px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer}
+.adel:hover{border-color:var(--danger);color:var(--danger)}
+.adel.armed{background:var(--danger);border-color:var(--danger);color:var(--on-danger)}
+/* PC: la pagina occupa tutto lo schermo, le aree si dividono lo spazio e scorrono al loro interno */
+@media (min-width:1000px){
+  .page{max-width:none;height:100vh;display:flex;flex-direction:column;padding-block:16px}
+  .top{margin-bottom:12px}
+  .composing .page{padding-bottom:84px}
+  .areas{flex:1;min-height:0;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:16px}
+  .area{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .area .tiles{flex:1;min-height:0;overflow:auto;align-content:start;padding:4px 8px 4px 4px;margin:-4px -8px -4px -4px}
+}
 @media (prefers-reduced-motion:reduce){.toast span{transition:none}}
 </style>
 </head>
@@ -134,6 +146,7 @@ h1{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.
   <div class="xfer" id="xfer" hidden>
     <button class="btn" id="x-copy" type="button">Copia tutti i tasti</button>
     <button class="btn" id="x-paste" type="button">Incolla tasti da un altro dispositivo</button>
+    <button class="btn primary" id="x-area" type="button">+ Aggiungi area</button>
   </div>
   <main class="areas" id="areas"></main>
 </div>
@@ -190,7 +203,7 @@ h1{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.
   'use strict';
 
   var STORE_KEY = 'noteRapportino.v1';
-  var AREA_VARS = ['--a1', '--a2', '--a3', '--a4'];
+  var AREA_VARS = ['--a1', '--a2', '--a3', '--a4', '--a5', '--a6', '--a7', '--a8'];
   var editing = false;
   var composing = false;
   var sel = [];
@@ -242,7 +255,7 @@ h1{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.
   }
 
   function valid(d) {
-    return !!d && Array.isArray(d.areas) && d.areas.length === 4 && d.areas.every(function (a) {
+    return !!d && Array.isArray(d.areas) && d.areas.length >= 1 && d.areas.length <= 16 && d.areas.every(function (a) {
       return a && typeof a.id === 'string' && typeof a.title === 'string' && Array.isArray(a.items) &&
         a.items.every(function (i) {
           return i && typeof i.id === 'string' && typeof i.title === 'string' && typeof i.text === 'string';
@@ -310,14 +323,16 @@ h1{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.
     var h = '';
     sel = sel.filter(function (id) { return !!findItem(id); });
     state.areas.forEach(function (a, ai) {
-      h += '<section class="area" style="--a:var(' + AREA_VARS[ai] + ')">';
+      h += '<section class="area" style="--a:var(' + AREA_VARS[ai % AREA_VARS.length] + ')">';
       h += '<div class="area-head">';
       if (editing) {
         h += '<input class="area-title" data-area="' + a.id + '" value="' + esc(a.title) + '" maxlength="60" aria-label="Titolo area">';
       } else {
         h += '<h2>' + esc(a.title) + '</h2>';
       }
-      h += '<span class="count">' + a.items.length + '</span></div>';
+      h += '<span class="count">' + a.items.length + '</span>';
+      if (editing && state.areas.length > 1) h += '<button type="button" class="adel" data-adel="' + a.id + '" aria-label="Elimina l\'area ' + esc(a.title) + '">Elimina area</button>';
+      h += '</div>';
       h += '<div class="tiles" data-area="' + a.id + '">';
       a.items.forEach(function (it, ii) {
         var si = composing ? sel.indexOf(it.id) : -1;
@@ -340,6 +355,8 @@ h1{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.
       h += '</div></section>';
     });
     areasEl.innerHTML = h;
+    var n = state.areas.length;
+    areasEl.style.setProperty('--cols', n <= 2 ? n : n <= 4 ? 2 : n <= 6 ? 3 : 4);
     document.body.classList.toggle('editing', editing);
     document.body.classList.toggle('composing', composing);
     xferEl.hidden = !editing;
@@ -451,6 +468,17 @@ h1{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.
     });
   });
 
+  /* ---------- aree ---------- */
+  document.getElementById('x-area').addEventListener('click', function () {
+    if (state.areas.length >= 16) { showToast('Massimo 16 aree'); return; }
+    state.areas.push({ id: 'a' + uid(), title: 'Nuova area', items: [] });
+    persist();
+    render();
+    var ins = areasEl.querySelectorAll('.area-title');
+    var last = ins[ins.length - 1];
+    if (last) { last.focus(); last.select(); last.scrollIntoView({ block: 'nearest' }); }
+  });
+
   /* ---------- trasferimento tasti tra dispositivi ---------- */
   document.getElementById('x-copy').addEventListener('click', function () {
     copyText(JSON.stringify({ noteRapportino: 1, areas: state.areas })).then(function () {
@@ -556,6 +584,26 @@ h1{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.
           persist();
           render();
         }
+      }
+      return;
+    }
+
+    var adel = e.target.closest('[data-adel]');
+    if (adel) {
+      var ar = findArea(adel.getAttribute('data-adel'));
+      if (!ar) return;
+      if (adel.getAttribute('data-armed') === '1' || !ar.items.length) {
+        state.areas.splice(state.areas.indexOf(ar), 1);
+        persist();
+        render();
+        showToast('Area eliminata');
+      } else {
+        adel.setAttribute('data-armed', '1');
+        adel.classList.add('armed');
+        adel.textContent = 'Elimina anche ' + ar.items.length + (ar.items.length === 1 ? ' tasto?' : ' tasti?');
+        setTimeout(function () {
+          if (adel.isConnected) { adel.removeAttribute('data-armed'); adel.classList.remove('armed'); adel.textContent = 'Elimina area'; }
+        }, 3000);
       }
       return;
     }
