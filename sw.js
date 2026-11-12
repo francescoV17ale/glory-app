@@ -1,6 +1,6 @@
 /* Glory · Attività tecniche — service worker (funzionamento offline)
    Quando pubblichi una nuova versione: aumenta il numero qui sotto, VER in index.html e "ver" in version.json (tutti uguali). */
-const CACHE = "glory-v40";
+const CACHE = "glory-v41";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 
 self.addEventListener("install", e => {
