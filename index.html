@@ -92,6 +92,12 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .mcard input[type=text]{min-height:40px;padding:8px;font-size:15px}
 .rmaout{font:700 24px/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.5px;text-align:center;padding:16px 10px;margin:8px 0 12px;background:var(--sf);border:2px solid var(--ac);border-radius:12px;overflow-wrap:anywhere;user-select:all}
 .rmaout.empty{color:var(--mu);border-color:var(--ln)}
+.dd{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 64px);z-index:20;width:min(330px,calc(100vw - 24px));max-height:calc(100vh - 90px);overflow:auto;background:var(--sf);border:1px solid var(--ln);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:6px}
+.ddh{font-size:12px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.03em;padding:10px 10px 4px}
+.ddi{display:block;width:100%;text-align:left;min-height:52px;padding:8px 10px;border:0;border-radius:8px;background:none;color:var(--tx);font:inherit}
+.ddi b{display:block;font-size:16px}.ddi span{display:block;font-size:13px;color:var(--mu)}
+.ddi:hover,.ddi:focus-visible{background:var(--bg)}
+.dd .box{margin:8px 4px}
 .numv{flex:1;min-height:52px;display:grid;place-items:center;font-size:20px;font-weight:650;border:1px solid var(--ln);border-radius:10px;background:var(--sf)}
 .sw3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .sw3 button{min-height:52px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);border-radius:10px;font:inherit;font-size:14px;padding:0 6px;line-height:1.15}
@@ -253,7 +259,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=49,svEl=null;
+var VER=50,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function load(v){var s=null;try{s=JSON.parse(lsGet("gla_"+v))}catch(e){}if(!s||typeof s!=="object"||Array.isArray(s))s={};if(v==="inst")migInst(s);if(!s.tec){var tc=lsGet("gla_tec");if(tc)s.tec=tc}return s}
@@ -554,14 +560,14 @@ function pdfGate(act,lab,m){var r=check(V[view].blocks(S)),all=r.bad.concat(r.wa
  if(!all.length){act();return}
  var bx=el("div","box wn"),sg=el("div","seg");bx.setAttribute("role","alert");bx.append(el("b",0,"Prima di generare il PDF, controlla"));wlist(bx,all);
  sg.append(btn("on",lab,function(){m.textContent="";act()}),btn("","Annulla",function(){m.textContent=""}));bx.append(sg);m.append(bx)}
+var CANSH=!!(navigator.canShare&&!CL);
+function dlPdf(m){var r=pdfFile();saveFile(new Blob([r.u],{type:"application/pdf"}),r.fn,function(){m.textContent="PDF salvato."},function(){m.textContent="Salvataggio non riuscito."})}
+function shareFile(blob,fn,type,m,okMsg,ok){var no="Condivisione non disponibile su questo dispositivo: usa Scarica.",file;
+ try{file=new File([blob],fn,{type:type})}catch(e){m.textContent=no;return}
+ if(!navigator.canShare||!navigator.canShare({files:[file]})){m.textContent=no;return}
+ navigator.share({files:[file],title:fn}).then(function(){m.textContent=okMsg;if(ok)ok()},function(e){if(!e||e.name!=="AbortError")m.textContent=no})}
 function pdfBox(){photoBox();var m=el("div","cnt","");m.setAttribute("role","status");
- app.append(btn("reset ac","Genera PDF checklist",function(){pdfGate(function(){var r=pdfFile();
-  saveFile(new Blob([r.u],{type:"application/pdf"}),r.fn,function(){m.textContent="PDF salvato."},function(){m.textContent="Salvataggio non riuscito."})},"Scarica comunque",m)}));
- if(navigator.canShare&&!CL){var no="Condivisione non disponibile qui. Usa Genera PDF e condividilo dai download.",
-  sh=btn("reset ac","Condividi PDF",function(){pdfGate(function(){var r=pdfFile(),file;try{file=new File([r.u],r.fn,{type:"application/pdf"})}catch(e){m.textContent=no;return}
-   if(!navigator.canShare({files:[file]})){m.textContent=no;return}
-   navigator.share({files:[file],title:r.fn}).then(function(){m.textContent="PDF condiviso."},function(e){if(!e||e.name!=="AbortError")m.textContent=no})},"Condividi comunque",m)});
-  sh.style.marginTop="10px";app.append(sh)}
+ app.append(btn("reset ac","Genera PDF checklist",function(){pdfGate(function(){dlPdf(m)},"Scarica comunque",m)}),el("div","cnt","Per condividere il PDF o passare la scheda a un collega usa «Condividi ▾» in alto."));
  var pv=el("div","pvw");pv.hidden=true;
  var pb=btn("reset ac","Anteprima",function(){pvBuild(pv,pb);pv.hidden=false;pb.textContent="Aggiorna anteprima"});pb.style.marginTop="10px";
  app.append(pb,m,pv)}
@@ -667,7 +673,7 @@ function arcView(){view="";ttl.textContent="Archivio lavori";back.hidden=false;a
 
 /* ---------- backup della scheda (file) ---------- */
 function bkFile(){var F=phOf(view);
- return {t:JSON.stringify({glory:2,view:view,saved:day(),s:S,ph:F}),fn:"Backup - "+fnBase()+".json"}}
+ return {t:JSON.stringify({glory:2,view:view,saved:day(),s:S,ph:F}),fn:"Scheda - "+fnBase()+".json"}}
 function hasData(s){return Object.keys(s).some(function(k){return k!=="tec"&&k!=="_arc"})}
 function phOf(v){return (PH[v]||[]).map(function(f){return {n:f.n,w:f.w,h:f.h,d:f.th}})}
 function bkPh(a){var ph=[];(Array.isArray(a)?a:[]).forEach(function(f){try{if(f&&typeof f.d==="string"&&f.d.indexOf("data:image/jpeg;base64,")===0)ph.push({n:String(f.n||"foto.jpg"),w:+f.w||1,h:+f.h||1,b:atob(f.d.split(",")[1]),th:f.d})}catch(e){}});return ph}
@@ -692,11 +698,11 @@ function bkApply(r){r.it.forEach(function(x){lsSet("gla_"+x.v,JSON.stringify(x.s
   var left=na,fail=0;(r.arc||[]).forEach(function(x){arcPut(x,fin,function(){fail++;fin()})});
   function fin(){if(--left)return;if(fail)bkMsg+=" "+fail+" lavori non importati.";home()}
   return}
- var x=r.it[0];bkMsg="Backup caricato.";
- if(view===x.v){S=x.s;var mm=bkMsg;rui();bkMsg=mm;render()}else{bkNext=bkMsg;location.hash="#"+x.v}}
+ var x=r.it[0];topMsg="Scheda caricata: riprendi da dove era rimasta.";
+ if(view===x.v){S=x.s;rui();render()}else{location.hash="#"+x.v}}
 function pendBox(refresh){var r=ui.bkPend,x=r.it[0],t=r.it.map(function(y){return V[y.v].title}).join(", "),msg;
  if(r.all)msg=(r.it.length?"Il backup completo sostituisce le schede: "+t+". Le altre non vengono toccate. ":"")+((r.arc&&r.arc.length)?"I "+r.arc.length+" lavori del backup vengono aggiunti all'archivio (quelli già presenti vengono aggiornati). ":"")+"Sei sicuro?";
- else{var d=hasData(load(x.v));msg=(view&&view!==x.v?"Il file è un backup della scheda "+t+": verrà caricato lì. ":"")+(d?"Sei sicuro di voler sostituire i dati della scheda "+t+" con quelli del backup?":"Caricare il backup nella scheda "+t+"?")}
+ else{var d=hasData(load(x.v));msg=(view&&view!==x.v?"Il file è una scheda di "+t+": verrà caricata lì. ":"")+(d?"Nella scheda "+t+" c'è un lavoro in corso: verrà sostituito da quello del file. Continuare?":"Caricare il file nella scheda "+t+"?")}
  return confirmBox(msg,r.all?"Carica":(hasData(load(x.v))?"Sostituisci":"Carica"),function(){bkApply(r)},function(){ui.bkPend=null;refresh()})}
 function bkUi(refresh,cls){var m=el("div","cnt",bkMsg),fi=document.createElement("input");m.setAttribute("role","status");bkMsg="";
  fi.type="file";fi.accept=".json,application/json,text/plain";fi.hidden=true;
@@ -783,6 +789,7 @@ function render(){
  var bl=V[view].blocks(S),pr=prog(bl,S,1);
  app.textContent="";noteTa=null;
  rstBox();
+ if(ui.bkPend)app.append(pendBox(render));
  if(topMsg){var bm=el("div","cnt",topMsg);bm.setAttribute("role","status");app.append(bm);topMsg=""}
 
  var bar=el("div","bar"),fi=document.createElement("i");fi.style.width=(pr.t?pr.d/pr.t*100:0)+"%";bar.append(fi);
@@ -861,9 +868,35 @@ function render(){
  if(view==="prep")pdfBox();
  arcBox()}
 
+/* ---------- menu Condividi della scheda ---------- */
+var shBtn=btn("back","Condividi ▾",function(e){e.stopPropagation();if(!dd.hidden){ddClose();return}ddBuild();dd.hidden=false;shBtn.setAttribute("aria-expanded","true")});
+shBtn.hidden=true;shBtn.setAttribute("aria-haspopup","menu");shBtn.setAttribute("aria-expanded","false");document.querySelector("header").append(shBtn);
+var dd=el("div","dd");dd.hidden=true;document.body.append(dd);
+function ddClose(){dd.hidden=true;shBtn.setAttribute("aria-expanded","false")}
+document.addEventListener("click",function(e){if(!dd.hidden&&!dd.contains(e.target)&&e.target!==shBtn)ddClose()});
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!dd.hidden){ddClose();shBtn.focus()}});
+function ddBuild(){dd.textContent="";var m=el("div","cnt","");m.setAttribute("role","status");m.style.margin="6px 8px";
+ function it(lab,sub,fn){var b=btn("ddi",null,fn);b.append(el("b",0,lab),el("span",0,sub));dd.append(b)}
+ dd.append(el("div","ddh","PDF della checklist"));
+ if(CANSH)it("Condividi PDF","WhatsApp, email…",function(){pdfGate(function(){var r=pdfFile();shareFile(new Blob([r.u],{type:"application/pdf"}),r.fn,"application/pdf",m,"PDF condiviso.")},"Condividi comunque",m)});
+ it("Scarica PDF","Salva il file sul dispositivo",function(){pdfGate(function(){dlPdf(m)},"Scarica comunque",m)});
+ dd.append(el("div","ddh","Scheda da riprendere"));
+ if(CANSH)it("Condividi scheda","Un collega la carica e continua da qui",function(){if(!hasData(S)){m.textContent="Scheda vuota: niente da condividere.";return}var r=bkFile();shareFile(new Blob([r.t],{type:"application/json"}),r.fn,"application/json",m,"Scheda condivisa.")});
+ it("Scarica scheda","File da ricaricare più tardi o altrove",function(){if(!hasData(S)){m.textContent="Scheda vuota: niente da scaricare.";return}var r=bkFile();saveFile(new Blob([r.t],{type:"application/json"}),r.fn,function(){m.textContent="Scheda salvata."},function(){m.textContent="Salvataggio non riuscito."})});
+ var fi=document.createElement("input");fi.type="file";fi.accept=".json,application/json,text/plain";fi.hidden=true;
+ fi.onchange=function(){var f=fi.files&&fi.files[0];fi.value="";if(!f)return;var rd=new FileReader();
+  rd.onload=function(){var r=bkRead(String(rd.result||""));ddClose();
+   if(!r){topMsg="File non valido: scegli una scheda Glory (.json).";render();return}
+   if(r.all){topMsg="È un backup completo: caricalo dal menù principale.";render();return}
+   if(hasData(load(r.it[0].v))||r.it[0].v!==view){ui.bkPend=r;render();window.scrollTo(0,0)}else bkApply(r)};
+  rd.onerror=function(){m.textContent="Lettura del file non riuscita."};rd.readAsText(f)};
+ it("Carica scheda","Riprendi una scheda da file",function(){fi.click()});
+ dd.append(fi,m)}
+
 /* ---------- navigazione ---------- */
 function route(){
  var h=location.hash.replace("#","");
+ ddClose();shBtn.hidden=!V[h];
  if(V[h]){view=h;S=load(h);rui();bkTxt="";bkMsg=bkNext;bkNext="";ttl.textContent=V[h].title;back.hidden=false;render();window.scrollTo(0,0)}
  else if(h==="arc"){rui();bkMsg="";bkNext="";arcView();window.scrollTo(0,0)}
  else if(h==="rma"){rui();bkMsg="";bkNext="";rmaView();window.scrollTo(0,0)}
