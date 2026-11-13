@@ -98,6 +98,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .ddi b{display:block;font-size:16px}.ddi span{display:block;font-size:13px;color:var(--mu)}
 .ddi:hover,.ddi:focus-visible{background:var(--bg)}
 .dd .box{margin:8px 4px}
+.dd.inl{position:static;width:auto;max-height:none;box-shadow:none;margin:0 0 12px}
+.dbtn{margin-top:10px!important}
 .numv{flex:1;min-height:52px;display:grid;place-items:center;font-size:20px;font-weight:650;border:1px solid var(--ln);border-radius:10px;background:var(--sf)}
 .sw3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .sw3 button{min-height:52px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);border-radius:10px;font:inherit;font-size:14px;padding:0 6px;line-height:1.15}
@@ -259,7 +261,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=50,svEl=null;
+var VER=51,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function load(v){var s=null;try{s=JSON.parse(lsGet("gla_"+v))}catch(e){}if(!s||typeof s!=="object"||Array.isArray(s))s={};if(v==="inst")migInst(s);if(!s.tec){var tc=lsGet("gla_tec");if(tc)s.tec=tc}return s}
@@ -567,10 +569,11 @@ function shareFile(blob,fn,type,m,okMsg,ok){var no="Condivisione non disponibile
  if(!navigator.canShare||!navigator.canShare({files:[file]})){m.textContent=no;return}
  navigator.share({files:[file],title:fn}).then(function(){m.textContent=okMsg;if(ok)ok()},function(e){if(!e||e.name!=="AbortError")m.textContent=no})}
 function pdfBox(){photoBox();var m=el("div","cnt","");m.setAttribute("role","status");
- app.append(btn("reset ac","Genera PDF checklist",function(){pdfGate(function(){dlPdf(m)},"Scarica comunque",m)}),el("div","cnt","Per condividere il PDF o passare la scheda a un collega usa «Condividi ▾» in alto."));
  var pv=el("div","pvw");pv.hidden=true;
- var pb=btn("reset ac","Anteprima",function(){pvBuild(pv,pb);pv.hidden=false;pb.textContent="Aggiorna anteprima"});pb.style.marginTop="10px";
- app.append(pb,m,pv)}
+ var pb=btn("reset ac","Anteprima PDF",function(){pvBuild(pv,pb);pv.hidden=false;pb.textContent="Aggiorna anteprima PDF"});pb.style.marginTop="10px";
+ var dd=el("div","dd inl"),db=btn("reset ac tight dbtn",(ui.dd?"Condividi e PDF ▴":"Condividi e PDF ▾"),function(){ui.dd=!ui.dd;dd.hidden=!ui.dd;db.textContent=ui.dd?"Condividi e PDF ▴":"Condividi e PDF ▾";db.setAttribute("aria-expanded",ui.dd?"true":"false")});
+ db.setAttribute("aria-expanded",ui.dd?"true":"false");dd.hidden=!ui.dd;ddBuild(dd);
+ app.append(pb,db,dd,m,pv)}
 function pvBuild(c,pb){var bl=V[view].blocks(S),mt=pdfMeta(bl),R=pdfRows(bl),F=PH[view]||[],h,x,u;c.textContent="";
  h=el("div","pvh");h.append(el("b",0,mt.title),el("span",0,mt.date));c.append(h);
  u=el("div","pvi");mt.lines.forEach(function(l){u.append(el("div",0,l))});c.append(u);
@@ -585,7 +588,7 @@ function pvBuild(c,pb){var bl=V[view].blocks(S),mt=pdfMeta(bl),R=pdfRows(bl),F=P
   else if(r.k==="nt")c.append(el("div","pvn","Nota: "+r.x));
   else if(r.k==="li")c.append(el("div","pvn",r.x))});
  if(F.length){c.append(el("div","pvs","Foto allegate"));x=el("div","pvp");F.forEach(function(f,j){var i=document.createElement("img");i.src=f.tn||f.th;i.alt=f.n;x.append(i)});c.append(x)}
- var cl=btn("reset tight","Chiudi anteprima",function(){c.hidden=true;c.textContent="";pb.textContent="Anteprima"});c.append(cl)}
+ var cl=btn("reset tight","Chiudi anteprima",function(){c.hidden=true;c.textContent="";pb.textContent="Anteprima PDF"});c.append(cl)}
 
 /* ---------- genera RMA ---------- */
 function rmaLoad(){var o=null;try{o=JSON.parse(lsGet("gla_rmagen"))}catch(e){}return o&&typeof o==="object"&&!Array.isArray(o)?o:{}}
@@ -869,23 +872,17 @@ function render(){
  arcBox()}
 
 /* ---------- menu Condividi della scheda ---------- */
-var shBtn=btn("back","Condividi ▾",function(e){e.stopPropagation();if(!dd.hidden){ddClose();return}ddBuild();dd.hidden=false;shBtn.setAttribute("aria-expanded","true")});
-shBtn.hidden=true;shBtn.setAttribute("aria-haspopup","menu");shBtn.setAttribute("aria-expanded","false");document.querySelector("header").append(shBtn);
-var dd=el("div","dd");dd.hidden=true;document.body.append(dd);
-function ddClose(){dd.hidden=true;shBtn.setAttribute("aria-expanded","false")}
-document.addEventListener("click",function(e){if(!dd.hidden&&!dd.contains(e.target)&&e.target!==shBtn)ddClose()});
-document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!dd.hidden){ddClose();shBtn.focus()}});
-function ddBuild(){dd.textContent="";var m=el("div","cnt","");m.setAttribute("role","status");m.style.margin="6px 8px";
+function ddBuild(dd){dd.textContent="";var m=el("div","cnt","");m.setAttribute("role","status");m.style.margin="6px 8px";
  function it(lab,sub,fn){var b=btn("ddi",null,fn);b.append(el("b",0,lab),el("span",0,sub));dd.append(b)}
  dd.append(el("div","ddh","PDF della checklist"));
- if(CANSH)it("Condividi PDF","WhatsApp, email…",function(){pdfGate(function(){var r=pdfFile();shareFile(new Blob([r.u],{type:"application/pdf"}),r.fn,"application/pdf",m,"PDF condiviso.")},"Condividi comunque",m)});
- it("Scarica PDF","Salva il file sul dispositivo",function(){pdfGate(function(){dlPdf(m)},"Scarica comunque",m)});
+ it("Condividi PDF","WhatsApp, email…",function(){pdfGate(function(){var r=pdfFile();shareFile(new Blob([r.u],{type:"application/pdf"}),r.fn,"application/pdf",m,"PDF condiviso.")},"Condividi comunque",m)});
+ it("Genera PDF","Crea e salva il PDF della checklist",function(){pdfGate(function(){dlPdf(m)},"Scarica comunque",m)});
  dd.append(el("div","ddh","Scheda da riprendere"));
- if(CANSH)it("Condividi scheda","Un collega la carica e continua da qui",function(){if(!hasData(S)){m.textContent="Scheda vuota: niente da condividere.";return}var r=bkFile();shareFile(new Blob([r.t],{type:"application/json"}),r.fn,"application/json",m,"Scheda condivisa.")});
+ it("Condividi scheda","Un collega la carica e continua da qui",function(){if(!hasData(S)){m.textContent="Scheda vuota: niente da condividere.";return}var r=bkFile();shareFile(new Blob([r.t],{type:"application/json"}),r.fn,"application/json",m,"Scheda condivisa.")});
  it("Scarica scheda","File da ricaricare più tardi o altrove",function(){if(!hasData(S)){m.textContent="Scheda vuota: niente da scaricare.";return}var r=bkFile();saveFile(new Blob([r.t],{type:"application/json"}),r.fn,function(){m.textContent="Scheda salvata."},function(){m.textContent="Salvataggio non riuscito."})});
  var fi=document.createElement("input");fi.type="file";fi.accept=".json,application/json,text/plain";fi.hidden=true;
  fi.onchange=function(){var f=fi.files&&fi.files[0];fi.value="";if(!f)return;var rd=new FileReader();
-  rd.onload=function(){var r=bkRead(String(rd.result||""));ddClose();
+  rd.onload=function(){var r=bkRead(String(rd.result||""));ui.dd=0;
    if(!r){topMsg="File non valido: scegli una scheda Glory (.json).";render();return}
    if(r.all){topMsg="È un backup completo: caricalo dal menù principale.";render();return}
    if(hasData(load(r.it[0].v))||r.it[0].v!==view){ui.bkPend=r;render();window.scrollTo(0,0)}else bkApply(r)};
@@ -896,7 +893,6 @@ function ddBuild(){dd.textContent="";var m=el("div","cnt","");m.setAttribute("ro
 /* ---------- navigazione ---------- */
 function route(){
  var h=location.hash.replace("#","");
- ddClose();shBtn.hidden=!V[h];
  if(V[h]){view=h;S=load(h);rui();bkTxt="";bkMsg=bkNext;bkNext="";ttl.textContent=V[h].title;back.hidden=false;render();window.scrollTo(0,0)}
  else if(h==="arc"){rui();bkMsg="";bkNext="";arcView();window.scrollTo(0,0)}
  else if(h==="rma"){rui();bkMsg="";bkNext="";rmaView();window.scrollTo(0,0)}
