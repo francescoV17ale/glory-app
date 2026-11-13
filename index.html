@@ -220,7 +220,7 @@ prep:{title:"Preparazione macchine",blocks:function(s){
  b.push(NT());
  return b}},
 rip:{title:"Riparazioni in laboratorio",blocks:function(s){
- var rn=+s.rn||1,i,b=[TEC(),RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),GRM(),T("rma","RMA","Codice RMA"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]}]);
+ var rn=+s.rn||1,i,b=[TEC(),RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),GRM(),T("rma","RMA","Codice RMA")]);
  for(i=1;i<=rn;i++){var p="r"+i+"_",mi=modInfo(s,p);
   b.push(H("Modulo "+i+(mi.t?" · "+mi.n+(mi.m?" · "+mi.m:""):"")),G(p+"tp","Tipo di modulo",["Banconote","Monete"]),G(p+"md","Modello",["CI-5","CI-10","CI-10X"]),T(p+"mat","Matricola"+(mi.sig?" "+mi.sig:""),"Numero di matricola"),
    H3("Diagnosi e intervento"),T(p+"er","Codice errore","Es. 1234"),T(p+"pb","Problematica riscontrata","Descrivi il problema",1));
@@ -233,11 +233,11 @@ rip:{title:"Riparazioni in laboratorio",blocks:function(s){
    H3("Esito"),C(p+"ok","Dispositivo riparato"),C(p+"nr","Macchina non riparabile"));
   if(s[p+"ok"]&&!s[p+"nr"]){b.push(G(p+"de","Destinazione",["Reimballo","Reinstallazione in loco","Spedizione"]));
    if(s[p+"de"]==="Spedizione")b.push(G(p+"sp","Spedire a",["Cliente","Rivenditore","Tecnico di zona"]))}}
- b.push({t:"mod"},NT(),{t:"n"});
+ b.push({t:"mod"},NT(),H("Manodopera"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
  return b}},
 loc:{title:"Interventi in loco",blocks:function(s){
  var U=locUnits(s),i,fl=C("fl","Contratto full: aggiornamenti inclusi");fl.memo=1;
- var b=[TEC(),T("rf","Riferimento intervento","Codice chiamata o ticket"),RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),T("se","Sede","Sede"),fl,{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},
+ var b=[TEC(),T("rf","Riferimento intervento","Codice chiamata o ticket"),RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),T("se","Sede","Sede"),fl,
   G("sc","Intervento su",["Modulo banconote","Modulo monete","Entrambi i moduli","Dispositivo / altro"]),G("md","Modello dispositivo",["CI-5","CI-10","CI-10X"]),T("mt","Codice impianto","Facoltativo"),
   H("Controlli effettuati"),C("ct1","Alimentazione e cavi verificati"),C("ct2","Collegamento di rete verificato"),C("ct3","Sportelli e sensori verificati")]);
  if(s.sc==="Dispositivo / altro"){var si=0;b.forEach(function(x,k){if(x.id==="sc")si=k});b.splice(si+1,0,T("sp","Specifica","Es. monitor, stampante, PC"))}
@@ -257,7 +257,7 @@ loc:{title:"Interventi in loco",blocks:function(s){
    b.push(H3(u.l),C(p+"acc","Test di accensione"),C(p+"res","Reset"),C(p+"cnt","Prova con "+(u.t==="C"?"monete":u.t==="B"?"banconote":"contante")),
     C(p+"ok","Problema risolto"),C(p+"nr","Problema non risolto"));
    if(s[p+"nr"]&&!s[p+"ok"])b.push(G(p+"de","Destinazione",["Ritiro per riparazione in laboratorio","Nuovo intervento"]))})}
- b.push(NT(),{t:"n"});
+ b.push(NT(),H("Manodopera"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
  return b}},
 sng:{title:"Installazione SNG",blocks:function(s){
  var b=[TEC(),T("cv","CV","Codice contratto"),RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),T("se","Sede","Sede"),H("Software"),{t:"sw"}]);
@@ -284,7 +284,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=56,svEl=null;
+var VER=57,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
