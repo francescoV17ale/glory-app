@@ -283,7 +283,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=54,svEl=null;
+var VER=55,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -709,7 +709,7 @@ function arcView(){view="";ttl.textContent="Archivio lavori";back.hidden=false;a
 
 /* ---------- backup della scheda (file) ---------- */
 function bkFile(){var F=phOf(view);
- return {t:JSON.stringify({glory:2,view:view,saved:day(),s:S,ph:F}),fn:"Scheda - "+fnBase()+".json"}}
+ return {t:JSON.stringify({glory:2,view:view,saved:day(),s:S,ph:F}),fn:"Scheda Glory - "+fnBase()+".txt"}}
 function hasData(s){return Object.keys(s).some(function(k){return k!=="tec"&&k!=="_arc"})}
 function phOf(v){return (PH[v]||[]).map(function(f){return {n:f.n,w:f.w,h:f.h,d:f.th}})}
 function bkPh(a){var ph=[];(Array.isArray(a)?a:[]).forEach(function(f){try{if(f&&typeof f.d==="string"&&f.d.indexOf("data:image/jpeg;base64,")===0)ph.push({n:String(f.n||"foto.jpg"),w:+f.w||1,h:+f.h||1,b:atob(f.d.split(",")[1]),th:f.d})}catch(e){}});return ph}
@@ -741,7 +741,7 @@ function pendBox(refresh){var r=ui.bkPend,x=r.it[0],t=r.it.map(function(y){retur
  else{var d=hasData(load(x.v));msg=(view&&view!==x.v?"Il file è una scheda di "+t+": verrà caricata lì. ":"")+(d?"Nella scheda "+t+" c'è un lavoro in corso: verrà sostituito da quello del file. Continuare?":"Caricare il file nella scheda "+t+"?")}
  return confirmBox(msg,r.all?"Carica":(hasData(load(x.v))?"Sostituisci":"Carica"),function(){bkApply(r)},function(){ui.bkPend=null;refresh()})}
 function bkUi(refresh,cls){var m=el("div","cnt",bkMsg),fi=document.createElement("input");m.setAttribute("role","status");bkMsg="";
- fi.type="file";fi.accept=".json,application/json,text/plain";fi.hidden=true;
+ fi.type="file";fi.hidden=true;
  fi.onchange=function(){var f=fi.files&&fi.files[0];fi.value="";if(!f)return;var rd=new FileReader();
   rd.onload=function(){var r=bkRead(String(rd.result||""));if(!r){bkMsg="File non valido: scegli un backup Glory.";refresh();return}
    if(r.all&&view){bkMsg="È un backup completo: caricalo dal menù principale.";refresh();return}
@@ -916,12 +916,12 @@ function ddBuild(dd){dd.textContent="";var m=el("div","cnt","");m.setAttribute("
  it("Condividi PDF","WhatsApp, email…",function(){pdfGate(function(){var r=pdfFile();shareFile(new Blob([r.u],{type:"application/pdf"}),r.fn,"application/pdf",m,"PDF condiviso.")},"Condividi comunque",m)});
  it("Genera PDF","Crea e salva il PDF della checklist",function(){pdfGate(function(){dlPdf(m)},"Scarica comunque",m)});
  dd.append(el("div","ddh","Scheda da riprendere"));
- it("Condividi scheda","Un collega la carica e continua da qui",function(){if(!hasData(S)){m.textContent="Scheda vuota: niente da condividere.";return}var r=bkFile();shareFile(new Blob([r.t],{type:"application/json"}),r.fn,"application/json",m,"Scheda condivisa.")});
- it("Scarica scheda","File da ricaricare più tardi o altrove",function(){if(!hasData(S)){m.textContent="Scheda vuota: niente da scaricare.";return}var r=bkFile();saveFile(new Blob([r.t],{type:"application/json"}),r.fn,function(){m.textContent="Scheda salvata."},function(){m.textContent="Salvataggio non riuscito."})});
- var fi=document.createElement("input");fi.type="file";fi.accept=".json,application/json,text/plain";fi.hidden=true;
+ it("Condividi scheda","Un collega la carica e continua da qui",function(){if(!hasData(S)){m.textContent="Scheda vuota: niente da condividere.";return}var r=bkFile();shareFile(new Blob([r.t],{type:"text/plain"}),r.fn,"text/plain",m,"Scheda condivisa.")});
+ it("Scarica scheda","File da ricaricare più tardi o altrove",function(){if(!hasData(S)){m.textContent="Scheda vuota: niente da scaricare.";return}var r=bkFile();saveFile(new Blob([r.t],{type:"text/plain"}),r.fn,function(){m.textContent="Scheda salvata nei Download: «"+r.fn+"»."},function(){m.textContent="Salvataggio non riuscito."})});
+ var fi=document.createElement("input");fi.type="file";fi.hidden=true;
  fi.onchange=function(){var f=fi.files&&fi.files[0];fi.value="";if(!f)return;var rd=new FileReader();
   rd.onload=function(){var r=bkRead(String(rd.result||""));ui.dd=0;
-   if(!r){topMsg="File non valido: scegli una scheda Glory (.json).";render();return}
+   if(!r){topMsg="File non valido: scegli un file «Scheda Glory» (o un vecchio .json di Glory).";render();return}
    if(r.all){topMsg="È un backup completo: caricalo dal menù principale.";render();return}
    if(hasData(load(r.it[0].v))||r.it[0].v!==view){ui.bkPend=r;render();window.scrollTo(0,0)}else bkApply(r)};
   rd.onerror=function(){m.textContent="Lettura del file non riuscita."};rd.readAsText(f)};
