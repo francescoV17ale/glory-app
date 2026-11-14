@@ -175,6 +175,36 @@ h2.ptitle{font-size:24px;margin:2px 0 14px;padding:0;border:0}
 .tile{aspect-ratio:1/1;justify-content:center}
 .tile:last-child:nth-child(odd){aspect-ratio:auto;min-height:84px}
 .dlg .mseg{margin-bottom:12px}
+/* vista a passi: caratteri più grandi e marcati (menù e schede) */
+body.pv{font-size:18px}
+body.pv header h1{font-size:21px;font-weight:800}
+body.pv h2{font-size:21px;font-weight:800}
+body.pv h3{font-size:17px;font-weight:700}
+body.pv h2.ptitle{font-size:31px;font-weight:800;line-height:1.1;letter-spacing:-.01em}
+body.pv .eyeb{font-size:15px}
+body.pv .cnt{font-size:15px}
+body.pv .chk{min-height:64px;gap:16px;font-size:18px;font-weight:600}
+body.pv .chk .bx{width:32px;height:32px}
+body.pv .chk.on .lb{font-weight:500}
+body.pv .nb{min-width:64px;font-size:15px}
+body.pv .hb{font-size:19px}
+body.pv .fld>label,body.pv .hlr label{font-size:16px;font-weight:650;color:var(--tx)}
+body.pv input[type=text],body.pv input[type=date],body.pv textarea,body.pv select{font-size:18px;min-height:58px}
+body.pv .seg button{min-height:58px;font-size:17px;font-weight:600}
+body.pv .sw3 button{min-height:58px;font-size:16px;font-weight:600}
+body.pv .reset{min-height:56px;font-size:17px}
+body.pv .drow{min-height:60px}body.pv .drow b{font-size:17px}body.pv .drow span{font-size:15px}
+body.pv .numv{font-size:24px}
+body.pv .hlp{font-size:16px}
+body.pv .tile{padding:14px 12px}
+body.pv .tile{aspect-ratio:auto;min-height:150px}
+body.pv .tile:last-child:nth-child(odd){min-height:84px}
+body.pv .tile b{font-size:18.5px;font-weight:800;overflow-wrap:break-word}
+body.pv .tile span{font-size:15px}
+body.pv .dot{height:42px;font-size:18px}
+body.pv .go b{font-size:20px}body.pv .go span{font-size:13px}
+body.pv .dock .mid{font-size:17px}
+body.pv .notev{font-size:17px}
 </style>
 </head>
 
@@ -354,7 +384,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=73,svEl=null;
+var VER=74,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -924,7 +954,7 @@ function home(){
  view="";ttl.textContent="Glory 2.0";back.hidden=true;gear.hidden=false;clearPassi();closeOv();app.textContent="";noteTa=null;
  if(NEWV)app.append(btn("reset ac tight","È disponibile un aggiornamento: tocca per aggiornare",updApply));
  if(BIP)app.append(btn("reset ac tight","Installa l'app su questo dispositivo",function(){var p=BIP;BIP=null;try{p.prompt();p.userChoice.then(home,home)}catch(e){home()}}));
- var SQ=lsGet("gla_vista")==="passi",tl=el("div","tiles");NEWS.forEach(function(r){var s=load(r[0]),p=prog(V[r[0]].blocks(s),s,1),a=el("a",SQ?"tile":"card"),busy=hasData(s);
+ var SQ=lsGet("gla_vista")==="passi",tl=el("div","tiles");document.body.classList.toggle("pv",SQ);NEWS.forEach(function(r){var s=load(r[0]),p=prog(V[r[0]].blocks(s),s,1),a=el("a",SQ?"tile":"card"),busy=hasData(s);
   a.href="#"+r[0];a.append(el("b",0,V[r[0]].title));
   if(!SQ){a.append(el("span",0,busy?(s._arc?"Lavoro riaperto dall'archivio · ":"Scheda in corso · ")+p.d+" di "+p.t:DESC[r[0]]));app.append(a);return}
   if(busy){var br=el("div","bar"),bi=document.createElement("i");bi.style.width=(p.t?p.d/p.t*100:0)+"%";br.append(bi);a.classList.add("busy");
@@ -1084,8 +1114,8 @@ function dockBuild(){var cur=curStep(),last=cur===ST.length-1,q=stat(ST[cur]),re
  else{a=btn("go"+(rest>0?" wait":""),null,function(){goStep(cur+1)});a.append(el("b",0,"Avanti"),el("span",0,rest>0?(rest===1?"resta 1 voce qui":"restano "+rest+" voci qui"):ST[cur+1].x))}
  d.append(a);return d}
 function chrome(){if(!passi())return;BL=V[view].blocks(S);ST=steps(BL);var r=document.getElementById("rail"),d=document.getElementById("dock");if(r)r.replaceWith(railBuild());if(d)d.replaceWith(dockBuild())}
-function clearPassi(){var r=document.getElementById("rail"),d=document.getElementById("dock");if(r)r.remove();if(d)d.remove();document.body.classList.remove("passi")}
-function passiFrame(){clearPassi();if(!passi())return;document.body.classList.add("passi");hdr.append(railBuild());document.body.append(dockBuild())}
+function clearPassi(){var r=document.getElementById("rail"),d=document.getElementById("dock");if(r)r.remove();if(d)d.remove();document.body.classList.remove("passi","pv")}
+function passiFrame(){clearPassi();if(!passi())return;document.body.classList.add("passi","pv");hdr.append(railBuild());document.body.append(dockBuild())}
 
 /* ---------- salti verso il dato mancante ---------- */
 var KT=[[/Almeno un dispositivo/,"cnt"],[/Sistema del gestionale/,"sng"],[/Numero di postazioni/,"nsv"],[/Surplus/,"sur"],[/Controlli preliminari: alimentazione/,"ct1"],[/Esito dei controlli preliminari/,"pes"],[/collaudo finale/,"cfe"],[/Su quale modulo/,"cfq"],[/risolta o non risolta/,"cfx"],[/Contratto full: pulizia/,"rev"],[/nessun aggiornamento/,"ufc"],[/Riferimento CV o RMA/,"rf"],[/Matricola duplicata/,"mtM"]];
