@@ -172,7 +172,8 @@ h2.ptitle{font-size:24px;margin:2px 0 14px;padding:0;border:0}
 .tile.busy{border-left-color:var(--wn)}
 .tile .bar{margin:2px 0 0}
 .tile:last-child:nth-child(odd){grid-column:1/-1}
-@media (max-width:360px){.tiles{grid-template-columns:1fr}}
+.tile{aspect-ratio:1/1;justify-content:center}
+.tile:last-child:nth-child(odd){aspect-ratio:auto;min-height:84px}
 .dlg .mseg{margin-bottom:12px}
 </style>
 </head>
@@ -353,7 +354,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=71,svEl=null;
+var VER=72,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -923,11 +924,12 @@ function home(){
  view="";ttl.textContent="Glory 2.0";back.hidden=true;gear.hidden=false;clearPassi();closeOv();app.textContent="";noteTa=null;
  if(NEWV)app.append(btn("reset ac tight","È disponibile un aggiornamento: tocca per aggiornare",updApply));
  if(BIP)app.append(btn("reset ac tight","Installa l'app su questo dispositivo",function(){var p=BIP;BIP=null;try{p.prompt();p.userChoice.then(home,home)}catch(e){home()}}));
- var tl=el("div","tiles");NEWS.forEach(function(r){var s=load(r[0]),p=prog(V[r[0]].blocks(s),s,1),a=el("a","tile"),busy=hasData(s);
+ var SQ=lsGet("gla_vista")==="passi",tl=el("div","tiles");NEWS.forEach(function(r){var s=load(r[0]),p=prog(V[r[0]].blocks(s),s,1),a=el("a",SQ?"tile":"card"),busy=hasData(s);
   a.href="#"+r[0];a.append(el("b",0,V[r[0]].title));
+  if(!SQ){a.append(el("span",0,busy?(s._arc?"Lavoro riaperto dall'archivio · ":"Scheda in corso · ")+p.d+" di "+p.t:DESC[r[0]]));app.append(a);return}
   if(busy){var br=el("div","bar"),bi=document.createElement("i");bi.style.width=(p.t?p.d/p.t*100:0)+"%";br.append(bi);a.classList.add("busy");
    a.append(br,el("span",0,(s._arc?"Riaperto dall'archivio · ":"In corso · ")+p.d+" di "+p.t+(String(s.cl||s.rma||s.cvc||s.ti||"").trim()?" · "+String(s.cl||s.rma||s.cvc||s.ti).trim():"")))}
-  else a.append(el("span",0,DESC[r[0]]));tl.append(a)});app.append(tl);
+  else a.append(el("span",0,DESC[r[0]]));tl.append(a)});if(SQ)app.append(tl);
  app.append(el("h2",0,"RMA"),el("div","cnt","Codice RMA per una macchina appena arrivata."),btn("reset ac tight","Genera RMA",function(){location.hash="#rma"}));
  app.append(el("h2",0,"Archivio"),el("div","cnt",ARC.length?ARC.length+(ARC.length===1?" lavoro archiviato su questo dispositivo":" lavori archiviati su questo dispositivo"):"Nessun lavoro archiviato. A fine intervento usa «Archivia lavoro» in fondo alla scheda."),btn("reset ac tight","Apri archivio lavori",function(){location.hash="#arc"}));
  app.append(el("h2",0,"Backup"));var u=bkUi(home);app.append(bkLast(),el("p","cnt","Il backup completo comprende le schede in corso e tutto l'archivio."),bkRow(u,function(){var r=bkAll();return r.n?r:null},"Niente da salvare: nessuna scheda compilata e archivio vuoto."),u.fi,u.m);if(ui.bkPend)app.append(pendBox(home));
@@ -1121,7 +1123,7 @@ function noteDlg(){openOv(function(bx){var sg=el("div","seg");
 function gearDlg(){openOv(function(bx){var cur=lsGet("gla_vista")==="passi"?"passi":"unica";
  bx.append(el("h2",0,"Visualizzazione delle schede"),el("p","cnt","Cambia solo come scorri la scheda: voci, note, archivio e PDF restano gli stessi. Puoi cambiarla anche a lavoro iniziato."));
  [["unica","Scheda unica","Tutte le voci in una pagina: scorri liberamente."],["passi","A passi","Una sezione alla volta, con Avanti, la nota sempre a portata e l'elenco di cosa manca."]].forEach(function(o){
-  var b=btn("vopt"+(cur===o[0]?" on":""),null,function(){lsSet("gla_vista",o[0]);closeOv();if(view&&V[view]){render();window.scrollTo(0,0)}});
+  var b=btn("vopt"+(cur===o[0]?" on":""),null,function(){lsSet("gla_vista",o[0]);closeOv();if(view&&V[view]){render();window.scrollTo(0,0)}else if(!view&&!location.hash.replace("#",""))home()});
   b.append(el("b",0,o[1]),el("span",0,o[2]));b.setAttribute("aria-pressed",cur===o[0]?"true":"false");bx.append(b)});
  bx.append(btn("reset tight","Chiudi",closeOv))})}
 gear.onclick=gearDlg;
@@ -1129,16 +1131,21 @@ gear.onclick=gearDlg;
 /* ---------- caricamento del DDT ---------- */
 var PXM={"50":"CI-5","100":"CI-10","200":"CI-10X"};
 function serOld(t){var re=/R\s?([BC])\s?W\s?[-–]?\s?(200|100|50)\s?[-–—.:]?\s?([0-9][0-9A-Z]{2,})/g,m,o=[];t=String(t||"").toUpperCase();while((m=re.exec(t)))o.push({t:m[1],md:PXM[m[2]],n:m[3]});return o}
-function codeOf(s){var m=/^\s*CI\s?-?\s?(10X|10|5)\s?-?\s?([BC])(?![A-Z0-9])/i.exec(s);return m?{md:"CI-"+m[1].toUpperCase(),t:m[2].toUpperCase()}:null}
+/* CI-10US = CI-10 usato: la sigla US non è il modello; banconote o monete dalla descrizione */
+function codeOf(s){var m=/^\s*CI\s?-?\s?(10X|10|5)\s?-?\s?(?:([BC])|(US))(?![A-Z0-9])/i.exec(s);return m?{md:"CI-"+m[1].toUpperCase(),t:m[2]?m[2].toUpperCase():"",us:m[3]?1:0}:null}
+function typeOf(s){s=String(s).toUpperCase();return /BANCONOT|\bBANCO/.test(s)?"B":/MONET/.test(s)?"C":""}
 function parseLines(L){var R={ser:[],mon:""},cur=null,exp=0,seen={},codes=0;
- function add(t,md,n){var k=t+md+n;if(!seen[k]){seen[k]=1;R.ser.push({t:t,md:md,n:n})}}
+ function add(t,md,n){var k=md+n;if(!seen[k]){seen[k]=1;R.ser.push({t:t,md:md,n:n,us:cur&&cur.us?1:0,c:cur})}}
  L.forEach(function(raw){var s=String(raw).trim(),c=codeOf(s),m;if(!s)return;
-  if(c){cur=c;exp=0;codes++;return}
+  if(c){cur=c;if(!c.t)c.t=typeOf(s.replace(/^\s*CI\S*/i,""));exp=0;codes++;return}
+  if(cur&&!cur.t&&!exp)cur.t=typeOf(s);
   if(/^MONITOR/i.test(s)){R.mon="Sì";cur=null;exp=0;return}
   if(/codice\s+matricola/i.test(s)){exp=1;m=/codice\s+matricola\s*[:.]?\s*([A-Z0-9][A-Z0-9\-\/]{2,})\s*$/i.exec(s);if(m&&/\d/.test(m[1])&&cur){add(cur.t,cur.md,m[1]);exp=0}return}
   if(exp&&cur&&/^[A-Z0-9][A-Z0-9\-\/]{2,}$/.test(s)&&/\d/.test(s)&&!/^R\s?[BC]\s?W/i.test(s)){add(cur.t,cur.md,s);return}
   exp=0});
- serOld(L.join("\n")).forEach(function(x){add(x.t,x.md,x.n)});
+ cur=null;serOld(L.join("\n")).forEach(function(x){add(x.t,x.md,x.n)});
+ R.ser.forEach(function(x){if(x.c&&x.c.t)x.t=x.c.t;delete x.c});
+ R.ser.forEach(function(x){if(x.t)return;var o=R.ser.filter(function(y){return y!==x&&y.md===x.md&&y.us===x.us}),b=o.filter(function(y){return y.t==="B"}).length,c=o.filter(function(y){return y.t==="C"}).length;x.t=b>c?"C":"B"});
  if(codes&&!R.mon)R.mon="No";return R}
 function mkLines(P){var L=[],cur=null;P=P.filter(function(p){return String(p.s).trim()}).sort(function(a,b){return a.y-b.y||a.x-b.x});
  P.forEach(function(p){if(!cur||p.y-cur.y>3){cur={y:p.y,p:[]};L.push(cur)}cur.p.push(p)});
@@ -1196,7 +1203,7 @@ function readerDlg(){openOv(function(bx){var R=RD.found;
  bx.append(el("h2",0,R?"Trovato nel DDT":"Precompila dal DDT"));
  if(R){var ul=el("ul","found");function row(k,v){if(!v)return;var li=el("li");li.append(el("span",0,k),el("b",0,v));ul.append(li)}
   if(view!=="prep")row("Rivenditore",R.int);row("Cliente",R.cl);row("Sede",R.se);if(view==="inst")row("Monitor",R.mon);
-  R.ser.forEach(function(x){row(x.md+" · "+(x.t==="B"?"banconote":"monete"),"R"+x.t+"W"+PX[x.md]+"-"+x.n)});
+  R.ser.forEach(function(x){row(x.md+(x.us?" usato":"")+" · "+(x.t==="B"?"banconote":"monete"),"R"+x.t+"W"+PX[x.md]+"-"+x.n)});
   row("DDT",R.ddt?R.ddt+(R.dt?" del "+R.dt:""):"");bx.append(ul);
   var many=view==="inst"&&["CI-5","CI-10","CI-10X"].some(function(m){return R.ser.filter(function(x){return x.md===m&&x.t==="B"}).length>1||R.ser.filter(function(x){return x.md===m&&x.t==="C"}).length>1});
   if(many)bx.append(el("p","tipb","Più dispositivi nello stesso DDT: creo i dispositivi, le matricole le abbini tu toccandole nella finestra di ogni dispositivo, davanti alla macchina."));
