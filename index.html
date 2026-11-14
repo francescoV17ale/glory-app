@@ -238,13 +238,17 @@ rip:{title:"Riparazioni in laboratorio",blocks:function(s){
 loc:{title:"Interventi in loco",blocks:function(s){
  var U=locUnits(s),i,fl=C("fl","Contratto full: aggiornamenti inclusi");fl.memo=1;
  var b=[TEC(),T("rf","Riferimento intervento","Codice chiamata o ticket"),RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),T("se","Sede","Sede"),fl,
-  G("sc","Intervento su",["Modulo banconote","Modulo monete","Entrambi i moduli","Dispositivo / altro"]),G("md","Modello dispositivo",["CI-5","CI-10","CI-10X"]),T("mt","Codice impianto","Facoltativo"),
-  H("Controlli effettuati"),C("ct1","Alimentazione e cavi verificati"),C("ct2","Collegamento di rete verificato"),C("ct3","Sportelli e sensori verificati")]);
+  H("Dispositivo"),G("sc","Intervento su",["Modulo banconote","Modulo monete","Entrambi i moduli","Dispositivo / altro"]),G("md","Modello dispositivo",["CI-5","CI-10","CI-10X"]),T("mt","Codice impianto","Facoltativo")]);
  if(s.sc==="Dispositivo / altro"){var si=0;b.forEach(function(x,k){if(x.id==="sc")si=k});b.splice(si+1,0,T("sp","Specifica","Es. monitor, stampante, PC"))}
- if(U.length)b.push(H("Guasto e intervento"));
+ U.forEach(function(u){if(u.m)b.push(T(u.p+"mat","Matricola "+u.n+(u.sig?" "+u.sig:""),"Numero di matricola"))});
+ b.push(H("Controlli preliminari"),G("ct1","Alimentazione e cavi",["OK","Problema"]),G("ct2","Collegamento di rete",["OK","Problema"]));
+ if(locPre(s)){b.push(H("Problema nei controlli preliminari"),T("ppb","Problematica riscontrata","Descrivi il problema",1),T("ppr","Interventi eseguiti","Cosa è stato fatto",1),G("pes","Esito",["Risolto","Non risolto"]));
+  if(s.pes!=="Risolto"){if(s.pes==="Non risolto")b.push(G("pde","Destinazione",["Ritiro per riparazione in laboratorio","Nuovo intervento"]));
+   b.push({t:"tip",x:"Finché il problema dei controlli preliminari non è risolto non si passa all'analisi dei moduli."},NT(),H("Manodopera"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});return b}}
+ if(U.length)b.push(H("Analisi dei moduli"));
  U.forEach(function(u){var p=u.p;
   b.push(H3(u.l));
-  if(u.m)b.push(T(p+"mat","Matricola"+(u.sig?" "+u.sig:""),"Numero di matricola"));
+  if(u.m)b.push(C(p+"ss","Sensori e sportelli verificati"));
   b.push(T(p+"er","Codice errore","Es. 1234"),T(p+"pb","Problematica riscontrata","Descrivi il problema",1),T(p+"pr","Interventi eseguiti","Descrivi gli interventi (anche pezzi riparati in loco)",1));
   for(var pi=1;pi<=(+s[p+"np"]||0);pi++)b.push(T(p+"pz"+pi,"Pezzo sostituito "+pi,"Quale pezzo"));
   b.push({t:"addp",p:p},{t:"delp",p:p})});
@@ -284,7 +288,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=57,svEl=null;
+var VER=58,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -328,7 +332,19 @@ function locUnits(s){var P=PX[s.md]||"",o=[];
  else if(s.sc==="Entrambi i moduli"){mod("r1_","B");mod("r2_","C")}
  else if(s.sc==="Dispositivo / altro")o.push({p:"d_",t:"",m:0,l:String(s.sp||"").trim()||"Dispositivo",n:"",sig:"",full:""});
  return o}
+function locPre(s){return s.ct1==="Problema"||s.ct2==="Problema"}
+function locId(s,u){return u.m?"Modulo "+u.n+(s.md?" "+s.md:"")+" "+u.full+".":(String(s.sp||"").trim()?"Intervento su "+String(s.sp).trim():"Dispositivo"+(s.md?" "+s.md:""))+(s.mt?" (codice impianto "+s.mt+")":"")+"."}
+function locPreText(s){var pr=[],o=[];if(s.ct1==="Problema")pr.push("alimentazione e cavi");if(s.ct2==="Problema")pr.push("collegamento di rete");
+ o.push("Controlli preliminari: riscontrato problema su "+pr.join(" e ")+".");
+ if(s.ppb)o.push("Problematica riscontrata: "+String(s.ppb).trim());if(s.ppr)o.push("Interventi eseguiti: "+String(s.ppr).trim());
+ if(s.pes==="Risolto")o.push("Problema risolto.");
+ else if(s.pes==="Non risolto"){o.push("Problema non risolto.");if(s.pde)o.push(s.pde==="Nuovo intervento"?"Necessario nuovo intervento.":"Dispositivo da ritirare per riparazione in laboratorio.")}
+ return o}
 function locText(s){var U=locUnits(s),o=[],ag=[],i,j,m=U.length>1;
+ if(locPre(s)){if(s.pes!=="Risolto"){U.forEach(function(u){o.push(locId(s,u))});if(o.length)o.push("");return o.concat(locPreText(s)).join("\n")}
+  var pt=locPreText(s);return pt.join("\n")+"\n\n"+locText2(s)}
+ return locText2(s)}
+function locText2(s){var U=locUnits(s),o=[],ag=[],i,j,m=U.length>1;
  U.forEach(function(u,k){var p=u.p,pz=[];
   for(j=1;j<=(+s[p+"np"]||0);j++)if(s[p+"pz"+j])pz.push(s[p+"pz"+j]);
   if(k)o.push("");
@@ -393,10 +409,12 @@ function check(bl){var bad=[],warn=[],s=S,i,n,sec="",sub="";
   if(s.bo==="Sì"){need("sng","Sistema del gestionale del cliente (Windows o Android)");if(!(+s.nsv||0)&&!(+s.ncl||0))warn.push("Numero di postazioni server e client SNG")}
   want("cv","Codice contratto (CV)");if(s.rv)want("rvn","Rivenditore");want("cl","Cliente");if(s.f3)want("ric","Nome di chi riceve le chiavi")}
  else if(view==="loc"){need("rf","Riferimento dell'intervento");need("sc","Su cosa è stato fatto l'intervento");if(s.sc==="Dispositivo / altro")need("sp","Specifica il dispositivo o l'oggetto dell'intervento");else need("md","Modello del dispositivo");if(s.rv)want("rvn","Rivenditore");want("cl","Cliente");
-  locUnits(s).forEach(function(u){var q=u.p;if(u.m)need(q+"mat","Matricola del "+u.l.toLowerCase());
+  if(!s.ct1||!s.ct2)warn.push("Controlli preliminari: alimentazione e rete (OK o Problema)");
+  var stp=locPre(s)&&s.pes!=="Risolto";if(locPre(s)){need("ppb","Problematica riscontrata nei controlli preliminari");if(!s.pes)bad.push("Esito dei controlli preliminari (risolto o non risolto)")}
+  locUnits(s).forEach(function(u){var q=u.p;if(u.m)need(q+"mat","Matricola del "+u.l.toLowerCase());if(stp)return;
    if(!s[q+"ok"]&&!s[q+"nr"])bad.push("Esito: "+u.l+" (risolto o non risolto)");
    want(q+"pb","Problematica riscontrata ("+u.l.toLowerCase()+")");want(q+"pr","Interventi eseguiti ("+u.l.toLowerCase()+")")});
-  if(s.fl){if(!s.rev)warn.push("Contratto full: pulizia e revisione del dispositivo non eseguita");if(!s.ufc&&!s.ubc&&!s.ubb&&!s.umc)warn.push("Contratto full: nessun aggiornamento eseguito (firmware CPU, BV, FCC)")}
+  if(s.fl&&!stp){if(!s.rev)warn.push("Contratto full: pulizia e revisione del dispositivo non eseguita");if(!s.ufc&&!s.ubc&&!s.ubb&&!s.umc)warn.push("Contratto full: nessun aggiornamento eseguito (firmware CPU, BV, FCC)")}
   want("ore","Ore di manodopera")}
  else if(view==="rip"){need("rma","Codice RMA");n=+s.rn||1;
   for(i=1;i<=n;i++){var p="r"+i+"_";need(p+"tp","Tipo del modulo "+i);need(p+"md","Modello del modulo "+i);need(p+"mat","Matricola del modulo "+i);
