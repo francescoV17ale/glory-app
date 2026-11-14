@@ -295,7 +295,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=60,svEl=null;
+var VER=62,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -321,19 +321,25 @@ function delRow(j){var n=+S.dn||1,i,f=[mrk,dgk,bkk,tsk];for(i=j;i<n;i++)f.forEac
 function prepMat(k){var pf={mtM:"RCW50-",mtB:"RBW50-"}[k],v=String(S[k]||"").trim();return v?pf+v:""}
 function modInfo(s,p){var t=s[p+"tp"]==="Banconote"?"B":s[p+"tp"]==="Monete"?"C":"",m=s[p+"md"]||"",n=PX[m]||"",sg=t&&n?"R"+t+"W"+n+"-":"";
  return {t:t,n:t==="B"?"banconote":t==="C"?"monete":"",m:m,sig:sg,full:sg+(s[p+"mat"]||"…")}}
-function ripText(s){var rn=+s.rn||1,o=[],i,j;
+function ripText(s){var rn=+s.rn||1,o=[],i,j,M=[];
+ for(i=1;i<=rn;i++)M.push(modInfo(s,"r"+i+"_"));
+ var mdl=M.map(function(m){return m.m}).filter(Boolean),same=mdl.length===M.length&&mdl.every(function(x){return x===mdl[0]}),nm=M.map(function(m){return m.n}).filter(Boolean);
+ if(rn>1)o.push("Riparazione in laboratorio dei moduli"+(nm.length===rn?" "+nm.join(" e "):"")+(same?" Glory "+mdl[0]:"")+".");
+ else o.push("Riparazione in laboratorio del modulo"+(M[0].n?" "+M[0].n:"")+(M[0].m?" Glory "+M[0].m:"")+".");
+ M.forEach(function(m){o.push(m.full+(rn>1&&!same&&m.m?" ("+m.m+")":""))});
  o.push("RMA: "+(s.rma||"…"));
- for(i=1;i<=rn;i++){var p="r"+i+"_",mi=modInfo(s,p),pz=[],ag=[],ts=s[p+"acc"]||s[p+"res"]||s[p+"cnt"];
+ for(i=1;i<=rn;i++){var p="r"+i+"_",mi=M[i-1],pz=[],ag=[],d=[],ts=s[p+"acc"]||s[p+"res"]||s[p+"cnt"];
   for(j=1;j<=(+s[p+"np"]||0);j++)if(s[p+"pz"+j])pz.push(s[p+"pz"+j]);
-  o.push("","Modulo "+(mi.n||"")+(mi.m?" "+mi.m:"")+" "+mi.full+".");
-  if(s[p+"er"])o.push("Codice errore: "+String(s[p+"er"]).trim()+".");
-  if(s[p+"pb"])o.push("Problematica riscontrata: "+String(s[p+"pb"]).trim());
-  if(s[p+"pr"])o.push("Interventi eseguiti: "+String(s[p+"pr"]).trim());
-  if(pz.length)o.push("Per ripristinare il corretto funzionamento "+(pz.length>1?"sono stati sostituiti i componenti: ":"è stato sostituito il componente: ")+pz.join(", ")+".");
-  if(ts)o.push("Eseguite prove di funzionamento"+(s[p+"ok"]?" con esito positivo":"")+".");
+  if(s[p+"er"])d.push("Codice errore: "+String(s[p+"er"]).trim()+".");
+  if(s[p+"pb"])d.push("Problematica riscontrata: "+String(s[p+"pb"]).trim());
+  if(s[p+"pr"])d.push("Interventi eseguiti: "+String(s[p+"pr"]).trim());
+  if(pz.length)d.push("Per ripristinare il corretto funzionamento "+(pz.length>1?"sono stati sostituiti i componenti: ":"è stato sostituito il componente: ")+pz.join(", ")+".");
   if(s[p+"ucp"])ag.push("firmware CPU");if(s[p+"ubv"])ag.push("BV");
-  if(ag.length)o.push("Eseguito aggiornamento "+ag.join(" e ")+".");
-  if(s[p+"ok"])o.push("Dispositivo ripristinato.");else if(s[p+"nr"])o.push("Macchina non riparabile.")}
+  if(ag.length)d.push("Eseguito aggiornamento "+ag.join(" e ")+".");
+  if(ts)d.push("Eseguite prove di funzionamento"+(s[p+"ok"]?" con esito positivo":"")+".");
+  if(s[p+"ok"])d.push(rn>1?"Modulo ripristinato.":"Dispositivo ripristinato.");else if(s[p+"nr"])d.push(rn>1?"Modulo non riparabile.":"Macchina non riparabile.");
+  if(rn>1&&d.length)d.unshift("Modulo "+(mi.n||i)+":");
+  if(d.length){o.push("");d.forEach(function(l){o.push(l)})}}
  return o.join("\n")}
 function locUnits(s){var P=PX[s.md]||"",o=[];
  function mod(p,t){var sg=P?"R"+t+"W"+P+"-":"";o.push({p:p,t:t,m:1,l:t==="B"?"Modulo banconote":"Modulo monete",n:t==="B"?"banconote":"monete",sig:sg,full:sg+(s[p+"mat"]||"…")})}
@@ -349,22 +355,29 @@ function locPreText(s){var pr=[],o=[];if(s.ct1==="Problema")pr.push("alimentazio
  if(s.pes==="Risolto")o.push("Problema risolto.");
  else if(s.pes==="Non risolto"){o.push("Problema non risolto.");if(s.pde)o.push(s.pde==="Nuovo intervento"?"Necessario nuovo intervento.":"Dispositivo da ritirare per riparazione in laboratorio.")}
  return o}
-function locText(s){var U=locUnits(s),o=[],ag=[],i,j,m=U.length>1;
- if(locPre(s)){if(s.pes!=="Risolto"){U.forEach(function(u){o.push(locId(s,u))});if(o.length)o.push("");return o.concat(locPreText(s)).join("\n")}
-  var pt=locPreText(s);return pt.join("\n")+"\n\n"+locText2(s)}
- return locText2(s)}
+function locHead(s){var U=locUnits(s),o=[],PUL=s.sc==="Pulizia e revisione";
+ if(s.sc==="Dispositivo / altro")o.push("Intervento su "+(String(s.sp||"").trim()||"dispositivo")+(s.md?" del dispositivo Glory "+s.md:"")+".");
+ else o.push((PUL?"Eseguita pulizia e revisione del dispositivo":"Intervento sul dispositivo")+(s.md?" Glory "+s.md:"")+".");
+ U.forEach(function(u){if(u.m)o.push(u.full)});
+ if(String(s.mt||"").trim())o.push("Codice impianto: "+String(s.mt).trim());
+ return o}
+function locText(s){var o=locHead(s);
+ if(locPre(s)){o.push("");o=o.concat(locPreText(s));if(s.pes!=="Risolto")return o.join("\n")}
+ var t=locText2(s);if(t){o.push("");o.push(t)}
+ return o.join("\n")}
 function locText2(s){var U=locUnits(s),o=[],ag=[],i,j,m=U.length>1,PUL=s.sc==="Pulizia e revisione";
- if(PUL){o.push("Eseguita pulizia e revisione del dispositivo"+(s.md?" "+s.md:"")+(s.mt?" (codice impianto "+s.mt+")":"")+": pulizia completa di entrambi i moduli e verifica di sensori e sportelli.");o.push("")}
- U.forEach(function(u,k){var p=u.p,pz=[];
+ if(PUL)o.push("Pulizia completa di entrambi i moduli e verifica di sensori e sportelli.");
+ U.forEach(function(u){var p=u.p,pz=[],d=[];
+  if(PUL&&s[p+"pp"]!=="Sì")return;
   for(j=1;j<=(+s[p+"np"]||0);j++)if(s[p+"pz"+j])pz.push(s[p+"pz"+j]);
-  if(k&&!(PUL&&s[U[k-1].p+"pp"]!=="Sì"))o.push("");
-  o.push(u.m?"Modulo "+u.n+(s.md?" "+s.md:"")+" "+u.full+".":(String(s.sp||"").trim()?"Intervento su "+String(s.sp).trim():"Dispositivo"+(s.md?" "+s.md:""))+(s.mt?" (codice impianto "+s.mt+")":"")+".");
-  if(PUL){if(s[p+"pp"]!=="Sì")return;o.push("Dopo la pulizia rilevato un problema sul modulo "+u.n+".")}
-  if(s[p+"er"])o.push("Codice errore: "+String(s[p+"er"]).trim()+".");
-  if(s[p+"pb"])o.push("Problematica riscontrata: "+String(s[p+"pb"]).trim());
-  if(s[p+"pr"])o.push("Interventi eseguiti: "+String(s[p+"pr"]).trim());
-  if(pz.length)o.push("Per ripristinare il corretto funzionamento "+(pz.length>1?"sono stati sostituiti i componenti: ":"è stato sostituito il componente: ")+pz.join(", ")+".")});
- if(s.rev&&!PUL){if(U.length>1)o.push("");o.push("Contestualmente eseguita revisione generale del dispositivo.")}
+  if(s[p+"er"])d.push("Codice errore: "+String(s[p+"er"]).trim()+".");
+  if(s[p+"pb"])d.push("Problematica riscontrata: "+String(s[p+"pb"]).trim());
+  if(s[p+"pr"])d.push("Interventi eseguiti: "+String(s[p+"pr"]).trim());
+  if(pz.length)d.push("Per ripristinare il corretto funzionamento "+(pz.length>1?"sono stati sostituiti i componenti: ":"è stato sostituito il componente: ")+pz.join(", ")+".");
+  if(PUL)d.unshift("Dopo la pulizia rilevato un problema sul modulo "+u.n+".");
+  else if(d.length&&m&&u.m)d.unshift("Modulo "+u.n+":");
+  if(d.length){if(o.length)o.push("");d.forEach(function(l){o.push(l)})}});
+ if(s.rev&&!PUL){if(o.length)o.push("");o.push("Contestualmente eseguita revisione generale del dispositivo.")}
  var ap=[];if(s.ubb)ap.push("BV");if(s.ubc&&s.umc)ap.push("firmware CPU di entrambi i moduli");else if(s.ubc)ap.push("firmware CPU del modulo banconote");else if(s.umc)ap.push("firmware CPU del modulo monete");if(s.ufc)ap.push("FCC");
  if(ap.length)ag.push("Eseguito aggiornamento "+(ap.length>1?ap.slice(0,-1).join(", ")+" e "+ap[ap.length-1]:ap[0])+".");
  if(ag.length){o.push("");ag.forEach(function(l){o.push(l)})}
@@ -376,7 +389,7 @@ function locText2(s){var U=locUnits(s),o=[],ag=[],i,j,m=U.length>1,PUL=s.sc==="P
   o.push("Al collaudo rilevata una problematica"+mq+".");
   if(s.cfx==="Risolta")o.push("Problematica risolta, dispositivo lasciato operativo.");
   else if(s.cfx==="Non risolta"){o.push("Problematica non risolta.");if(s.cfd)o.push(s.cfd==="Nuovo intervento"?"Necessario nuovo intervento.":"Dispositivo da ritirare per riparazione in laboratorio.")}}
- return o.join("\n")}
+ return o.join("\n").replace(/^\n+/,"")}
 function altroText(s){var o=[(s.tp||"Attività")+(s.ti?": "+s.ti:"")+"."],d=[s.mt,s.ma].filter(Boolean).join(" ");
  if(d)o.push("Dispositivo: "+d+".");if(s.de)o.push(String(s.de).trim());if(s.es)o.push("Esito: "+s.es.toLowerCase()+".");
  return o.join("\n")}
