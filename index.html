@@ -354,7 +354,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=72,svEl=null;
+var VER=73,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -1155,7 +1155,7 @@ function parseDoc(LN){var R=parseLines(LN.map(function(l){return l.segs.map(func
  function block(a,stop){var o=[],i;for(i=a.i+1;i<stop;i++)LN[i].segs.forEach(function(g){if(g.x>=a.x-12)o.push(g.s.trim())});return o.filter(Boolean)}
  function under(re){var a=find(re),i,best="";if(!a)return "";for(i=a.i+1;i<LN.length&&i<=a.i+2&&!best;i++)LN[i].segs.forEach(function(g){if(!best&&Math.abs(g.x-a.x)<20)best=g.s.trim()});return best}
  function addr(bl){var k=-1,st,city;bl.forEach(function(s,i){if(/^\d{5}\s/.test(s))k=i});if(k<0)return null;
-  city=bl[k].replace(/^\d{5}\s+/,"").replace(/\s*(-\s*Itali[ae]|\(ITA\)|-\s*IT)\s*$/i,"").trim();
+  city=bl[k].replace(/^(\d{5})\s+/,"$1 ").replace(/\s*(-\s*Itali[ae]|\(ITA\)|-\s*IT)\s*$/i,"").trim();
   st=k>0&&/^(VIA|V\.\s?LE|VIALE|P\.?\s?ZA|PIAZZA|PIAZZALE|CORSO|C\.\s?SO|LARGO|LOC\.?|LOCALIT|STRADA|STR\.|FRAZ|CONTRADA|VICOLO|BORGO|SS\s|S\.S\.)|\d/i.test(bl[k-1])?bl[k-1]:"";
   return {name:bl.slice(0,st?k-1:k).join(" "),se:(st?st+", ":"")+city}}
  var a=find(/^Intestatario/i),b=find(/^Sede di consegna/i),c=find(/^Codice cliente/i),A,B;
