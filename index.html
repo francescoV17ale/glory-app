@@ -122,11 +122,63 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .sw3 .half button{font-size:13px;padding:0 2px}
 .sw3 button.on{background:var(--ac);color:var(--on);border-color:var(--ac);font-weight:650}
 .wl{margin:6px 0 8px;padding-left:20px;font-size:14px}
+header{flex-wrap:wrap}
+#gear{font-size:20px;padding:0 10px}
+.rail{flex:1 0 100%;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 1px}
+.rail::-webkit-scrollbar{display:none}
+.dot{flex:1 1 0;min-width:28px;max-width:60px;height:36px;border-radius:8px;border:2px solid var(--ln);background:var(--sf);color:var(--mu);font:inherit;font-size:15px;font-weight:700;padding:0}
+.dot.part{border-color:var(--wn);color:var(--wn)}
+.dot.done{background:var(--ok);border-color:var(--ok);color:var(--on)}
+.dot.cur{outline:3px solid var(--ac);outline-offset:1px}
+body.passi main{padding-bottom:120px}
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:15;display:flex;gap:8px;justify-content:center;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--ln)}
+.dock .ib{flex:none;min-width:54px;min-height:56px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);border-radius:12px;font-size:24px}
+.dock .ib:disabled{opacity:.35;cursor:default}
+.dock .mid{flex:none;min-height:56px;padding:0 16px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);border-radius:12px;font:inherit;font-weight:650}
+.go{flex:1;max-width:440px;min-width:0;min-height:56px;border:2px solid var(--ac);background:var(--ac);color:var(--on);border-radius:12px;font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;padding:4px 10px}
+.go b{font-size:18px;text-transform:uppercase;letter-spacing:.04em}
+.go span{font-size:12px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.go.wait{background:var(--sf);color:var(--ac)}
+.eyeb{margin-top:6px;color:var(--ac);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+h2.ptitle{font-size:24px;margin:2px 0 14px;padding:0;border:0}
+.allok{margin:0 0 12px;border:2px solid var(--ok);border-radius:10px;padding:12px;font-weight:600;color:var(--ok)}
+.box>b{display:block;margin-bottom:4px}
+.wlk{display:inline;background:none;border:0;padding:2px 0;margin:0;color:inherit;font:inherit;text-align:left;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.notev{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:12px;margin:10px 0 12px;font-size:15px;line-height:1.5}
+.gap{background:#ffe08a;color:#3d2c00;border:0;border-radius:5px;padding:0 8px;font:inherit;font-weight:700}
+.flash{animation:fl 1.6s ease-out;border-radius:10px}
+@keyframes fl{0%{box-shadow:0 0 0 4px #ffcf4a}100%{box-shadow:0 0 0 4px transparent}}
+@media (prefers-reduced-motion:reduce){.flash{animation:none;outline:3px solid var(--wn)}}
+.vopt{display:block;width:100%;text-align:left;background:var(--sf);border:2px solid var(--ln);border-radius:12px;padding:12px 14px;margin:0 0 10px;color:var(--tx);font:inherit}
+.vopt b{display:block;font-size:17px}.vopt span{color:var(--mu);font-size:14px}
+.vopt.on{border-color:var(--ac)}.vopt.on b{color:var(--ac)}
+.ddtb{border-style:dashed!important;margin-bottom:12px!important}
+.filebtn{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.filebtn input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.filebtn:focus-within{outline:3px solid var(--ac);outline-offset:2px}
+.found{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:6px}
+.found li{display:flex;justify-content:space-between;align-items:baseline;gap:10px;background:var(--sf);border:1px solid var(--ln);border-radius:8px;padding:8px 10px;font-variant-numeric:tabular-nums}
+.found li span{flex:none;color:var(--mu);font-size:13px}.found li b{text-align:right;overflow-wrap:anywhere}
+.tipb{font-size:14px;border:1px dashed var(--ac);border-radius:10px;padding:10px 12px;margin:0 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:-4px 0 12px}
+.chips span{font-size:13px;color:var(--mu)}
+.chip{min-height:40px;padding:0 14px;border:1px dashed var(--ac);background:var(--sf);color:var(--ac);border-radius:20px;font:inherit;font-weight:650;font-variant-numeric:tabular-nums}
+.chip.on{background:var(--ac);color:var(--on);border-style:solid}
+.dlg textarea{margin:8px 0}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
+.tile{display:flex;flex-direction:column;gap:5px;background:var(--sf);border:1px solid var(--ln);border-left:5px solid var(--ac);border-radius:10px;padding:12px 14px;min-height:84px;color:var(--tx);text-decoration:none;min-width:0}
+.tile b{font-size:17px;line-height:1.2}
+.tile span{font-size:13px;color:var(--mu);overflow-wrap:anywhere}
+.tile.busy{border-left-color:var(--wn)}
+.tile .bar{margin:2px 0 0}
+.tile:last-child:nth-child(odd){grid-column:1/-1}
+@media (max-width:360px){.tiles{grid-template-columns:1fr}}
+.dlg .mseg{margin-bottom:12px}
 </style>
 </head>
 
 <body>
-<header><button class="back" id="back" type="button" hidden>Menù</button><h1 id="ttl">Attività tecniche</h1></header>
+<header><button class="back" id="back" type="button" hidden>Menù</button><h1 id="ttl">Attività tecniche</h1><button class="back" id="gear" type="button" aria-label="Impostazioni: visualizzazione delle schede" hidden>⚙</button></header>
 <main id="app"></main>
 <script>
 "use strict";
@@ -301,7 +353,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=70,svEl=null;
+var VER=71,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -311,7 +363,7 @@ function migLoc(s){if(s.sc!=="Modulo monete"||Object.keys(s).some(function(k){re
  Object.keys(s).forEach(function(k){var m=/^(nt_)?r1_(.+)$/.exec(k);if(m){s[(m[1]||"")+"r2_"+m[2]]=s[k];delete s[k]}})}
 function migRip(s){[1,2].forEach(function(i){var p="r"+i+"_";if(!s[p+"es"]){if(s[p+"ok"])s[p+"es"]="Riparato";else if(s[p+"nr"])s[p+"es"]="Non riparabile"}})}
 function mig(v,s){if(v==="inst")migInst(s);if(v==="loc")migLoc(s);if(v==="rip")migRip(s);return s}
-function save(){if(view){if(!S.dt&&hasData(S))S.dt=day();lsSet("gla_"+view,JSON.stringify(S))}}
+function save(){if(view){if(!S.dt&&hasData(S))S.dt=day();lsSet("gla_"+view,JSON.stringify(S));if(passi())chrome()}}
 
 /* ---------- testi per il rapportino ---------- */
 var DLP=null;
@@ -432,8 +484,8 @@ function noteText(){return view==="inst"?notes(S):view==="rip"?ripText(S):view==
 /* ---------- controllo prima di copiare ---------- */
 function check(bl){var bad=[],warn=[],s=S,i,n,sec="",sub="";
  function has(k){return !!String(s[k]||"").trim()}
- function need(k,t){if(!has(k))bad.push(t)}
- function want(k,t){if(!has(k))warn.push(t)}
+ function need(k,t){if(!has(k)){bad.push(t);MK[t]=k}}
+ function want(k,t){if(!has(k)){warn.push(t);MK[t]=k}}
  want("tec","Nome del tecnico");
  if(view==="inst"){n=devN(s);if(!n&&!(s.bo==="Sì"||(s.app&&s.sng!=="Android")))bad.push("Almeno un dispositivo (CI-5, CI-10 o CI-10X) oppure il software da installare");
   for(i=1;i<=n;i++){need("m"+i,"Modello del dispositivo "+i);need("a"+i,"Matricola banconote del dispositivo "+i);need("c"+i,"Matricola monete del dispositivo "+i);want("mt"+i,"Codice impianto del dispositivo "+i)}
@@ -458,15 +510,15 @@ function check(bl){var bad=[],warn=[],s=S,i,n,sec="",sub="";
  else if(view==="prep"){if(s.m&&(s.m!=="CI-5"||prepMode(s)==="Completa")&&s.mon!=="Sì"&&!has("chp"))warn.push("Dove sono state messe le chiavi (monitor assente)");if(prepMode(s)==="Downgrade CI-5"){var sn={},dk,dv0;for(dk=1;dk<=(+s.dn||1);dk++){dv0=mnorm(s[mrk(dk)]);if(!dv0)continue;if(sn[dv0])warn.push("Matricola duplicata: "+s[mrk(dk)]+" (dispositivi "+sn[dv0]+" e "+dk+")");else sn[dv0]=dk}}}
   else{need("ti","Titolo dell'attività");need("de","Descrizione dell'intervento");
   if(s.rf)want("rc","Codice "+s.rf);else warn.push("Riferimento CV o RMA");want("es","Esito");want("ore","Ore di manodopera")}
- bl.forEach(function(x){if(x.t==="h"){sec=x.x;sub=""}else if(x.t==="h3")sub=x.x;else if(x.t==="c"&&!x.memo&&!x.opt&&!s[x.id])warn.push("Non spuntata: "+x.x+(x.dv?" · dispositivo "+x.dv:"")+(sec?" ("+sec+(sub?" · "+sub:"")+")":""))});
+ bl.forEach(function(x){if(x.t==="h"){sec=x.x;sub=""}else if(x.t==="h3")sub=x.x;else if(x.t==="c"&&!x.memo&&!x.opt&&!s[x.id]){var _m="Non spuntata: "+x.x+(x.dv?" · dispositivo "+x.dv:"")+(sec?" ("+sec+(sub?" · "+sub:"")+")":"");warn.push(_m);MK[_m]=x.id}});
  return {bad:bad,warn:warn}}
 function cpy(t,ok,ko){var f=function(){var a=document.createElement("textarea"),r=false;a.value=t;a.style.position="fixed";a.style.opacity="0";document.body.append(a);a.select();try{r=document.execCommand("copy")}catch(e){}a.remove();if(r)ok();else if(ko)ko()};
  try{navigator.clipboard.writeText(t).then(ok,f)}catch(e){f()}}
-function wlist(bx,a){var u=el("ul","wl");a.slice(0,12).forEach(function(t){u.append(el("li",0,t))});if(a.length>12)u.append(el("li",0,"e altre "+(a.length-12)+" voci"));bx.append(u)}
+function wlist(bx,a){var u=el("ul","wl");a.slice(0,12).forEach(function(t){var k=keyOf(t),li=el("li");if(canJump(k))li.append(btn("wlk",t,function(){jump(k)}));else li.textContent=t;u.append(li)});if(a.length>12)u.append(el("li",0,"e altre "+(a.length-12)+" voci"));bx.append(u)}
 function doCopy(cb,cm){var t=noteText();if(noteTa)noteTa.value=t;cm.textContent="";
  cpy(t,function(){cb.textContent="Copiato";setTimeout(function(){cb.textContent="Copia note"},1800)},function(){cm.textContent="Copia non riuscita: seleziona il testo qui sopra e copialo a mano."})}
 function tryCopy(cb,cm){var r=check(V[view].blocks(S));cm.textContent="";
- if(!r.bad.length&&!r.warn.length){doCopy(cb,cm);return}
+ if(!r.bad.length&&(!r.warn.length||passi())){doCopy(cb,cm);return}
  var bx=el("div",r.bad.length?"box":"box wn");bx.setAttribute("role","alert");
  if(r.bad.length){bx.append(el("b",0,"Non copio: mancano dati fondamentali"));wlist(bx,r.bad)}
  if(r.warn.length){bx.append(el("b",0,r.bad.length?"Da controllare":"Prima di copiare, controlla"));wlist(bx,r.warn)}
@@ -674,7 +726,7 @@ function pvBuild(c,pb){var bl=V[view].blocks(S),mt=pdfMeta(bl),R=pdfRows(bl),F=P
 
 /* ---------- genera RMA ---------- */
 function rmaLoad(){var o=null;try{o=JSON.parse(lsGet("gla_rmagen"))}catch(e){}return o&&typeof o==="object"&&!Array.isArray(o)?o:{}}
-function rmaView(){view="";ttl.textContent="Genera RMA";back.hidden=false;app.textContent="";noteTa=null;
+function rmaView(){view="";ttl.textContent="Genera RMA";back.hidden=false;gear.hidden=true;clearPassi();closeOv();app.textContent="";noteTa=null;
  var R=rmaLoad(),out=el("div","rmaout"),om=el("div","cnt","");om.setAttribute("role","status");
  function sv(){lsSet("gla_rmagen",JSON.stringify(R))}
  function upd(){var g=rmaGen(R);out.textContent=g||"—";out.classList.toggle("empty",!g)}
@@ -730,7 +782,7 @@ function arcPdf(r,m){var v0=view,s0=S,p0=PH[r.v],out=null;view=r.v;S=mig(r.v,JSO
  if(!out){m.textContent="PDF non riuscito.";return}
  saveFile(new Blob([out.u],{type:"application/pdf"}),out.fn,function(){m.textContent="PDF salvato."},function(){m.textContent="Salvataggio non riuscito."})}
 function arcTxt(r){var s=r.s||{};return (r.n+" "+(V[r.v]?V[r.v].title:"")+" "+Object.keys(s).map(function(k){return typeof s[k]==="string"?s[k]:""}).join(" ")).toLowerCase()}
-function arcView(){view="";ttl.textContent="Archivio lavori";back.hidden=false;app.textContent="";noteTa=null;
+function arcView(){view="";ttl.textContent="Archivio lavori";back.hidden=false;gear.hidden=true;clearPassi();closeOv();app.textContent="";noteTa=null;
  var m=el("div","cnt",arcMsg);m.setAttribute("role","status");arcMsg="";
  var q=document.createElement("input");q.type="text";q.placeholder="Cerca cliente, CV, RMA, matricola…";q.setAttribute("aria-label","Cerca nell'archivio");q.value=ui.q||"";
  var fs=el("div","fld");fs.append(q);
@@ -824,19 +876,22 @@ function delDev(j){var n=devN(S),N={},k,m,d,i;
   else if(d){i=+d[2];if(i===j)continue;N[(d[1]||"")+"d"+(i>j?i-1:i)+"_"+d[3]]=S[k]}
   else N[k]=S[k]}
  N.n=n-1;S=N;save()}
-function devDlg(){var d=ui.dlg,nw=!!d.nw,i=d.i,md=nw?d.nw:S["m"+i],px=PX[md]||"",ov=el("div","ovl"),bx=el("div","dlg"),F={};
+function devDlg(){var d=ui.dlg,nw=!!d.nw,i=d.i,md=d.md||(nw?d.nw:S["m"+i]),px=PX[md]||"",ov=el("div","ovl"),bx=el("div","dlg"),F={};
  ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");
- bx.append(el("h2",0,nw?"Nuovo dispositivo · "+md:"Dispositivo "+i+" · "+md));
+ bx.append(el("h2",0,nw?"Nuovo dispositivo":"Dispositivo "+i));
  if(nw)bx.append(el("p","cnt","Compila le matricole ora oppure più tardi toccando la riga del dispositivo."));
- [["a","RBW"+px+"- banconote","Numero di matricola"],["c","RCW"+px+"- monete","Numero di matricola"],["mt","Codice impianto","Codice impianto"]].forEach(function(f){var fd=el("div","fld"),inp=document.createElement("input");inp.type="text";inp.placeholder=f[2];inp.value=nw?"":(S[f[0]+i]||"");inp.setAttribute("aria-label",f[1]);fd.append(el("label",0,f[1]),inp);bx.append(fd);F[f[0]]=inp});
+ var msg=el("div","seg mseg");["CI-5","CI-10","CI-10X"].forEach(function(m){var mb=btn(md===m?"on":"",m,function(){d.v={a:F.a.value,c:F.c.value,mt:F.mt.value};d.md=m;render()});mb.setAttribute("aria-pressed",md===m?"true":"false");msg.append(mb)});bx.append(msg);
+ [["a","RBW"+px+"- banconote","Numero di matricola"],["c","RCW"+px+"- monete","Numero di matricola"],["mt","Codice impianto","Codice impianto"]].forEach(function(f){var fd=el("div","fld"),inp=document.createElement("input");inp.type="text";inp.placeholder=f[2];inp.value=d.v?(d.v[f[0]]||""):nw?"":(S[f[0]+i]||"");inp.setAttribute("aria-label",f[1]);fd.append(el("label",0,f[1]),inp);bx.append(fd);F[f[0]]=inp;
+  if(f[0]!=="mt"){var fr=freeSer(f[0]==="a"?"B":"C",md,nw?0:i);if(fr.length){var cs=el("div","chips");cs.append(el("span",0,"Dal DDT:"));
+   fr.forEach(function(n){var ch=btn("chip"+(inp.value===n?" on":""),n,function(){inp.value=n;Array.prototype.forEach.call(cs.querySelectorAll(".chip"),function(z){z.classList.toggle("on",z===ch)})});ch.setAttribute("aria-label","Usa la matricola "+n);cs.append(ch)});bx.append(cs)}}});
  function close(){ui.dlg=null;render()}
  var sg=el("div","seg");sg.append(btn("on",nw?"Aggiungi":"Conferma",function(){var v={a:F.a.value.trim(),c:F.c.value.trim(),mt:F.mt.value.trim()};
-   if(nw){var n=devN(S)+1;S.n=n;S["m"+n]=md;["a","c","mt"].forEach(function(k){if(v[k])S[k+n]=v[k]});devSort()}
-   else ["a","c","mt"].forEach(function(k){if(v[k])S[k+i]=v[k];else delete S[k+i]});
-   save();close()}),btn("","Annulla",close));bx.append(sg);
+   if(nw){var n=devN(S)+1;S.n=n;S["m"+n]=md;["a","c","mt"].forEach(function(k){if(v[k])S[k+n]=v[k]});devSort();save();close();return}
+   ["a","c","mt"].forEach(function(k){if(v[k])S[k+i]=v[k];else delete S[k+i]});S["m"+i]=md;devSort();save();
+   var nx=nextDev();if(nx){ui.dlg={i:nx};pend="cnt";render()}else close()}),btn("","Annulla",close));bx.append(sg);
  if(!nw){if(!d.del)bx.append(btn("reset dgo tight","Elimina dispositivo",function(){ui.dlg.del=1;render()}));
   else bx.append(confirmBox("Eliminare il Dispositivo "+i+" e tutte le sue spunte?","Elimina",function(){delDev(i);close()},function(){ui.dlg.del=0;render()}))}
- ov.append(bx);setTimeout(function(){try{F.a.focus()}catch(e){}},30);return ov}
+ ov.append(bx);return ov}
 function confirmBox(msg,yes,onYes,onNo){var bx=el("div","box"),sg=el("div","seg");bx.append(el("div",0,msg));sg.append(btn("dgf",yes,onYes),btn("","Annulla",onNo));bx.append(sg);return bx}
 function pick(label,n,sel,name,onSel){var bx=el("div","fld");bx.append(el("label",0,label));
  for(var k=1;k<=n;k++)(function(k){var r=btn("chk"+(sel===k?" on dg":""),null,function(){onSel(k)});r.append(el("span","bx",sel===k?"✓":""),el("span","lb",name(k)));bx.append(r)})(k);
@@ -865,11 +920,14 @@ function updApply(){updMsg="Aggiornamento in corso…";if(!SOLO)home();var p=[];
 /* ---------- menù ---------- */
 var DESC={inst:"Dal contratto alla consegna al cliente",prep:"Configurazione e imballo in magazzino",rip:"Diagnosi, ricambi e collaudo dei moduli",loc:"Guasti, aggiornamenti e collaudo dal cliente",altro:"Lavori fuori dalle schede standard"};
 function home(){
- view="";ttl.textContent="Glory 2.0";back.hidden=true;app.textContent="";noteTa=null;
+ view="";ttl.textContent="Glory 2.0";back.hidden=true;gear.hidden=false;clearPassi();closeOv();app.textContent="";noteTa=null;
  if(NEWV)app.append(btn("reset ac tight","È disponibile un aggiornamento: tocca per aggiornare",updApply));
  if(BIP)app.append(btn("reset ac tight","Installa l'app su questo dispositivo",function(){var p=BIP;BIP=null;try{p.prompt();p.userChoice.then(home,home)}catch(e){home()}}));
- NEWS.forEach(function(r){var s=load(r[0]),p=prog(V[r[0]].blocks(s),s,1),a=el("a","card"),busy=hasData(s);
-  a.href="#"+r[0];a.append(el("b",0,V[r[0]].title),el("span",0,busy?(s._arc?"Lavoro riaperto dall'archivio · ":"Scheda in corso · ")+p.d+" di "+p.t:DESC[r[0]]));app.append(a)});
+ var tl=el("div","tiles");NEWS.forEach(function(r){var s=load(r[0]),p=prog(V[r[0]].blocks(s),s,1),a=el("a","tile"),busy=hasData(s);
+  a.href="#"+r[0];a.append(el("b",0,V[r[0]].title));
+  if(busy){var br=el("div","bar"),bi=document.createElement("i");bi.style.width=(p.t?p.d/p.t*100:0)+"%";br.append(bi);a.classList.add("busy");
+   a.append(br,el("span",0,(s._arc?"Riaperto dall'archivio · ":"In corso · ")+p.d+" di "+p.t+(String(s.cl||s.rma||s.cvc||s.ti||"").trim()?" · "+String(s.cl||s.rma||s.cvc||s.ti).trim():"")))}
+  else a.append(el("span",0,DESC[r[0]]));tl.append(a)});app.append(tl);
  app.append(el("h2",0,"RMA"),el("div","cnt","Codice RMA per una macchina appena arrivata."),btn("reset ac tight","Genera RMA",function(){location.hash="#rma"}));
  app.append(el("h2",0,"Archivio"),el("div","cnt",ARC.length?ARC.length+(ARC.length===1?" lavoro archiviato su questo dispositivo":" lavori archiviati su questo dispositivo"):"Nessun lavoro archiviato. A fine intervento usa «Archivia lavoro» in fondo alla scheda."),btn("reset ac tight","Apri archivio lavori",function(){location.hash="#arc"}));
  app.append(el("h2",0,"Backup"));var u=bkUi(home);app.append(bkLast(),el("p","cnt","Il backup completo comprende le schede in corso e tutto l'archivio."),bkRow(u,function(){var r=bkAll();return r.n?r:null},"Niente da salvare: nessuna scheda compilata e archivio vuoto."),u.fi,u.m);if(ui.bkPend)app.append(pendBox(home));
@@ -885,17 +943,21 @@ function rstBox(){
  else app.append(confirmBox("Sei sicuro di voler azzerare tutte le voci di questa scheda?"+(S._arc?" Il lavoro resta comunque nell'archivio.":""),"Azzera",function(){var tc=S.tec;S={};if(tc)S.tec=tc;PH[view]=[];phSave(view);save();rui();render()},function(){ui.rst=0;render()}))}
 function render(){
  if(view==="rip"&&S.grm&&!S.rmaM){var gg=rmaGen(S);if(S.rma!==gg){S.rma=gg;save()}}
- var bl=V[view].blocks(S),pr=prog(bl,S,1);
+ var bl=V[view].blocks(S),pr=prog(bl,S,1),PS=passi(),cs=0,last=1,list=bl;
+ BL=bl;ST=steps(bl);if(PS){cs=curStep();last=cs===ST.length-1;list=ST[cs].it}
+ gear.hidden=false;closeOv();
  app.textContent="";noteTa=null;
  if(SOLO&&NEWV)app.append(btn("reset ac tight","È disponibile un aggiornamento: tocca per aggiornare",updApply));
- rstBox();
+ if(!PS)rstBox();
  if(ui.bkPend)app.append(pendBox(render));
  if(topMsg){var bm=el("div","cnt",topMsg);bm.setAttribute("role","status");app.append(bm);topMsg=""}
 
- var bar=el("div","bar"),fi=document.createElement("i");fi.style.width=(pr.t?pr.d/pr.t*100:0)+"%";bar.append(fi);
- app.append(bar,el("div","cnt",pr.d+" di "+pr.t+" completati"));
+ if(PS){app.append(el("div","eyeb","Passo "+(cs+1)+" di "+ST.length),el("h2","ptitle",ST[cs].x));if(ST[cs].end)stepClose()}
+ else{var bar=el("div","bar"),fi=document.createElement("i");fi.style.width=(pr.t?pr.d/pr.t*100:0)+"%";bar.append(fi);
+  app.append(bar,el("div","cnt",pr.d+" di "+pr.t+" completati"))}
+ if(!PS||cs===0)ddtBtn();
  var mg=null;
- bl.forEach(function(x){
+ list.forEach(function(x){
   if(x.t!=="mat")mg=null;
   if(x.t==="mat"){if(!mg){mg=el("div","mgrid");app.append(mg)}var mc=el("div","mcard");mc.append(el("b",0,x.lab));
    [["a"+x.i,"RBW"+x.p+"- banconote"],["c"+x.i,"RCW"+x.p+"- monete"],["mt"+x.i,"Codice impianto"]].forEach(function(f){var lb=el("label",0,f[1]),inp=document.createElement("input");inp.type="text";inp.value=S[f[0]]||"";inp.setAttribute("aria-label",x.lab+" "+f[1]);
@@ -907,7 +969,7 @@ function render(){
    sc.className="seg cnt3";var MD=["CI-5","CI-10","CI-10X"];
    MD.forEach(function(o){sc.append(el("div","lbl",cc[o]>1?"Dispositivi "+cc[o]:""))});
    MD.forEach(function(o){var bc=btn(cc[o]?"on":"",o,function(){ui.dlg={nw:o};render()});bc.setAttribute("aria-label","Aggiungi un "+o+(cc[o]?" (ora "+cc[o]+")":""));sc.append(bc)});
-   fc.append(sc);app.append(fc);
+   fc.dataset.id="cnt";fc.append(sc);app.append(fc);
    for(q=1;q<=devN(S);q++)(function(i){var px=PX[S["m"+i]]||"",r=btn("drow",null,function(){ui.dlg={i:i};render()}),sp=el("span");
     r.append(el("b",0,i+" · "+(S["m"+i]||"?")));
     [["RBW"+px+"-","a"+i],["RCW"+px+"-","c"+i],["Impianto: ","mt"+i]].forEach(function(f,k){var v=String(S[f[1]]||"").trim();if(k===1)sp.append(document.createTextNode(" · "));var e2=el("i",(v?"":"miss")+(k===2?" imp":""),f[0]+(v||"—"));sp.append(e2)});
@@ -916,12 +978,12 @@ function render(){
   else if(x.t==="tip"){var tp=el("p","cnt",x.x);tp.style.cssText="font-size:15px;padding:12px;border:1px dashed var(--ln);border-radius:10px;text-align:center";app.append(tp)}
   else if(x.t==="num"){var fn=el("div","fld"),sn2=el("div","seg"),nv=+S[x.id]||0;fn.append(el("label",0,x.x));
    var mi=btn("","−",function(){S[x.id]=Math.max(0,nv-1);save();render()}),pl=btn("","+",function(){S[x.id]=Math.min(x.max,nv+1);save();render()}),vv=el("div","numv",String(nv));
-   mi.setAttribute("aria-label","Diminuisci "+x.x);pl.setAttribute("aria-label","Aumenta "+x.x);vv.setAttribute("aria-live","polite");sn2.append(mi,vv,pl);fn.append(sn2);app.append(fn)}
+   fn.dataset.id=x.id;mi.setAttribute("aria-label","Diminuisci "+x.x);pl.setAttribute("aria-label","Aumenta "+x.x);vv.setAttribute("aria-live","polite");sn2.append(mi,vv,pl);fn.append(sn2);app.append(fn)}
   else if(x.t==="sw"){var fw=el("div","fld"),rw3=el("div","sw3"),hf=el("div","half");fw.append(el("label",0,"Software"));
    var bo=btn(S.bo==="Sì"?"on":"","SNG Cloud",function(){S.bo=S.bo==="Sì"?0:"Sì";save();render()});bo.setAttribute("aria-pressed",S.bo==="Sì"?"true":"false");
    ["Windows","Android"].forEach(function(o){var bw=btn(S.sng===o?"on":"",o,function(){S.sng=S.sng===o?0:o;save();render()});bw.setAttribute("aria-pressed",S.sng===o?"true":"false");hf.append(bw)});
    var inc=S.bo==="Sì",no=!inc&&S.sng==="Android",ap=!inc&&!no&&S.app,ba=btn(ap?"on":"",inc?"App non necessaria":no?"App non disponibile":"App SNG Cloud",function(){if(inc||no)return;S.app=S.app?0:1;save();render()});ba.setAttribute("aria-pressed",ap?"true":"false");if(inc||no){ba.disabled=true;ba.style.opacity=".5";ba.style.cursor="default"}
-   rw3.append(bo,hf,ba);fw.append(rw3,el("div","cnt","Windows = SNG Suite · Android = SNG 3"+(S.bo==="Sì"?" · con SNG Cloud l'app non serve":S.sng==="Android"?" · su Android senza SNG Cloud l'app non c'è":"")));app.append(fw)}
+   fw.dataset.id="sng";rw3.append(bo,hf,ba);fw.append(rw3,el("div","cnt","Windows = SNG Suite · Android = SNG 3"+(S.bo==="Sì"?" · con SNG Cloud l'app non serve":S.sng==="Android"?" · su Android senza SNG Cloud l'app non c'è":"")));app.append(fw)}
   else if(x.t==="del"){var nn=devN(S);if(nn>=1){
    if(!ui.del)app.append(btn("reset dgo tight","Elimina dispositivo",function(){ui.del=1;ui.delSel=0;render()}));
    else{app.append(pick("Seleziona il dispositivo da eliminare",nn,ui.delSel,function(k){return "Dispositivo "+k+(S["m"+k]?" · "+S["m"+k]:"")},function(k){ui.delSel=k;render()}));
@@ -945,7 +1007,7 @@ function render(){
    else app.append(confirmBox("Sei sicuro di voler eliminare il Modulo 2?","Elimina",function(){var N={},k;for(k in S)if(!/^(nt_)?r2_/.test(k))N[k]=S[k];N.rn=1;S=N;save();ui.md=0;render()},function(){ui.md=0;render()}))}
   else if(x.t==="sel"){var fs=el("div","fld"),se=document.createElement("select"),o0=el("option","","Seleziona");fs.append(el("label",0,x.x));o0.value="";se.append(o0);se.setAttribute("aria-label",x.x);
    x.o.forEach(function(v){var op=el("option","",v+(v==="1"?" ora":" ore"));op.value=v;if(S[x.id]===v)op.selected=true;se.append(op)});
-   se.onchange=function(){S[x.id]=se.value||0;save();render()};fs.append(se);app.append(fs)}
+   se.onchange=function(){S[x.id]=se.value||0;save();render()};fs.dataset.id=x.id;fs.append(se);app.append(fs)}
   else if(x.t==="n"){app.append(el("h2",0,"Note rapportino"));noteTa=el("textarea");noteTa.readOnly=true;noteTa.style.minHeight="300px";noteTa.value=noteText();noteTa.setAttribute("aria-label","Note per il rapportino");
    var cm=el("div"),cb=btn("reset ac","Copia note",function(){tryCopy(cb,cm)});cb.style.marginTop="10px";app.append(noteTa,cb,cm);pdfBox()}
   else if(x.t==="c"){var nk="nt_"+x.id,rw=el("div","rowc"),
@@ -953,23 +1015,24 @@ function render(){
     nb=btn("nb"+(S[nk]?" has":""),"Nota",function(){ui.notes[x.id]=!ui.notes[x.id];ui.foc=ui.notes[x.id]?x.id:null;render()});
    b.setAttribute("aria-pressed",S[x.id]?"true":"false");b.append(el("span","bx",S[x.id]?"✓":""),el("span","lb",x.x));
    nb.setAttribute("aria-label","Nota sulla voce: "+x.x);nb.setAttribute("aria-expanded",ui.notes[x.id]?"true":"false");
-   var hp=helpOf(x.id);rw.append(b);if(hp)rw.append(helpBtn(x.id));rw.append(nb);app.append(rw);if(hp&&ui.help[x.id])app.append(helpBox(x.id));
+   rw.dataset.id=x.id;var hp=helpOf(x.id);rw.append(b);if(hp)rw.append(helpBtn(x.id));rw.append(nb);app.append(rw);if(hp&&ui.help[x.id])app.append(helpBox(x.id));
    if(ui.notes[x.id]){var nt=el("textarea","nta");nt.placeholder="Nota su questa voce: resta nella scheda e nel PDF, non nel rapportino";nt.value=S[nk]||"";nt.setAttribute("aria-label","Nota sulla voce: "+x.x);
     nt.oninput=function(){if(nt.value)S[nk]=nt.value;else delete S[nk];save();nb.className="nb"+(S[nk]?" has":"")};app.append(nt);
     if(ui.foc===x.id){ui.foc=null;setTimeout(function(){try{nt.focus()}catch(e){}},0)}}}
   else if(x.t==="g"){var f=el("div","fld"),sg=el("div","seg"),gh=helpOf(x.id);if(gh){var lr=el("div","hlr");lr.append(el("label",0,x.x),helpBtn(x.id));f.append(lr)}else f.append(el("label",0,x.x));
-   x.o.forEach(function(o){var gb=btn(S[x.id]===o?"on":"",o,function(){S[x.id]=S[x.id]===o?0:o;save();render()});gb.setAttribute("aria-pressed",S[x.id]===o?"true":"false");sg.append(gb)});f.append(sg);app.append(f);if(gh&&ui.help[x.id])app.append(helpBox(x.id))}
+   x.o.forEach(function(o){var gb=btn(S[x.id]===o?"on":"",o,function(){S[x.id]=S[x.id]===o?0:o;save();render()});gb.setAttribute("aria-pressed",S[x.id]===o?"true":"false");sg.append(gb)});f.dataset.id=x.id;f.append(sg);app.append(f);if(gh&&ui.help[x.id])app.append(helpBox(x.id))}
   else if(x.t==="t"){var ft=el("div","fld"),i=document.createElement(x.area?"textarea":"input"),th=/(^|_)er$|^rf$/.test(x.id)?helpOf(x.id):null;if(th){var tl=el("div","hlr");tl.append(el("label",0,x.x),helpBtn(x.id));ft.append(tl);if(ui.help[x.id])ft.append(helpBox(x.id))}else ft.append(el("label",0,x.x));
    if(!x.area)i.type="text";i.placeholder=x.a;i.setAttribute("aria-label",x.x);
    if(x.id==="rma")rmaEl=i;i.value=S[x.id]||"";var er=null,dgm=view==="prep"&&/^mtM\d*$/.test(x.id)&&prepMode(S)==="Downgrade CI-5";
    if(dgm){er=el("div","cnt","");er.style.color="var(--dg)";i.onblur=function(){if(dupOf(x.id,i.value)){var dq=dupOf(x.id,i.value);i.value=S[x.id]||"";i.style.borderColor="";er.textContent="Matricola non salvata: già inserita nel Dispositivo "+dq}}}
-   i.oninput=function(){if(dgm){var dj=dupOf(x.id,i.value);if(dj){i.style.borderColor="var(--dg)";er.textContent="Già inserita nel Dispositivo "+dj+": non viene salvata";return}i.style.borderColor="";er.textContent=""}S[x.id]=i.value;if(view==="rip"&&S.grm){if(x.id==="rma")S.rmaM=1;else if(!S.rmaM&&rmaEl){S.rma=rmaGen(S);rmaEl.value=S.rma}}if(x.id==="tec"&&tecRm())lsSet("gla_tec",i.value.trim());save();if(noteTa)noteTa.value=noteText();if(x.cmp)grow(i)};ft.append(i);if(er)ft.append(er);
+   i.oninput=function(){if(dgm){var dj=dupOf(x.id,i.value);if(dj){i.style.borderColor="var(--dg)";er.textContent="Già inserita nel Dispositivo "+dj+": non viene salvata";return}i.style.borderColor="";er.textContent=""}S[x.id]=i.value;if(view==="rip"&&S.grm){if(x.id==="rma")S.rmaM=1;else if(!S.rmaM&&rmaEl){S.rma=rmaGen(S);rmaEl.value=S.rma}}if(x.id==="tec"&&tecRm())lsSet("gla_tec",i.value.trim());save();if(noteTa)noteTa.value=noteText();if(x.cmp)grow(i)};ft.dataset.id=x.id;ft.append(i);if(er)ft.append(er);
    if(x.id==="tec"){var rl=el("label","tecrm"),rc=document.createElement("input");rc.type="checkbox";rc.checked=tecRm();
     rc.onchange=function(){lsSet("gla_tecrm",rc.checked?"1":"0");if(rc.checked)lsSet("gla_tec",String(S.tec||"").trim());else{try{LS&&LS.removeItem("gla_tec")}catch(e){}}};
     rl.append(rc,document.createTextNode("Ricordami: usa questo nome in tutte le schede"));ft.append(rl)}app.append(ft);if(x.cmp){i.style.minHeight="56px";i.style.overflowY="auto";grow(i)}}
  });
- if(view==="prep")pdfBox();
- if(!SOLO)arcBox()}
+ if(PS&&!last)markAll(list);
+ if(!PS||last){if(view==="prep")pdfBox();if(!SOLO)arcBox();if(PS)rstBox()}
+ passiFrame();pendGo()}
 
 /* ---------- menu Condividi della scheda ---------- */
 function ddBuild(dd){dd.textContent="";var m=el("div","cnt","");m.setAttribute("role","status");m.style.margin="6px 8px";
@@ -990,6 +1053,162 @@ function ddBuild(dd){dd.textContent="";var m=el("div","cnt","");m.setAttribute("
  it("Carica scheda","Riprendi una scheda da file",function(){fi.click()});
  dd.append(fi,m)}
 
+/* ---------- visualizzazione: scheda unica o a passi ---------- */
+var SI={},pend=null,MK={},BL=[],ST=[],OV=null,RD={},PJ=null,gear=document.getElementById("gear"),hdr=document.querySelector("header");
+function passi(){return !!view&&!SOLO&&lsGet("gla_vista")==="passi"}
+function gv(k){return String(S[k]==null?"":S[k]).trim()}
+function hasNote(){return BL.some(function(b){return b.t==="n"})}
+function steps(bl){var st=[{x:"Dati del lavoro",it:[]}],nn=[];
+ bl.forEach(function(b){if(b.t==="h")st.push({x:b.x.replace(/^\d+ · /,""),it:[]});else if(b.t==="n")nn.push(b);else st[st.length-1].it.push(b)});
+ st=st.filter(function(s){return s.it.some(function(b){return b.t!=="h3"})});st.push({x:"Chiusura",end:1,it:nn});return st}
+function optT(b){return b.opt||b.cmp||/^Facoltativo/.test(b.a||"")||/(_er|^se|^ric|^chp|^rvn)$/.test(b.id)}
+function stat(st){var t=0,d=0,i;
+ if(st.end){var r=check(BL);return {t:1,d:(r.bad.length||r.warn.length)?0:1}}
+ st.it.forEach(function(b){if(b.memo||b.opt)return;
+  if(b.t==="c"||b.t==="g"||b.t==="sel"){t++;if(S[b.id])d++}
+  else if(b.t==="t"&&!optT(b)){t++;if(gv(b.id))d++}
+  else if(b.t==="cnt")for(i=1;i<=devN(S);i++){t+=2;if(gv("a"+i))d++;if(gv("c"+i))d++}});
+ return {t:t,d:d}}
+function curStep(){var i=SI[view]||0;if(i>=ST.length)i=ST.length-1;if(i<0)i=0;SI[view]=i;return i}
+function goStep(i){SI[view]=i;ui.help={};render();window.scrollTo(0,0)}
+function railBuild(){var n=el("nav","rail"),cur=curStep();n.id="rail";n.setAttribute("aria-label","Passi della scheda");
+ ST.forEach(function(st,k){var q=stat(st),c=(!q.t||q.d>=q.t)?" done":q.d>0?" part":"",b=btn("dot"+c+(k===cur?" cur":""),st.end?"✓":String(k+1),function(){goStep(k)});
+  b.setAttribute("aria-label","Passo "+(k+1)+": "+st.x);if(k===cur)b.setAttribute("aria-current","step");n.append(b)});
+ return n}
+function dockBuild(){var cur=curStep(),last=cur===ST.length-1,q=stat(ST[cur]),rest=q.t-q.d,d=el("div","dock"),a;d.id="dock";
+ var p=btn("ib","‹",function(){goStep(cur-1)});p.disabled=cur===0;p.setAttribute("aria-label","Passo precedente");d.append(p);
+ if(hasNote())d.append(btn("mid","Nota",noteDlg));
+ if(last){a=btn("go wait",null,function(){location.hash=""});a.append(el("b",0,"Menù"),el("span",0,"torna alle schede"))}
+ else{a=btn("go"+(rest>0?" wait":""),null,function(){goStep(cur+1)});a.append(el("b",0,"Avanti"),el("span",0,rest>0?(rest===1?"resta 1 voce qui":"restano "+rest+" voci qui"):ST[cur+1].x))}
+ d.append(a);return d}
+function chrome(){if(!passi())return;BL=V[view].blocks(S);ST=steps(BL);var r=document.getElementById("rail"),d=document.getElementById("dock");if(r)r.replaceWith(railBuild());if(d)d.replaceWith(dockBuild())}
+function clearPassi(){var r=document.getElementById("rail"),d=document.getElementById("dock");if(r)r.remove();if(d)d.remove();document.body.classList.remove("passi")}
+function passiFrame(){clearPassi();if(!passi())return;document.body.classList.add("passi");hdr.append(railBuild());document.body.append(dockBuild())}
+
+/* ---------- salti verso il dato mancante ---------- */
+var KT=[[/Almeno un dispositivo/,"cnt"],[/Sistema del gestionale/,"sng"],[/Numero di postazioni/,"nsv"],[/Surplus/,"sur"],[/Controlli preliminari: alimentazione/,"ct1"],[/Esito dei controlli preliminari/,"pes"],[/collaudo finale/,"cfe"],[/Su quale modulo/,"cfq"],[/risolta o non risolta/,"cfx"],[/Contratto full: pulizia/,"rev"],[/nessun aggiornamento/,"ufc"],[/Riferimento CV o RMA/,"rf"],[/Matricola duplicata/,"mtM"]];
+function keyOf(t){var m,i;if(MK[t])return MK[t];if((m=/Esito del modulo (\d)/.exec(t)))return "r"+m[1]+"_es";if(/Pulizia: problema rilevato/.test(t))return (/banconote/.test(t)?"r1_":"r2_")+"pp";
+ for(i=0;i<KT.length;i++)if(KT[i][0].test(t))return KT[i][1];return ""}
+function stepOf(k){var m=/^(m|a|c|mt)(\d+)$/.exec(k),i;if(view==="inst"&&m)k="cnt";
+ for(i=0;i<ST.length;i++)if(ST[i].it.some(function(b){return b.id===k||(k==="cnt"&&b.t==="cnt")||(k==="sng"&&b.t==="sw")}))return i;return -1}
+function canJump(k){if(!k)return false;if(!passi())return true;BL=V[view].blocks(S);ST=steps(BL);return stepOf(k)>=0}
+function jump(k){if(!canJump(k))return;var m=view==="inst"&&/^(m|a|c|mt)(\d+)$/.exec(k);closeOv();
+ if(passi())SI[view]=stepOf(k);ui.dd=0;if(m){ui.dlg={i:+m[2]};pend="cnt"}else pend=k;render()}
+function pendGo(){if(!pend)return;var k=pend,t=app.querySelector('[data-id="'+k+'"]');pend=null;if(!t)return;
+ t.scrollIntoView({block:"center"});t.classList.add("flash");setTimeout(function(){t.classList.remove("flash")},1600);
+ var f=t.querySelector("input[type=text],textarea,select");if(f&&!ui.dlg)try{f.focus({preventScroll:true})}catch(e){}}
+function firstGap(){var r=check(BL),a=r.bad.concat(r.warn),i,k;
+ for(i=0;i<a.length;i++){k=keyOf(a[i]);if(/^(m|a|c|mt)\d+$|mat$|^rma$|^ric$|^mt$/.test(k)&&canJump(k))return k}
+ for(i=0;i<a.length;i++){k=keyOf(a[i]);if(canJump(k))return k}return ""}
+function noteView(t){var d=el("div","notev"),g=firstGap();String(t).split(/(…|_{6,}|\[modello\])/).forEach(function(x,i){
+  if(i%2){var b=btn("gap","manca",function(){jump(g)});b.setAttribute("aria-label","Dato mancante: vai a compilarlo");d.append(b)}else d.append(x)});return d}
+function issueBox(cls,title,a){var bx=el("div","box"+cls);bx.append(el("b",0,title));wlist(bx,a);return bx}
+function stepClose(){var r=check(BL);
+ if(r.bad.length)app.append(issueBox("","Mancano dati fondamentali",r.bad));
+ if(r.warn.length)app.append(issueBox(" wn","Da controllare · "+r.warn.length,r.warn));
+ if(!r.bad.length&&!r.warn.length)app.append(el("p","allok","Tutto compilato e spuntato."))}
+function markAll(list){var todo=list.filter(function(b){return b.t==="c"&&!b.memo&&!b.opt&&!S[b.id]});
+ if(todo.length>1)app.append(btn("reset tight","Segna fatte tutte le "+todo.length+" voci di questo passo",function(){todo.forEach(function(b){S[b.id]=1});save();render()}))}
+
+/* ---------- finestre ---------- */
+function openOv(build){closeOv();OV=el("div","ovl");OV.setAttribute("role","dialog");OV.setAttribute("aria-modal","true");OV.onclick=function(e){if(e.target===OV)closeOv()};
+ var bx=el("div","dlg");build(bx);OV.append(bx);document.body.append(OV)}
+function closeOv(){if(OV){OV.remove();OV=null}}
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&OV)closeOv()});
+function noteDlg(){openOv(function(bx){var sg=el("div","seg");
+ bx.append(el("h2",0,"La nota fin qui"),el("p","cnt","Si aggiorna a ogni voce. Tocca «manca» per andare al dato da compilare."),noteView(noteText()));
+ sg.append(btn("on","Vai alla chiusura",function(){closeOv();goStep(ST.length-1)}),btn("","Chiudi",closeOv));bx.append(sg)})}
+function gearDlg(){openOv(function(bx){var cur=lsGet("gla_vista")==="passi"?"passi":"unica";
+ bx.append(el("h2",0,"Visualizzazione delle schede"),el("p","cnt","Cambia solo come scorri la scheda: voci, note, archivio e PDF restano gli stessi. Puoi cambiarla anche a lavoro iniziato."));
+ [["unica","Scheda unica","Tutte le voci in una pagina: scorri liberamente."],["passi","A passi","Una sezione alla volta, con Avanti, la nota sempre a portata e l'elenco di cosa manca."]].forEach(function(o){
+  var b=btn("vopt"+(cur===o[0]?" on":""),null,function(){lsSet("gla_vista",o[0]);closeOv();if(view&&V[view]){render();window.scrollTo(0,0)}});
+  b.append(el("b",0,o[1]),el("span",0,o[2]));b.setAttribute("aria-pressed",cur===o[0]?"true":"false");bx.append(b)});
+ bx.append(btn("reset tight","Chiudi",closeOv))})}
+gear.onclick=gearDlg;
+
+/* ---------- caricamento del DDT ---------- */
+var PXM={"50":"CI-5","100":"CI-10","200":"CI-10X"};
+function serOld(t){var re=/R\s?([BC])\s?W\s?[-–]?\s?(200|100|50)\s?[-–—.:]?\s?([0-9][0-9A-Z]{2,})/g,m,o=[];t=String(t||"").toUpperCase();while((m=re.exec(t)))o.push({t:m[1],md:PXM[m[2]],n:m[3]});return o}
+function codeOf(s){var m=/^\s*CI\s?-?\s?(10X|10|5)\s?-?\s?([BC])(?![A-Z0-9])/i.exec(s);return m?{md:"CI-"+m[1].toUpperCase(),t:m[2].toUpperCase()}:null}
+function parseLines(L){var R={ser:[],mon:""},cur=null,exp=0,seen={},codes=0;
+ function add(t,md,n){var k=t+md+n;if(!seen[k]){seen[k]=1;R.ser.push({t:t,md:md,n:n})}}
+ L.forEach(function(raw){var s=String(raw).trim(),c=codeOf(s),m;if(!s)return;
+  if(c){cur=c;exp=0;codes++;return}
+  if(/^MONITOR/i.test(s)){R.mon="Sì";cur=null;exp=0;return}
+  if(/codice\s+matricola/i.test(s)){exp=1;m=/codice\s+matricola\s*[:.]?\s*([A-Z0-9][A-Z0-9\-\/]{2,})\s*$/i.exec(s);if(m&&/\d/.test(m[1])&&cur){add(cur.t,cur.md,m[1]);exp=0}return}
+  if(exp&&cur&&/^[A-Z0-9][A-Z0-9\-\/]{2,}$/.test(s)&&/\d/.test(s)&&!/^R\s?[BC]\s?W/i.test(s)){add(cur.t,cur.md,s);return}
+  exp=0});
+ serOld(L.join("\n")).forEach(function(x){add(x.t,x.md,x.n)});
+ if(codes&&!R.mon)R.mon="No";return R}
+function mkLines(P){var L=[],cur=null;P=P.filter(function(p){return String(p.s).trim()}).sort(function(a,b){return a.y-b.y||a.x-b.x});
+ P.forEach(function(p){if(!cur||p.y-cur.y>3){cur={y:p.y,p:[]};L.push(cur)}cur.p.push(p)});
+ L.forEach(function(l){l.p.sort(function(a,b){return a.x-b.x});l.segs=[];l.p.forEach(function(p){var g=l.segs[l.segs.length-1];if(g&&p.x-g.x2<7){g.s+=(p.x-g.x2>0.8?" ":"")+p.s;g.x2=p.x2}else l.segs.push({x:p.x,x2:p.x2,s:p.s})})});return L}
+function parseDoc(LN){var R=parseLines(LN.map(function(l){return l.segs.map(function(g){return g.s}).join("  ")}));
+ function find(re){for(var i=0;i<LN.length;i++)for(var j=0;j<LN[i].segs.length;j++)if(re.test(LN[i].segs[j].s.trim()))return {i:i,x:LN[i].segs[j].x};return null}
+ function block(a,stop){var o=[],i;for(i=a.i+1;i<stop;i++)LN[i].segs.forEach(function(g){if(g.x>=a.x-12)o.push(g.s.trim())});return o.filter(Boolean)}
+ function under(re){var a=find(re),i,best="";if(!a)return "";for(i=a.i+1;i<LN.length&&i<=a.i+2&&!best;i++)LN[i].segs.forEach(function(g){if(!best&&Math.abs(g.x-a.x)<20)best=g.s.trim()});return best}
+ function addr(bl){var k=-1,st,city;bl.forEach(function(s,i){if(/^\d{5}\s/.test(s))k=i});if(k<0)return null;
+  city=bl[k].replace(/^\d{5}\s+/,"").replace(/\s*(-\s*Itali[ae]|\(ITA\)|-\s*IT)\s*$/i,"").trim();
+  st=k>0&&/^(VIA|V\.\s?LE|VIALE|P\.?\s?ZA|PIAZZA|PIAZZALE|CORSO|C\.\s?SO|LARGO|LOC\.?|LOCALIT|STRADA|STR\.|FRAZ|CONTRADA|VICOLO|BORGO|SS\s|S\.S\.)|\d/i.test(bl[k-1])?bl[k-1]:"";
+  return {name:bl.slice(0,st?k-1:k).join(" "),se:(st?st+", ":"")+city}}
+ var a=find(/^Intestatario/i),b=find(/^Sede di consegna/i),c=find(/^Codice cliente/i),A,B;
+ if(a&&b&&(A=addr(block(a,b.i)))){if(A.name)R.cl=A.name;R.se=A.se}
+ if(b&&c){var bk=block(b,c.i);if((B=addr(bk))){R.se=B.se;if(B.name&&B.name!==R.cl){R.int=R.cl;R.cl=B.name}}else if(bk.length)R.se=bk.join(", ")}
+ R.ddt=under(/^Numero documento/i);R.dt=under(/^Data doc/i);
+ return R}
+function gotAny(R){return R&&(R.ser.length||R.cl||R.se)}
+function freeSer(t,md,me){var used={},k,f=t==="B"?"a":"c";for(k=1;k<=devN(S);k++)if(k!==me)used[gv(f+k)]=1;
+ return (S.ddtm||[]).filter(function(x){return x.t===t&&x.md===md&&!used[x.n]}).map(function(x){return x.n})}
+function nextDev(){if(!(S.ddtm||[]).length)return 0;for(var k=1;k<=devN(S);k++){var md=S["m"+k];if((!gv("a"+k)&&freeSer("B",md,k).length)||(!gv("c"+k)&&freeSer("C",md,k).length))return k}return 0}
+function applyDoc(R){var F=R.ser,B=F.filter(function(x){return x.t==="B"}),C=F.filter(function(x){return x.t==="C"}),md=F[0]?F[0].md:"";
+ if(R.cl&&(view==="inst"||view==="loc"||view==="rip"))S.cl=R.cl;
+ if(R.se&&(view==="inst"||view==="loc"))S.se=R.se;
+ if(R.int&&(view==="inst"||view==="loc"||view==="rip")){S.rv=1;S.rvn=R.int}
+ if(view==="inst"){if(R.mon)S.mon=R.mon;
+  if(R.ddt){S.p5=1;var dn="DDT n. "+R.ddt+(R.dt?" del "+R.dt:"");if(String(S.nte||"").indexOf(dn)<0)S.nte=(gv("nte")?gv("nte")+"\n":"")+dn}
+  var tk={};S.ddtm=F.map(function(x){return {t:x.t,md:x.md,n:x.n}});
+  ["CI-5","CI-10","CI-10X"].forEach(function(m){var b=B.filter(function(x){return x.md===m}),c=C.filter(function(x){return x.md===m}),k,i,one=b.length<=1&&c.length<=1;
+   for(k=0;k<Math.max(b.length,c.length);k++){for(i=1;i<=devN(S);i++)if(S["m"+i]===m&&!gv("a"+i)&&!gv("c"+i)&&!tk[i])break;
+    if(i>devN(S)){S.n=devN(S)+1;i=S.n;S["m"+i]=m}tk[i]=1;if(one){if(b[k])S["a"+i]=b[k].n;if(c[k])S["c"+i]=c[k].n}}});
+  devSort()}
+ else if(view==="loc"&&F.length){if(!S.md)S.md=md;if(B[0])S.r1_mat=B[0].n;if(C[0])S.r2_mat=C[0].n;if(!S.sc)S.sc=B[0]&&C[0]?"Entrambi i moduli":B[0]?"Modulo banconote":"Modulo monete"}
+ else if(view==="rip"&&F.length){F.slice(0,2).forEach(function(x,k){var p="r"+(k+1)+"_";S[p+"tp"]=x.t==="B"?"Banconote":"Monete";S[p+"md"]=x.md;S[p+"mat"]=x.n});if(F.length>1)S.rn=2}
+ else if(view==="prep"&&F.length){if(!S.m)S.m=md;if(prepMode(S)==="Downgrade CI-5"&&C.length){C.forEach(function(x,k){S[mrk(k+1)]=x.n});S.dn=Math.max(+S.dn||1,C.length)}else{if(B[0])S.mtB=B[0].n;if(C[0])S.mtM=C[0].n}}
+ save()}
+function loadPdfJs(){if(PJ)return PJ;var L=document.getElementById("pdfjs-lib"),W=document.getElementById("pdfjs-worker"),lu,wu;
+ if(L&&W){lu=URL.createObjectURL(new Blob([L.textContent],{type:"text/javascript"}));wu=URL.createObjectURL(new Blob([W.textContent],{type:"text/javascript"}));
+  PJ=import(lu).then(function(lib){return import(wu).then(function(wm){globalThis.pdfjsWorker=wm;lib.GlobalWorkerOptions.workerSrc=wu;return lib})})}
+ else{lu=new URL(BASE+"pdf.min.mjs",location.href).href;wu=new URL(BASE+"pdf.worker.min.mjs",location.href).href;PJ=import(lu).then(function(lib){lib.GlobalWorkerOptions.workerSrc=wu;return lib})}
+ PJ.catch(function(){PJ=null});return PJ}
+function pdfParts(f){return Promise.all([loadPdfJs(),f.arrayBuffer()]).then(function(a){return a[0].getDocument({data:new Uint8Array(a[1])}).promise}).then(function(doc){var P=[],ch=Promise.resolve(),n;
+  for(n=1;n<=Math.min(doc.numPages,5);n++)(function(n){ch=ch.then(function(){return doc.getPage(n)}).then(function(pg){var h=pg.getViewport({scale:1}).height;return pg.getTextContent().then(function(tc){
+    tc.items.forEach(function(it){if(it.str)P.push({x:it.transform[4],x2:it.transform[4]+(it.width||0),y:(n-1)*2000+h-it.transform[5],s:it.str})})})})})(n);
+  return ch.then(function(){return P})})}
+function rdShow(){if(OV&&RD.open)readerDlg()}
+function rdFile(f){var pdf=/pdf$/i.test(f.type)||/\.pdf$/i.test(f.name);RD.found=null;
+ if(!pdf){RD.msg="Carica il PDF del DDT. Se hai solo la carta, incolla il testo qui sotto.";rdShow();return}
+ RD.busy=1;RD.msg="Leggo il PDF…";rdShow();
+ pdfParts(f).then(function(P){RD.busy=0;if(!P.length){RD.msg="Questo PDF non contiene testo (è una scansione): incolla il testo qui sotto.";rdShow();return}
+  var R=parseDoc(mkLines(P));if(gotAny(R)){RD.found=R;RD.msg=""}else RD.msg="Ho letto il PDF ma non riconosco cliente né matricole: l'impaginazione è diversa da quella che conosco.";rdShow()},
+  function(){RD.busy=0;RD.msg=navigator.onLine?"Non riesco ad aprire questo PDF. Prova a incollare il testo.":"Il lettore PDF non è ancora salvato sul telefono: apri l'app una volta con internet e riprova.";rdShow()})}
+function ddtBtn(){if(view!=="inst")return;app.append(btn("reset ac tight ddtb","Hai il DDT? Caricalo e precompilo",function(){RD={open:1};readerDlg()}))}
+function readerDlg(){openOv(function(bx){var R=RD.found;
+ bx.append(el("h2",0,R?"Trovato nel DDT":"Precompila dal DDT"));
+ if(R){var ul=el("ul","found");function row(k,v){if(!v)return;var li=el("li");li.append(el("span",0,k),el("b",0,v));ul.append(li)}
+  if(view!=="prep")row("Rivenditore",R.int);row("Cliente",R.cl);row("Sede",R.se);if(view==="inst")row("Monitor",R.mon);
+  R.ser.forEach(function(x){row(x.md+" · "+(x.t==="B"?"banconote":"monete"),"R"+x.t+"W"+PX[x.md]+"-"+x.n)});
+  row("DDT",R.ddt?R.ddt+(R.dt?" del "+R.dt:""):"");bx.append(ul);
+  var many=view==="inst"&&["CI-5","CI-10","CI-10X"].some(function(m){return R.ser.filter(function(x){return x.md===m&&x.t==="B"}).length>1||R.ser.filter(function(x){return x.md===m&&x.t==="C"}).length>1});
+  if(many)bx.append(el("p","tipb","Più dispositivi nello stesso DDT: creo i dispositivi, le matricole le abbini tu toccandole nella finestra di ogni dispositivo, davanti alla macchina."));
+  bx.append(el("p","cnt","Controlla con il documento prima di confermare. Tutto resta modificabile a mano."));
+  var sg=el("div","seg");sg.append(btn("on","Compila",function(){applyDoc(R);RD={};closeOv();topMsg="Dati del DDT inseriti: controllali.";var nx=view==="inst"?nextDev():0;if(nx){ui.dlg={i:nx};pend="cnt";if(passi())SI[view]=stepOf("cnt")}render()}),btn("","Rifai",function(){RD.found=null;readerDlg()}));bx.append(sg)}
+ else{bx.append(el("p","cnt","Carica il PDF del DDT: leggo cliente, rivenditore, sede, modello, matricole e monitor. Poi confermi tu."));
+  var lb=el("label","reset ac tight filebtn"),fi=document.createElement("input");fi.type="file";fi.accept="application/pdf,.pdf";fi.disabled=!!RD.busy;fi.setAttribute("aria-label","Scegli il PDF del DDT");
+  fi.onchange=function(){if(fi.files&&fi.files[0])rdFile(fi.files[0])};lb.append(RD.busy?"Sto leggendo…":"Scegli il PDF del DDT",fi);bx.append(lb);
+  var m=el("div","cnt",RD.msg||"");m.setAttribute("role","status");bx.append(m);
+  var ta=document.createElement("textarea");ta.placeholder="Oppure incolla qui il testo del DDT";ta.value=RD.txt||"";ta.setAttribute("aria-label","Testo del DDT");ta.oninput=function(){RD.txt=ta.value};
+  bx.append(ta,btn("reset tight","Cerca nel testo incollato",function(){var f=parseLines(String(RD.txt||"").split(/\n/));if(gotAny(f)){RD.found=f;RD.msg=""}else RD.msg="Nel testo non trovo matricole: servono le righe articolo (es. CI-5B) con il loro «Codice matricola».";readerDlg()}),btn("reset tight","Chiudi",function(){RD={};closeOv()}))}})}
+
 /* ---------- navigazione ---------- */
 function route(){
  var h=location.hash.replace("#","");if(SOLO)h=SOLO;
@@ -1003,7 +1222,7 @@ window.addEventListener("hashchange",route);
 var PWH="2d8d2915503397a4a266bd3e83ea3cc893c657e4510c47f5d6c4d014a14bf025";
 function okGet(){try{if(localStorage.getItem("gla_ok")===PWH)return 1}catch(e){}try{if(sessionStorage.getItem("gla_ok")===PWH)return 1}catch(e){}return 0}
 function sha(t){try{return crypto.subtle.digest("SHA-256",new TextEncoder().encode(t)).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(x){return ("0"+x.toString(16)).slice(-2)}).join("")})}catch(e){return Promise.reject(e)}}
-function lockScreen(go){ttl.textContent="Glory";back.hidden=true;app.textContent="";
+function lockScreen(go){ttl.textContent="Glory";back.hidden=true;gear.hidden=true;app.textContent="";
  var w=el("div","lock"),ic=document.createElement("img"),pw=document.createElement("input"),rl=el("label","rm"),rc=document.createElement("input"),m=el("div","cnt","");
  ic.src=BASE+"icon-192.png";ic.alt="";pw.type="password";pw.placeholder="Password";pw.setAttribute("aria-label","Password");pw.autocomplete="current-password";
  rc.type="checkbox";rc.checked=true;rl.append(rc,document.createTextNode("Ricordami su questo dispositivo"));m.setAttribute("role","alert");m.style.color="var(--dg)";
