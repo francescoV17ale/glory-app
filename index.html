@@ -110,6 +110,11 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .hlp{border:1px solid var(--ac);border-left-width:4px;background:var(--sf);border-radius:10px;padding:10px 12px;margin:-2px 0 10px;font-size:14px}
 .hlp b{display:block;margin-bottom:4px;color:var(--ac)}
 .hlp ul{margin:0;padding-left:20px}.hlp li{margin:3px 0}
+.drow{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:10px 12px;margin:0 0 8px;min-height:52px;font:inherit;color:var(--tx)}
+.drow b{flex:none;font-size:14px;white-space:nowrap}.drow span{flex:1;min-width:0;font-size:13px;color:var(--mu);overflow-wrap:anywhere}.drow i{font-style:normal}.drow i.miss{color:var(--dg)}.drow em{flex:none;font-style:normal;color:var(--ac)}
+.ovl{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.dlg{background:var(--bg);border-radius:14px;width:min(440px,100%);max-height:90vh;overflow:auto;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.dlg h2{margin-top:0}.dlg .reset.dgo{margin-top:14px}
 .numv{flex:1;min-height:52px;display:grid;place-items:center;font-size:20px;font-weight:650;border:1px solid var(--ln);border-radius:10px;background:var(--sf)}
 .sw3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .sw3 button{min-height:52px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);border-radius:10px;font:inherit;font-size:14px;padding:0 6px;line-height:1.15}
@@ -130,7 +135,7 @@ var S={},view="",ui={},noteTa=null,bkMsg="",bkNext="",arcMsg="",topMsg="";
 var CL=!!(window.claude&&typeof window.claude.use==="function"),SOLO=window.GLORY_SOLO||"",BASE=SOLO?"../":"";
 /* solo tipi "documento": così Android apre l'elenco dei file e non la fotocamera */
 var DOCACC=".txt,.json,text/plain,application/json,application/octet-stream";
-function rui(){ui={phDel:null,phMsg:"",del:0,delSel:0,pd:0,pdSel:0,md:0,rst:0,notes:{},foc:null,help:{},bkPend:null,arc:0,ao:0,ad:0,ap:0,q:""}}
+function rui(){ui={phDel:null,phMsg:"",del:0,delSel:0,pd:0,pdSel:0,md:0,rst:0,notes:{},foc:null,help:{},dlg:null,bkPend:null,arc:0,ao:0,ad:0,ap:0,q:""}}
 rui();
 
 function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
@@ -165,7 +170,7 @@ var PX={"CI-5":"50","CI-10":"100","CI-10X":"200"};
 var V={
 inst:{title:"Installazione",blocks:function(s){
  var n=devN(s),b=[TEC(),DT(),T("cv","CV","Codice contratto"),RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),T("se","Sede","Sede"),H("Contratto"),{t:"sw"},G("mon","Monitor presente",["Sì","No"])]),i;
- b.push({t:"cnt"},{t:"del"});
+ b.push({t:"cnt"});
  var swo=s.bo==="Sì"||(s.app&&s.sng!=="Android");
  if(!n&&!swo){b.push({t:"tip",x:"Aggiungi almeno un dispositivo (CI-5, CI-10 o CI-10X) per vedere le fasi dell'installazione. Per installare solo il software accendi SNG Cloud o App SNG Cloud."},NT(),{t:"n"});return b}
  if(!n)b.push({t:"tip",x:"Nessun dispositivo: installazione del solo software."});
@@ -175,8 +180,6 @@ inst:{title:"Installazione",blocks:function(s){
  if(s.bo==="Sì")b.push(C("b1","Cliente contattato per informazioni su SNG Cloud e postazioni"),{t:"num",id:"nsv",x:"Postazioni server SNG",max:5},{t:"num",id:"ncl",x:"Postazioni client SNG",max:20},C("b0","Licenza SNG Cloud creata correttamente"))
  function DL(i){var m=s["m"+i];return "Dispositivo "+i+(m?" · "+m:"")}
  if(n){
-  b.push(H("Matricole"));
-  for(i=1;i<=n;i++){var p=PX[s["m"+i]]||"";b.push({t:"mat",i:i,lab:DL(i),p:p})}
   b.push(H("Installazione hardware"));
   for(i=1;i<=n;i++){var k="d"+i+"_";b.push(H3(DL(i)),C(k+"1","Posizionamento e ancoraggio"),C(k+"2","Cablaggio e alimentazione dispositivo"));if(s.mon!=="No")b.push(C(k+"3","Cablaggio e alimentazione monitor"));b.push(C(k+"4","Avvio e verifica accensione"))}
   b.push(H("Configurazione"),G("sur","Surplus (fondo cassa): il cliente lo vuole? Se sì, impostalo",["Sì, impostato","No"]));
@@ -196,7 +199,7 @@ inst:{title:"Installazione",blocks:function(s){
   for(q=1;q<=nc;q++)b.push(C("bcl"+q,"Client "+q+": SNG installato e configurato"));
   b.push(C("bs","Cliente istruito sul software"))}
  b.push(H("Consegna"));
- if(n)b.push(C("f1","Eseguita formazione sul corretto utilizzo del dispositivo"),C("f2","Imballi puliti e ritirati"),C("f3","Chiavi e staffe di fissaggio consegnate"),T("ric","Chiavi consegnate a","Nome"),{t:"sx"});
+ if(n)b.push(C("f1","Eseguita formazione sul corretto utilizzo del dispositivo"),C("f2","Imballi puliti e ritirati"),C("f3","Chiavi e staffe di fissaggio consegnate"),T("ric","Chiavi consegnate a","Es. sig. Mario Rossi"));
  b.push(C("f4","Firma del cliente sul rapporto"),NT(),{t:"n"});
  return b}},
 prep:{title:"Preparazione macchine",blocks:function(s){
@@ -297,7 +300,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=67,svEl=null;
+var VER=68,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -420,7 +423,7 @@ function notes(s){var sn=s.sng==="Android"?"SNG 3":s.sng==="Windows"?"SNG Suite"
  if(n&&s.f1)o.push("Illustrato al cliente il corretto utilizzo "+(pl?"dei dispositivi":"del dispositivo")+" e le principali manovre di ripristino.","");
  if(s.bo==="Sì"&&s.bs)o.push("Illustrato al cliente il corretto utilizzo di "+sn+" e le principali funzionalità.","");
  if(n)o.push("Istruito il cliente sul fissaggio "+(pl?"dei dispositivi":"del dispositivo")+", a suo carico. Consigliata l’alimentazione "+(pl?"dei dispositivi":"del dispositivo")+" tramite UPS.");
- if(n&&s.f3)o.push("","Consegnate "+(s.ge==="F"?(s.tt==="D"?"alla dott.ssa ":s.tt==="S"?"alla sig.ra ":"alla dott.ssa/sig.ra "):(s.tt==="D"?"al dott. ":s.tt==="S"?"al sig. ":"al dott./sig. "))+(s.ric||"______________")+" le chiavi "+(pl?"dei dispositivi":"del dispositivo")+": rosse, gialle"+(big?" e blu":"")+".");
+ if(n&&s.f3)o.push("","Chiavi "+(pl?"dei dispositivi":"del dispositivo")+" (rosse, gialle"+(big?" e blu":"")+") consegnate a: "+(String(s.ric||"").trim()||"______________")+".");
  return o.join("\n")}
 function noteText(){return view==="inst"?notes(S):view==="rip"?ripText(S):view==="loc"?locText(S):altroText(S)}
 
@@ -434,7 +437,7 @@ function check(bl){var bad=[],warn=[],s=S,i,n,sec="",sub="";
   for(i=1;i<=n;i++){need("m"+i,"Modello del dispositivo "+i);need("a"+i,"Matricola banconote del dispositivo "+i);need("c"+i,"Matricola monete del dispositivo "+i);want("mt"+i,"Codice impianto del dispositivo "+i)}
   if(s.bo==="Sì"){need("sng","Sistema del gestionale del cliente (Windows o Android)");if(!(+s.nsv||0)&&!(+s.ncl||0))warn.push("Numero di postazioni server e client SNG")}
   if(n&&s.sur!=="Sì, impostato"&&s.sur!=="No")warn.push("Surplus (fondo cassa): chiedi al cliente se lo vuole");
-  want("cv","Codice contratto (CV)");if(s.rv)want("rvn","Rivenditore");want("cl","Cliente");if(s.f3){want("ric","Nome di chi riceve le chiavi");if(!s.ge||!s.tt)warn.push("Chiavi: indica Uomo/Donna e Dott./Sig. di chi le riceve")}}
+  want("cv","Codice contratto (CV)");if(s.rv)want("rvn","Rivenditore");want("cl","Cliente");if(s.f3)want("ric","Nome di chi riceve le chiavi")}
  else if(view==="loc"){need("rf","Riferimento dell'intervento");need("sc","Su cosa è stato fatto l'intervento");if(s.sc==="Dispositivo / altro")need("sp","Specifica il dispositivo o l'oggetto dell'intervento");else need("md","Modello del dispositivo");if(s.rv)want("rvn","Rivenditore");want("cl","Cliente");
   if(!s.ct1||!s.ct2)warn.push("Controlli preliminari: alimentazione e rete (OK o Problema)");
   var stp=locPre(s)&&s.pes!=="Risolto";if(locPre(s)){need("ppb","Problematica riscontrata nei controlli preliminari");if(!s.pes)bad.push("Esito dei controlli preliminari (risolto o non risolto)")}
@@ -565,6 +568,7 @@ function pdfRows(bl){var r=[];bl.forEach(function(x){
  else if(x.t==="sw")r.push({k:"f",x:"SNG Cloud",v:S.bo==="Sì"?"Sì":"No"},{k:"f",x:"Sistema gestionale",v:S.sng?S.sng+(S.sng==="Android"?" (SNG 3)":" (SNG Suite)"):"-"},{k:"f",x:"App SNG Cloud",v:S.bo==="Sì"?"Non necessaria":(S.app&&S.sng!=="Android")?"Sì":"No"});
  else if(view==="prep"&&prepMode(S)==="Downgrade CI-5"&&x.id==="m"){}
  else if(view==="prep"&&prepMode(S)==="Downgrade CI-5"&&x.id==="pt")r.push({k:"f",x:"Tipo di preparazione",v:"Downgrade CI-5 (modulo monete)"})
+ else if(x.t==="cnt"){var nd2=devN(S),q3;if(nd2)r.push({k:"h",x:"Dispositivi"});for(q3=1;q3<=nd2;q3++){var px=PX[S["m"+q3]]||"";r.push({k:"h3",x:"Dispositivo "+q3+(S["m"+q3]?" · "+S["m"+q3]:"")},{k:"f",x:"RBW"+px+"- banconote",v:S["a"+q3]||"-"},{k:"f",x:"RCW"+px+"- monete",v:S["c"+q3]||"-"},{k:"f",x:"Codice impianto",v:S["mt"+q3]||"-"})}}
  else if(x.t==="mat")r.push({k:"h3",x:x.lab},{k:"f",x:"RBW"+x.p+"- banconote",v:S["a"+x.i]||"-"},{k:"f",x:"RCW"+x.p+"- monete",v:S["c"+x.i]||"-"},{k:"f",x:"Codice impianto",v:S["mt"+x.i]||"-"});
  else if(x.t==="num")r.push({k:"f",x:x.x,v:String(+S[x.id]||0)});
  else if((x.t==="g"||x.t==="t"||x.t==="sel")&&PSKIP[view].indexOf(x.id)<0){if(x.opt&&!S[x.id])return;r.push({k:"f",x:x.x,v:S[x.id]||"-"})}});
@@ -818,6 +822,19 @@ function delDev(j){var n=devN(S),N={},k,m,d,i;
   else if(d){i=+d[2];if(i===j)continue;N[(d[1]||"")+"d"+(i>j?i-1:i)+"_"+d[3]]=S[k]}
   else N[k]=S[k]}
  N.n=n-1;S=N;save()}
+function devDlg(){var d=ui.dlg,nw=!!d.nw,i=d.i,md=nw?d.nw:S["m"+i],px=PX[md]||"",ov=el("div","ovl"),bx=el("div","dlg"),F={};
+ ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");
+ bx.append(el("h2",0,nw?"Nuovo dispositivo · "+md:"Dispositivo "+i+" · "+md));
+ if(nw)bx.append(el("p","cnt","Compila le matricole ora oppure più tardi toccando la riga del dispositivo."));
+ [["a","RBW"+px+"- banconote","Numero di matricola"],["c","RCW"+px+"- monete","Numero di matricola"],["mt","Codice impianto","Codice impianto"]].forEach(function(f){var fd=el("div","fld"),inp=document.createElement("input");inp.type="text";inp.placeholder=f[2];inp.value=nw?"":(S[f[0]+i]||"");inp.setAttribute("aria-label",f[1]);fd.append(el("label",0,f[1]),inp);bx.append(fd);F[f[0]]=inp});
+ function close(){ui.dlg=null;render()}
+ var sg=el("div","seg");sg.append(btn("on",nw?"Aggiungi":"Conferma",function(){var v={a:F.a.value.trim(),c:F.c.value.trim(),mt:F.mt.value.trim()};
+   if(nw){var n=devN(S)+1;S.n=n;S["m"+n]=md;["a","c","mt"].forEach(function(k){if(v[k])S[k+n]=v[k]});devSort()}
+   else ["a","c","mt"].forEach(function(k){if(v[k])S[k+i]=v[k];else delete S[k+i]});
+   save();close()}),btn("","Annulla",close));bx.append(sg);
+ if(!nw){if(!d.del)bx.append(btn("reset dgo tight","Elimina dispositivo",function(){ui.dlg.del=1;render()}));
+  else bx.append(confirmBox("Eliminare il Dispositivo "+i+" e tutte le sue spunte?","Elimina",function(){delDev(i);close()},function(){ui.dlg.del=0;render()}))}
+ ov.append(bx);setTimeout(function(){try{F.a.focus()}catch(e){}},30);return ov}
 function confirmBox(msg,yes,onYes,onNo){var bx=el("div","box"),sg=el("div","seg");bx.append(el("div",0,msg));sg.append(btn("dgf",yes,onYes),btn("","Annulla",onNo));bx.append(sg);return bx}
 function pick(label,n,sel,name,onSel){var bx=el("div","fld");bx.append(el("label",0,label));
  for(var k=1;k<=n;k++)(function(k){var r=btn("chk"+(sel===k?" on dg":""),null,function(){onSel(k)});r.append(el("span","bx",sel===k?"✓":""),el("span","lb",name(k)));bx.append(r)})(k);
@@ -887,11 +904,13 @@ function render(){
    fc.append(el("label",0,"Dispositivi: tocca un modello per aggiungerne uno"));
    sc.className="seg cnt3";var MD=["CI-5","CI-10","CI-10X"];
    MD.forEach(function(o){sc.append(el("div","lbl",cc[o]>1?"Dispositivi "+cc[o]:""))});
-   MD.forEach(function(o){var bc=btn(cc[o]?"on":"",o,function(){ui.addAsk=o;render()});bc.setAttribute("aria-label","Aggiungi un "+o+(cc[o]?" (ora "+cc[o]+")":""));sc.append(bc)});
+   MD.forEach(function(o){var bc=btn(cc[o]?"on":"",o,function(){ui.dlg={nw:o};render()});bc.setAttribute("aria-label","Aggiungi un "+o+(cc[o]?" (ora "+cc[o]+")":""));sc.append(bc)});
    fc.append(sc);app.append(fc);
-   if(ui.addAsk){var ab=el("div","box wn"),as=el("div","seg"),am=ui.addAsk;ab.setAttribute("role","alert");ab.append(el("div",0,"Aggiungere un dispositivo "+am+"? Diventerà il "+(((cc[am]||0)+1))+"° "+am+" dell'installazione."));
-    as.append(btn("on","Aggiungi",function(){ui.addAsk=0;addDev(am)}),btn("","Annulla",function(){ui.addAsk=0;render()}));ab.append(as);app.append(ab)}}
-  else if(x.t==="date"){var fd=el("div","fld"),di=document.createElement("input");di.type="date";di.value=S.dt||day();di.setAttribute("aria-label",x.x);fd.append(el("label",0,x.x),di);di.onchange=function(){if(di.value)S.dt=di.value;else delete S.dt;save()};app.append(fd)}
+   for(q=1;q<=devN(S);q++)(function(i){var px=PX[S["m"+i]]||"",r=btn("drow",null,function(){ui.dlg={i:i};render()}),sp=el("span");
+    r.append(el("b",0,i+" · "+(S["m"+i]||"?")));
+    [["RBW"+px+"-","a"+i],["RCW"+px+"-","c"+i],["Imp. ","mt"+i]].forEach(function(f,k){var v=String(S[f[1]]||"").trim();if(k)sp.append(document.createTextNode(" · "));sp.append(el("i",v?"":"miss",f[0]+(v||"—")))});
+    r.append(sp,el("em",0,"✎"));r.setAttribute("aria-label","Modifica dispositivo "+i);app.append(r)})(q);
+   if(ui.dlg)app.append(devDlg())}
   else if(x.t==="tip"){var tp=el("p","cnt",x.x);tp.style.cssText="font-size:15px;padding:12px;border:1px dashed var(--ln);border-radius:10px;text-align:center";app.append(tp)}
   else if(x.t==="num"){var fn=el("div","fld"),sn2=el("div","seg"),nv=+S[x.id]||0;fn.append(el("label",0,x.x));
    var mi=btn("","−",function(){S[x.id]=Math.max(0,nv-1);save();render()}),pl=btn("","+",function(){S[x.id]=Math.min(x.max,nv+1);save();render()}),vv=el("div","numv",String(nv));
@@ -925,10 +944,6 @@ function render(){
   else if(x.t==="sel"){var fs=el("div","fld"),se=document.createElement("select"),o0=el("option","","Seleziona");fs.append(el("label",0,x.x));o0.value="";se.append(o0);se.setAttribute("aria-label",x.x);
    x.o.forEach(function(v){var op=el("option","",v+(v==="1"?" ora":" ore"));op.value=v;if(S[x.id]===v)op.selected=true;se.append(op)});
    se.onchange=function(){S[x.id]=se.value||0;save();render()};fs.append(se);app.append(fs)}
-  else if(x.t==="sx"){var fx=el("div","fld"),sx=el("div","seg"),st=el("div","seg");
-   [["M","Uomo"],["F","Donna"]].forEach(function(o){sx.append(btn(S.ge===o[0]?"on":"",o[1],function(){S.ge=S.ge===o[0]?0:o[0];save();render()}))});
-   [["D","Dott."],["S","Sig."]].forEach(function(o){st.append(btn(S.tt===o[0]?"on":"",o[1],function(){S.tt=S.tt===o[0]?0:o[0];save();render()}))});
-   st.style.marginTop="8px";fx.append(sx,st);app.append(fx)}
   else if(x.t==="n"){app.append(el("h2",0,"Note rapportino"));noteTa=el("textarea");noteTa.readOnly=true;noteTa.style.minHeight="300px";noteTa.value=noteText();noteTa.setAttribute("aria-label","Note per il rapportino");
    var cm=el("div"),cb=btn("reset","Copia note",function(){tryCopy(cb,cm)});cb.style.marginTop="10px";app.append(noteTa,cb,cm);pdfBox()}
   else if(x.t==="c"){var nk="nt_"+x.id,rw=el("div","rowc"),
