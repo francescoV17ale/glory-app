@@ -284,7 +284,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=63,svEl=null;
+var VER=64,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -960,10 +960,10 @@ function ddBuild(dd){dd.textContent="";var m=el("div","cnt","");m.setAttribute("
 /* ---------- navigazione ---------- */
 function route(){
  var h=location.hash.replace("#","");if(SOLO)h=SOLO;
- if(V[h]){view=h;S=load(h);rui();bkMsg=bkNext;bkNext="";ttl.textContent=V[h].title;back.hidden=!!SOLO;render();window.scrollTo(0,0)}
+ if(V[h]){view=h;S=load(h);rui();if(SHP&&!SHP.all&&SHP.it[0].v===h){ui.bkPend=SHP;SHP=null}bkMsg=bkNext;bkNext="";ttl.textContent=V[h].title;back.hidden=!!SOLO;render();window.scrollTo(0,0)}
  else if(h==="arc"){rui();bkMsg="";bkNext="";arcView();window.scrollTo(0,0)}
  else if(h==="rma"){rui();bkMsg="";bkNext="";rmaView();window.scrollTo(0,0)}
- else{ui.bkPend=null;bkMsg="";bkNext="";home();window.scrollTo(0,0)}}
+ else{ui.bkPend=null;if(SHP&&SHP.all){ui.bkPend=SHP;SHP=null}bkNext="";home();bkMsg="";window.scrollTo(0,0)}}
 back.onclick=function(){location.hash=""};
 window.addEventListener("hashchange",route);
 /* ---------- accesso con password ---------- */
@@ -981,7 +981,17 @@ function lockScreen(go){ttl.textContent="Glory";back.hidden=true;app.textContent
  w.append(ic,el("h2",0,"Glory 2.0"),el("p","cnt","Strumento interno: inserisci la password per entrare."),pw,rl,btn("reset ac tight","Entra",tryIn),m);
  app.append(w);setTimeout(function(){try{pw.focus()}catch(e){}},50)}
 var started=0;
-function startApp(){if(started)return;started=1;try{if(location.search)history.replaceState(null,"",location.pathname+location.hash)}catch(e){}route();if(navigator.onLine)setTimeout(function(){updCheck(0)},1500)}
+var SHP=null;
+/* file arrivato con "Condividi" › Glory (WhatsApp, email, File…) */
+function shareIn(){if(!window.caches)return;
+ caches.open("glory-share").then(function(c){return c.match("pending").then(function(rs){if(!rs)return;
+  return rs.text().then(function(t){c.delete("pending");var r=bkRead(t);
+   if(!r){bkMsg="Il file condiviso non è una scheda Glory: usa un file «Scheda Glory» o un backup.";location.hash="";route();return}
+   if(r.all){SHP=r;bkMsg="Backup ricevuto: confermi il caricamento qui sotto.";if(location.hash){location.hash=""}else route();return}
+   var v=r.it[0].v;
+   if(hasData(load(v))){SHP=r;if(location.hash==="#"+v)route();else location.hash="#"+v}
+   else bkApply(r)})})}).catch(function(){})}
+function startApp(){if(started)return;started=1;try{if(location.search)history.replaceState(null,"",location.pathname+location.hash)}catch(e){}route();shareIn();if(navigator.onLine)setTimeout(function(){updCheck(0)},1500)}
 window.removeEventListener("hashchange",route);
 window.addEventListener("hashchange",function(){if(started)route()});
 phInit(function(){if(okGet())startApp();else lockScreen(startApp)});
