@@ -260,12 +260,14 @@ loc:{title:"Interventi in loco",blocks:function(s){
  b.push(H3("Modulo banconote"));b=b.concat(UPD(s,"ubc","Aggiornamento firmware CPU"),UPD(s,"ubb","Aggiornamento BV (lettore banconote)"));
  b.push(H3("Modulo monete"));b=b.concat(UPD(s,"umc","Aggiornamento firmware CPU"));
  b.push(H3("FCC"));b=b.concat(UPD(s,"ufc","Aggiornamento FCC"));
- if(U.length){var rv=C("rev","Pulizia e revisione del dispositivo");rv.opt=1;b.push(H("Collaudo finale"));if(!PUL)b.push(rv);
-  U.forEach(function(u){var p=u.p;
-   b.push(H3(u.l),C(p+"acc","Test di accensione"),C(p+"res","Reset"),C(p+"cnt","Prova con "+(u.t==="C"?"monete":u.t==="B"?"banconote":"contante")));
-   if(PUL&&s[p+"pp"]!=="Sì"){b.push(C(p+"ok","Modulo operativo"));return}
-   b.push(C(p+"ok","Problema risolto"),C(p+"nr","Problema non risolto"));
-   if(s[p+"nr"]&&!s[p+"ok"])b.push(G(p+"de","Destinazione",["Ritiro per riparazione in laboratorio","Nuovo intervento"]))})}
+ if(U.length){var rv=C("rev","Pulizia e revisione del dispositivo"),MD=U.filter(function(u){return u.m});rv.opt=1;b.push(H("Collaudo finale"));if(!PUL)b.push(rv);
+  b.push(C("cfa","Test di accensione"),C("cfr","Reset"));
+  if(U.some(function(u){return u.t==="B"}))b.push(C("cfb","Test con banconote"));
+  if(U.some(function(u){return u.t==="C"}))b.push(C("cfm","Test con monete"));
+  if(!MD.length)b.push(C("cft","Test di funzionamento"));
+  b.push(G("cfe","Esito",["Tutto OK","Problematica rilevata"]));
+  if(s.cfe==="Problematica rilevata"){if(MD.length>1)b.push(G("cfq","Su quale modulo",["Modulo banconote","Modulo monete","Entrambi"]));
+   b.push(G("cfx","Problematica",["Risolta","Non risolta"]));if(s.cfx==="Non risolta")b.push(G("cfd","Destinazione",["Ritiro per riparazione in laboratorio","Nuovo intervento"]))}}
  b.push(NT(),H("Manodopera"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
  return b}},
 sng:{title:"Installazione SNG",blocks:function(s){
@@ -293,12 +295,14 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=59,svEl=null;
+var VER=60,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
-function load(v){var s=null;try{s=JSON.parse(lsGet("gla_"+v))}catch(e){}if(!s||typeof s!=="object"||Array.isArray(s))s={};if(v==="inst")migInst(s);if(!s.tec&&tecRm()){var tc=lsGet("gla_tec");if(tc)s.tec=tc}return s}
+function load(v){var s=null;try{s=JSON.parse(lsGet("gla_"+v))}catch(e){}if(!s||typeof s!=="object"||Array.isArray(s))s={};if(v==="inst")migInst(s);if(v==="loc")migLoc(s);if(!s.tec&&tecRm()){var tc=lsGet("gla_tec");if(tc)s.tec=tc}return s}
 function migInst(s){["11","12","13"].forEach(function(x){var re=new RegExp("^d\\d+_"+x+"$");if(s["g"+x]==null&&Object.keys(s).some(function(k){return re.test(k)&&s[k]}))s["g"+x]=1})}
+function migLoc(s){if(s.sc!=="Modulo monete"||Object.keys(s).some(function(k){return /^(nt_)?r2_/.test(k)}))return;
+ Object.keys(s).forEach(function(k){var m=/^(nt_)?r1_(.+)$/.exec(k);if(m){s[(m[1]||"")+"r2_"+m[2]]=s[k];delete s[k]}})}
 function save(){if(view)lsSet("gla_"+view,JSON.stringify(S))}
 
 /* ---------- testi per il rapportino ---------- */
@@ -333,7 +337,7 @@ function ripText(s){var rn=+s.rn||1,o=[],i,j;
  return o.join("\n")}
 function locUnits(s){var P=PX[s.md]||"",o=[];
  function mod(p,t){var sg=P?"R"+t+"W"+P+"-":"";o.push({p:p,t:t,m:1,l:t==="B"?"Modulo banconote":"Modulo monete",n:t==="B"?"banconote":"monete",sig:sg,full:sg+(s[p+"mat"]||"…")})}
- if(s.sc==="Modulo banconote")mod("r1_","B");else if(s.sc==="Modulo monete")mod("r1_","C");
+ if(s.sc==="Modulo banconote")mod("r1_","B");else if(s.sc==="Modulo monete")mod("r2_","C");
  else if(s.sc==="Entrambi i moduli"||s.sc==="Pulizia e revisione"){mod("r1_","B");mod("r2_","C")}
  else if(s.sc==="Dispositivo / altro")o.push({p:"d_",t:"",m:0,l:String(s.sp||"").trim()||"Dispositivo",n:"",sig:"",full:""});
  return o}
@@ -364,18 +368,14 @@ function locText2(s){var U=locUnits(s),o=[],ag=[],i,j,m=U.length>1,PUL=s.sc==="P
  var ap=[];if(s.ubb)ap.push("BV");if(s.ubc&&s.umc)ap.push("firmware CPU di entrambi i moduli");else if(s.ubc)ap.push("firmware CPU del modulo banconote");else if(s.umc)ap.push("firmware CPU del modulo monete");if(s.ufc)ap.push("FCC");
  if(ap.length)ag.push("Eseguito aggiornamento "+(ap.length>1?ap.slice(0,-1).join(", ")+" e "+ap[ap.length-1]:ap[0])+".");
  if(ag.length){o.push("");ag.forEach(function(l){o.push(l)})}
- var te=[],st=[];
- U.forEach(function(u){var p=u.p,ok=s[p+"ok"],nr=s[p+"nr"]&&!ok;
-  if(s[p+"acc"]||s[p+"res"]||s[p+"cnt"])te.push("Eseguite prove di funzionamento"+(m&&u.m?" del modulo "+u.n:"")+(ok?" con esito positivo":"")+".");
-  if(ok)st.push({u:u,k:"ok"});else if(nr)st.push({u:u,k:"nr",d:s[p+"de"]||""})});
- if(te.length){o.push("");te.forEach(function(l){o.push(l)})}
- if(st.length){o.push("");
-  var same=st.every(function(x){return x.k===st[0].k}),dsame=st.every(function(x){return x.d===st[0].d});
-  function dl(d){return d==="Nuovo intervento"?"Necessario nuovo intervento.":d?"Dispositivo da ritirare per riparazione in laboratorio.":""}
-  if(same&&st[0].k==="ok"&&st.length===U.length)o.push("Dispositivo ripristinato e lasciato operativo.");
-  else if(same&&st[0].k==="nr"&&st.length===U.length&&dsame){o.push("Problema non risolto.");if(dl(st[0].d))o.push(dl(st[0].d))}
-  else st.forEach(function(x){var t=x.u.m?"Modulo "+x.u.n+": ":"";
-   if(x.k==="ok")o.push(t+"dispositivo ripristinato e lasciato operativo.");else{o.push(t+"problema non risolto."+(dl(x.d)?" "+dl(x.d):""))}})}
+ var MD=U.filter(function(u){return u.m});
+ if(U.length&&(s.cfa||s.cfr||s.cfb||s.cfm||s.cft)){o.push("");o.push("Eseguite prove di funzionamento"+(s.cfe==="Tutto OK"?" con esito positivo":"")+".")}
+ if(U.length&&s.cfe==="Tutto OK"){o.push("");o.push("Dispositivo ripristinato e lasciato operativo.")}
+ else if(U.length&&s.cfe==="Problematica rilevata"){o.push("");
+  var mq=MD.length>1?(s.cfq==="Entrambi"?" su entrambi i moduli":s.cfq?" sul "+s.cfq.toLowerCase():""):(MD.length?" sul modulo "+MD[0].n:"");
+  o.push("Al collaudo rilevata una problematica"+mq+".");
+  if(s.cfx==="Risolta")o.push("Problematica risolta, dispositivo lasciato operativo.");
+  else if(s.cfx==="Non risolta"){o.push("Problematica non risolta.");if(s.cfd)o.push(s.cfd==="Nuovo intervento"?"Necessario nuovo intervento.":"Dispositivo da ritirare per riparazione in laboratorio.")}}
  return o.join("\n")}
 function altroText(s){var o=[(s.tp||"Attività")+(s.ti?": "+s.ti:"")+"."],d=[s.mt,s.ma].filter(Boolean).join(" ");
  if(d)o.push("Dispositivo: "+d+".");if(s.de)o.push(String(s.de).trim());if(s.es)o.push("Esito: "+s.es.toLowerCase()+".");
@@ -419,9 +419,10 @@ function check(bl){var bad=[],warn=[],s=S,i,n,sec="",sub="";
   if(!s.ct1||!s.ct2)warn.push("Controlli preliminari: alimentazione e rete (OK o Problema)");
   var stp=locPre(s)&&s.pes!=="Risolto";if(locPre(s)){need("ppb","Problematica riscontrata nei controlli preliminari");if(!s.pes)bad.push("Esito dei controlli preliminari (risolto o non risolto)")}
   locUnits(s).forEach(function(u){var q=u.p;if(u.m)need(q+"mat","Matricola del "+u.l.toLowerCase());if(stp)return;
-   if(s.sc==="Pulizia e revisione"){if(!s[q+"pp"])bad.push("Pulizia: problema rilevato dopo la pulizia sul "+u.l.toLowerCase()+"? (Sì o No)");if(s[q+"pp"]!=="Sì"){if(!s[q+"ok"])warn.push("Collaudo: "+u.l+" operativo");return}}
-   if(!s[q+"ok"]&&!s[q+"nr"])bad.push("Esito: "+u.l+" (risolto o non risolto)");
+   if(s.sc==="Pulizia e revisione"){if(!s[q+"pp"])bad.push("Pulizia: problema rilevato dopo la pulizia sul "+u.l.toLowerCase()+"? (Sì o No)");if(s[q+"pp"]!=="Sì")return}
    want(q+"pb","Problematica riscontrata ("+u.l.toLowerCase()+")");want(q+"pr","Interventi eseguiti ("+u.l.toLowerCase()+")")});
+ var LU=locUnits(s);if(!stp&&LU.length){if(!s.cfe)bad.push("Esito del collaudo finale (Tutto OK o Problematica rilevata)");
+   else if(s.cfe==="Problematica rilevata"){if(LU.filter(function(u){return u.m}).length>1&&!s.cfq)bad.push("Su quale modulo è la problematica del collaudo");if(!s.cfx)bad.push("Problematica del collaudo: risolta o non risolta")}}
   if(s.fl&&!stp){if(!s.rev&&s.sc!=="Pulizia e revisione")warn.push("Contratto full: pulizia e revisione del dispositivo non eseguita");if(!s.ufc&&!s.ubc&&!s.ubb&&!s.umc)warn.push("Contratto full: nessun aggiornamento eseguito (firmware CPU, BV, FCC)")}
   want("ore","Ore di manodopera")}
  else if(view==="rip"){need("rma","Codice RMA");n=+s.rn||1;
