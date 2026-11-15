@@ -40,7 +40,7 @@ h3{font-size:15px;margin:16px 0 6px;color:var(--mu);font-weight:600}
 .rowc{display:flex;gap:8px;margin-bottom:8px}
 .pvw{border:1px solid var(--ln);border-radius:10px;padding:10px;margin:10px 0 12px;background:var(--sf);font-size:13px}
 .pvh{display:flex;justify-content:space-between;gap:8px;background:var(--ac);color:var(--on);border-radius:6px;padding:8px 10px;margin-bottom:8px}
-.pvi{background:var(--bg);border-left:3px solid var(--ac);padding:6px 10px;margin-bottom:8px;display:grid;grid-template-columns:1fr 1fr;gap:2px 10px}
+.pvi{background:var(--bg);border-left:3px solid var(--ac);padding:6px 10px;margin-bottom:8px;display:grid;grid-template-columns:1fr;gap:2px 10px;overflow-wrap:anywhere}
 .pvs{background:var(--bg);border-left:3px solid var(--ac);padding:4px 8px;margin:10px 0 4px;font-weight:700}
 .pvt{color:var(--ac);font-size:11px;font-weight:700;text-transform:uppercase;margin:6px 0 2px}
 .pvc{padding:2px 0;color:var(--mu)}.pvc.on{color:var(--tx);font-weight:700}
@@ -358,8 +358,9 @@ loc:{title:"Interventi in loco",blocks:function(s){
   for(var pi=1;pi<=(+s[p+"np"]||0);pi++)b.push(T(p+"pz"+pi,"Pezzo sostituito "+pi,"Quale pezzo"));
   b.push({t:"addp",p:p},{t:"delp",p:p})});
  b.push(H("Aggiornamenti"));
- b.push(H3("Modulo banconote"));b=b.concat(UPD(s,"ubc","Aggiornamento firmware CPU"),UPD(s,"ubb","Aggiornamento BV (lettore banconote)"));
- b.push(H3("Modulo monete"));b=b.concat(UPD(s,"umc","Aggiornamento firmware CPU"));
+ var LU=locUpd(s);
+ if(LU.B){b.push(H3("Modulo banconote"));b=b.concat(UPD(s,"ubc","Aggiornamento firmware CPU"),UPD(s,"ubb","Aggiornamento BV (lettore banconote)"))}
+ if(LU.C){b.push(H3("Modulo monete"));b=b.concat(UPD(s,"umc","Aggiornamento firmware CPU"))}
  b.push(H3("FCC"));b=b.concat(UPD(s,"ufc","Aggiornamento FCC"));
  if(U.length){var rv=C("rev","Pulizia e revisione del dispositivo"),MD=U.filter(function(u){return u.m});rv.opt=1;b.push(H("Collaudo finale"));if(!PUL)b.push(rv);
   b.push(C("cfa","Test di accensione"),C("cfr","Reset"));
@@ -384,7 +385,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=74,svEl=null;
+var VER=75,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -416,7 +417,7 @@ function verT(s,id){var a=String(s[id+"_a"]||"").trim(),n=String(s[id+"_n"]||"")
 function ripText(s){var rn=+s.rn||1,o=[],i,j,M=[];
  for(i=1;i<=rn;i++)M.push(modInfo(s,"r"+i+"_"));
  var mdl=M.map(function(m){return m.m}).filter(Boolean),same=mdl.length===M.length&&mdl.every(function(x){return x===mdl[0]}),nm=M.map(function(m){return m.n}).filter(Boolean);
- if(rn>1)o.push("Riparazione in laboratorio dei moduli"+(nm.length===rn?" "+nm.join(" e "):"")+(same?" Glory "+mdl[0]:"")+".");
+ if(rn>1)o.push("Riparazione in laboratorio "+(nm.length===rn&&nm[0]===nm[1]?"di due moduli "+nm[0]:"dei moduli"+(nm.length===rn?" "+nm.join(" e "):""))+(same?" Glory "+mdl[0]:"")+".");
  else o.push("Riparazione in laboratorio del modulo"+(M[0].n?" "+M[0].n:"")+(M[0].m?" Glory "+M[0].m:"")+".");
  M.forEach(function(m){o.push(m.full+(rn>1&&!same&&m.m?" ("+m.m+")":""))});
  o.push("RMA: "+(s.rma||"…"));
@@ -427,7 +428,7 @@ function ripText(s){var rn=+s.rn||1,o=[],i,j,M=[];
   if(s[p+"pr"])d.push("Interventi eseguiti: "+String(s[p+"pr"]).trim());
   if(pz.length)d.push("Per ripristinare il corretto funzionamento "+(pz.length>1?"sono stati sostituiti i componenti: ":"è stato sostituito il componente: ")+pz.join(", ")+".");
   var ok=s[p+"es"]==="Riparato",nr=s[p+"es"]==="Non riparabile";
-  if(s[p+"ucp"])ag.push("firmware CPU"+verT(s,p+"ucp"));if(s[p+"ubv"])ag.push("BV"+verT(s,p+"ubv"));
+  if(s[p+"ucp"])ag.push("firmware CPU"+verT(s,p+"ucp"));if(s[p+"ubv"]&&mi.t!=="C")ag.push("BV"+verT(s,p+"ubv"));
   if(ag.length)d.push("Eseguito aggiornamento "+ag.join(" e ")+".");
   if(ts)d.push("Eseguite prove di funzionamento"+(ok?" con esito positivo":"")+".");
   if(ok){d.push("Modulo riparato.");var de=s[p+"de"],sp={"Cliente":"al cliente","Rivenditore":"al rivenditore","Tecnico di zona":"al tecnico di zona"}[s[p+"sp"]]||"";
@@ -442,6 +443,7 @@ function locUnits(s){var P=PX[s.md]||"",o=[];
  else if(s.sc==="Entrambi i moduli"||s.sc==="Pulizia e revisione"){mod("r1_","B");mod("r2_","C")}
  else if(s.sc==="Dispositivo / altro")o.push({p:"d_",t:"",m:0,l:String(s.sp||"").trim()||"Dispositivo",n:"",sig:"",full:""});
  return o}
+function locUpd(s){var U=locUnits(s),all=!!s.fl||!s.sc;return {B:all||U.some(function(u){return u.t==="B"}),C:all||U.some(function(u){return u.t==="C"})}}
 function locPre(s){return s.ct1==="Problema"||s.ct2==="Problema"}
 function locPreText(s){var pr=[],o=[];if(s.ct1==="Problema")pr.push("alimentazione e cavi");if(s.ct2==="Problema")pr.push("collegamento di rete");
  o.push("Controlli preliminari: riscontrato problema su "+pr.join(" e ")+".");
@@ -475,7 +477,7 @@ function locText2(s){var U=locUnits(s),o=[],ag=[],i,j,m=U.length>1,PUL=s.sc==="P
   else if(d.length&&m&&u.m)d.unshift("Modulo "+u.n+":");
   if(d.length){if(o.length)o.push("");d.forEach(function(l){o.push(l)})}});
  if(s.rev&&!PUL){if(o.length)o.push("");o.push("Contestualmente eseguita revisione generale del dispositivo.")}
- var ap=[],vb=verT(s,"ubc"),vm=verT(s,"umc");if(s.ubb)ap.push("BV"+verT(s,"ubb"));if(s.ubc&&s.umc&&!vb&&!vm)ap.push("firmware CPU di entrambi i moduli");else{if(s.ubc)ap.push("firmware CPU del modulo banconote"+vb);if(s.umc)ap.push("firmware CPU del modulo monete"+vm)}if(s.ufc)ap.push("FCC"+verT(s,"ufc"));
+ var ap=[],vb=verT(s,"ubc"),vm=verT(s,"umc"),LU=locUpd(s),xb=LU.B&&s.ubc,xm=LU.C&&s.umc;if(LU.B&&s.ubb)ap.push("BV"+verT(s,"ubb"));if(xb&&xm&&!vb&&!vm)ap.push("firmware CPU di entrambi i moduli");else{if(xb)ap.push("firmware CPU del modulo banconote"+vb);if(xm)ap.push("firmware CPU del modulo monete"+vm)}if(s.ufc)ap.push("FCC"+verT(s,"ufc"));
  if(ap.length)ag.push("Eseguito aggiornamento "+(ap.length>1?ap.slice(0,-1).join(", ")+" e "+ap[ap.length-1]:ap[0])+".");
  if(ag.length){o.push("");ag.forEach(function(l){o.push(l)})}
  var MD=U.filter(function(u){return u.m});
@@ -520,6 +522,7 @@ function check(bl){var bad=[],warn=[],s=S,i,n,sec="",sub="";
  want("tec","Nome del tecnico");
  if(view==="inst"){n=devN(s);if(!n&&!(s.bo==="Sì"||(s.app&&s.sng!=="Android")))bad.push("Almeno un dispositivo (CI-5, CI-10 o CI-10X) oppure il software da installare");
   for(i=1;i<=n;i++){need("m"+i,"Modello del dispositivo "+i);need("a"+i,"Matricola banconote del dispositivo "+i);need("c"+i,"Matricola monete del dispositivo "+i);want("mt"+i,"Codice impianto del dispositivo "+i)}
+  var dupI={};for(i=1;i<=n;i++)["a","c"].forEach(function(f){var v=mnorm(s[f+i]),k=f+s["m"+i]+v,t;if(!v)return;if(dupI[k]){t="Matricola "+(f==="a"?"banconote":"monete")+" duplicata: "+s[f+i]+" (dispositivi "+dupI[k]+" e "+i+")";warn.push(t);MK[t]=f+i}else dupI[k]=i});
   if(s.bo==="Sì"){need("sng","Sistema del gestionale del cliente (Windows o Android)");if(!(+s.nsv||0)&&!(+s.ncl||0))warn.push("Numero di postazioni server e client SNG")}
   if(n&&s.sur!=="Sì, impostato"&&s.sur!=="No")warn.push("Surplus (fondo cassa): chiedi al cliente se lo vuole");
   want("cv","Codice contratto (CV)");if(s.rv)want("rvn","Rivenditore");want("cl","Cliente");if(s.f3)want("ric","Nome di chi riceve le chiavi")}
@@ -536,6 +539,7 @@ function check(bl){var bad=[],warn=[],s=S,i,n,sec="",sub="";
  else if(view==="rip"){need("rma","Codice RMA");n=+s.rn||1;
   for(i=1;i<=n;i++){var p="r"+i+"_";need(p+"tp","Tipo del modulo "+i);need(p+"md","Modello del modulo "+i);need(p+"mat","Matricola del modulo "+i);
    if(!s[p+"es"])bad.push("Esito del modulo "+i+" (riparato o non riparabile)");
+   else if(s[p+"es"]==="Riparato"){if(!s[p+"de"]){warn.push("Destinazione del modulo "+i);MK["Destinazione del modulo "+i]=p+"de"}else if(s[p+"de"]==="Spedizione"&&!s[p+"sp"]){warn.push("A chi spedire il modulo "+i);MK["A chi spedire il modulo "+i]=p+"sp"}}
    want(p+"pb","Problematica riscontrata sul modulo "+i);want(p+"pr","Interventi eseguiti sul modulo "+i)}
   want("ore","Ore di manodopera")}
  else if(view==="prep"){if(s.m&&(s.m!=="CI-5"||prepMode(s)==="Completa")&&s.mon!=="Sì"&&!has("chp"))warn.push("Dove sono state messe le chiavi (monitor assente)");if(prepMode(s)==="Downgrade CI-5"){var sn={},dk,dv0;for(dk=1;dk<=(+s.dn||1);dk++){dv0=mnorm(s[mrk(dk)]);if(!dv0)continue;if(sn[dv0])warn.push("Matricola duplicata: "+s[mrk(dk)]+" (dispositivi "+sn[dv0]+" e "+dk+")");else sn[dv0]=dk}}}
@@ -582,9 +586,9 @@ function buildPdf(meta,rows){
  y=HH-bandH-14;
  var info=[],prg="";
  meta.lines.forEach(function(l){if(/^Voci completate/.test(l)){prg=l;return}var j=l.indexOf(": ");info.push(j<0?["",l]:[l.slice(0,j),l.slice(j+2)])});
- var bh=Math.ceil(info.length/2)*25+8;
+ info.forEach(function(p){p[2]=pdfWrap(p[1],78)});var bh=info.reduce(function(a,p){return a+p[2].length*11+4},0)+10;
  rect(M,y-bh,W-2*M,bh,G1);rect(M,y-bh,3,bh,BLUE);
- info.forEach(function(p,j){var col=j%2,row=Math.floor(j/2),x=M+14+col*((W-2*M)/2),yy=y-15-row*25;tx("F2",7,x,yy,p[0].toUpperCase(),MUT);tx("F1",9,x,yy-9,cl(p[1],48),TXT)});
+ var iy=y-15;info.forEach(function(p){tx("F2",7.5,M+14,iy,p[0].toUpperCase(),MUT);p[2].forEach(function(l,j){tx("F1",9.5,M+124,iy-j*11,l,TXT)});iy-=p[2].length*11+4});
  y-=bh+10;
  var mm=/(\d+) di (\d+)/.exec(prg),dn=mm?+mm[1]:0,tt=mm?+mm[2]:0;
  tx("F2",8,M,y-8,"Voci completate",MUT);tx("F1",8,M+74,y-8,dn+" di "+tt,TXT);
@@ -787,7 +791,7 @@ function rmaArc(R,om){var g=rmaGen(R);
  var r={id:Date.now(),v:"rip",d:Date.now(),n:g+(R.cl?" - "+fcut(R.cl,30):""),s:s,ph:[],st:"attesa"};
  arcPut(r,function(){lsSet("gla_rmagen","{}");rmaView();var m2=app.querySelector("[role=status]");topMsg="";if(m2)m2.textContent="RMA "+g+" archiviato. Quando fai la riparazione: Archivio → tocca il lavoro → Riapri."},function(){om.textContent="Archiviazione non riuscita."})}
 function rmaToRip(R){var tc=load("rip").tec,s={grm:1};if(tc)s.tec=tc;["rv","rvn","cl","r1_tp","r1_md","r1_mat","r1_er"].forEach(function(k){if(R[k])s[k]=R[k]});s.rma=rmaGen(s);
- lsSet("gla_rip",JSON.stringify(s));PH.rip=[];phSave("rip");topMsg="Scheda riparazione aperta con i dati dell'RMA.";location.hash="#rip"}
+ lsSet("gla_rip",JSON.stringify(s));siSet("rip",0);PH.rip=[];phSave("rip");topMsg="Scheda riparazione aperta con i dati dell'RMA.";location.hash="#rip"}
 
 /* ---------- archivio lavori ---------- */
 function arcBox(){app.append(el("h2",0,"Archivio"));var m=el("div","cnt",arcMsg);m.setAttribute("role","status");arcMsg="";
@@ -802,10 +806,10 @@ function arcSave(clr,st){var id=S._arc||Date.now(),s=JSON.parse(JSON.stringify(S
  try{if(V[view].blocks(S).some(function(x){return x.t==="n"}))nt=noteText()}catch(e){}
  var r={id:id,v:view,d:Date.now(),n:fnBase(),s:s,ph:phOf(view),st:st,nt:nt};
  arcPut(r,function(){ui.arc=0;
-  if(clr){var tc=S.tec;S={};if(tc)S.tec=tc;PH[view]=[];phSave(view);arcMsg=st==="corso"?"Lavoro messo in pausa: lo ritrovi in Archivio › In corso.":"Lavoro concluso e archiviato. Scheda svuotata."}
+  if(clr){var tc=S.tec;S={};if(tc)S.tec=tc;PH[view]=[];phSave(view);siSet(view,0);arcMsg=st==="corso"?"Lavoro messo in pausa: lo ritrovi in Archivio › In corso.":"Lavoro concluso e archiviato. Scheda svuotata."}
   else{S._arc=id;arcMsg="Lavoro salvato nell'archivio (in corso)."}
   save();render()},function(){ui.arc=0;arcMsg="Archiviazione non riuscita: scarica un backup dal menù.";render()})}
-function arcApply(r){var s=JSON.parse(JSON.stringify(r.s));s._arc=r.id;lsSet("gla_"+r.v,JSON.stringify(s));PH[r.v]=bkPh(r.ph);phSave(r.v);topMsg="Lavoro riaperto dall'archivio. Quando hai finito usa «Aggiorna nell'archivio» in fondo alla scheda.";location.hash="#"+r.v}
+function arcApply(r){var s=JSON.parse(JSON.stringify(r.s));s._arc=r.id;lsSet("gla_"+r.v,JSON.stringify(s));siSet(r.v,0);PH[r.v]=bkPh(r.ph);phSave(r.v);topMsg="Lavoro riaperto dall'archivio. Quando hai finito usa «Aggiorna nell'archivio» in fondo alla scheda.";location.hash="#"+r.v}
 function arcNote(r){if(r.nt)return r.nt;var v0=view,s0=S,t="";view=r.v;S=mig(r.v,JSON.parse(JSON.stringify(r.s)));try{if(V[r.v].blocks(S).some(function(x){return x.t==="n"}))t=noteText()}catch(e){}view=v0;S=s0;return t}
 function arcPdf(r,m){var v0=view,s0=S,p0=PH[r.v],out=null;view=r.v;S=mig(r.v,JSON.parse(JSON.stringify(r.s)));PH[r.v]=bkPh(r.ph);
  try{var bl=V[r.v].blocks(S),mt=pdfMeta(bl,r.d);mt.fn=r.n+".pdf";out={u:buildPdf(mt,pdfRows(bl)),fn:r.n+".pdf"}}catch(e){out=null}
@@ -861,7 +865,7 @@ function bkAll(){var sc={},n=0;NEWS.forEach(function(r){var s=load(r[0]);if(hasD
  n+=ARC.length;
  return {n:n,t:JSON.stringify({glory:2,all:1,saved:day(),sc:sc,arc:ARC}),fn:"Backup completo - "+fdate()+".json"}}
 function bkMark(){lsSet("gla_lastbk",String(Date.now()))}
-function bkApply(r){r.it.forEach(function(x){lsSet("gla_"+x.v,JSON.stringify(x.s));PH[x.v]=x.ph;phSave(x.v)});ui.bkPend=null;
+function bkApply(r){r.it.forEach(function(x){lsSet("gla_"+x.v,JSON.stringify(x.s));siSet(x.v,0);PH[x.v]=x.ph;phSave(x.v)});ui.bkPend=null;
  if(r.all){var na=(r.arc||[]).length,parts=[];
   if(r.it.length)parts.push("schede "+r.it.map(function(x){return V[x.v].title}).join(", "));
   if(na)parts.push(na+(na===1?" lavoro":" lavori")+" in archivio");
@@ -919,7 +923,7 @@ function devDlg(){var d=ui.dlg,nw=!!d.nw,i=d.i,md=d.md||(nw?d.nw:S["m"+i]),px=PX
  var sg=el("div","seg");sg.append(btn("on",nw?"Aggiungi":"Conferma",function(){var v={a:F.a.value.trim(),c:F.c.value.trim(),mt:F.mt.value.trim()};
    if(nw){var n=devN(S)+1;S.n=n;S["m"+n]=md;["a","c","mt"].forEach(function(k){if(v[k])S[k+n]=v[k]});devSort();save();close();return}
    ["a","c","mt"].forEach(function(k){if(v[k])S[k+i]=v[k];else delete S[k+i]});S["m"+i]=md;devSort();save();
-   var nx=nextDev();if(nx){ui.dlg={i:nx};pend="cnt";render()}else close()}),btn("","Annulla",close));bx.append(sg);
+   var nx=nextDev(i);if(nx){ui.dlg={i:nx};pend="cnt";render()}else close()}),btn("","Annulla",close));bx.append(sg);
  if(!nw){if(!d.del)bx.append(btn("reset dgo tight","Elimina dispositivo",function(){ui.dlg.del=1;render()}));
   else bx.append(confirmBox("Eliminare il Dispositivo "+i+" e tutte le sue spunte?","Elimina",function(){delDev(i);close()},function(){ui.dlg.del=0;render()}))}
  ov.append(bx);return ov}
@@ -967,12 +971,12 @@ function home(){
  app.append(el("h2",0,"Aggiornamenti"));
  app.append(btn("reset tight"+(NEWV?" ac":""),NEWV?"Aggiorna ora":"Cerca aggiornamenti",function(){if(NEWV)updApply();else updCheck(1)}));
  if(updMsg){var um=el("div","cnt",updMsg);um.setAttribute("role","status");app.append(um)}
- var vp=el("p","cnt","Glory 2.0 beta");vp.title="Build "+VER;vp.style.cssText="text-align:center;margin-top:24px";app.append(vp)}
+ var vp=el("p","cnt","Glory 2.0");vp.title="Build "+VER;vp.style.cssText="text-align:center;margin-top:24px";app.append(vp)}
 
 /* ---------- scheda ---------- */
 function rstBox(){
  if(!ui.rst)app.append(btn("reset tight","Azzera la scheda",function(){ui.rst=1;render()}));
- else app.append(confirmBox("Sei sicuro di voler azzerare tutte le voci di questa scheda?"+(S._arc?" Il lavoro resta comunque nell'archivio.":""),"Azzera",function(){var tc=S.tec;S={};if(tc)S.tec=tc;PH[view]=[];phSave(view);save();rui();render()},function(){ui.rst=0;render()}))}
+ else app.append(confirmBox("Sei sicuro di voler azzerare tutte le voci di questa scheda?"+(S._arc?" Il lavoro resta comunque nell'archivio.":""),"Azzera",function(){var tc=S.tec;S={};if(tc)S.tec=tc;PH[view]=[];phSave(view);siSet(view,0);save();rui();render();window.scrollTo(0,0)},function(){ui.rst=0;render()}))}
 function render(){
  if(view==="rip"&&S.grm&&!S.rmaM){var gg=rmaGen(S);if(S.rma!==gg){S.rma=gg;save()}}
  var bl=V[view].blocks(S),pr=prog(bl,S,1),PS=passi(),cs=0,last=1,list=bl;
@@ -994,6 +998,7 @@ function render(){
   if(x.t==="mat"){if(!mg){mg=el("div","mgrid");app.append(mg)}var mc=el("div","mcard");mc.append(el("b",0,x.lab));
    [["a"+x.i,"RBW"+x.p+"- banconote"],["c"+x.i,"RCW"+x.p+"- monete"],["mt"+x.i,"Codice impianto"]].forEach(function(f){var lb=el("label",0,f[1]),inp=document.createElement("input");inp.type="text";inp.value=S[f[0]]||"";inp.setAttribute("aria-label",x.lab+" "+f[1]);
     inp.oninput=function(){S[f[0]]=inp.value;save();if(noteTa)noteTa.value=noteText()};mc.append(lb,inp)});mg.append(mc)}
+  else if(x.t==="date"){var fdt=el("div","fld"),di=document.createElement("input");di.type="date";di.value=S.dt||day();di.setAttribute("aria-label",x.x);fdt.dataset.id="dt";fdt.append(el("label",0,x.x),di);di.onchange=function(){S.dt=di.value||day();save()};app.append(fdt)}
   else if(x.t==="h")app.append(el("h2",0,x.x));
   else if(x.t==="h3")app.append(el("h3",0,x.x));
   else if(x.t==="cnt"){var fc=el("div","fld"),sc=el("div","seg"),cc={},q;for(q=1;q<=devN(S);q++)cc[S["m"+q]]=(cc[S["m"+q]]||0)+1;
@@ -1096,15 +1101,16 @@ function steps(bl){var st=[{x:"Dati del lavoro",it:[]}],nn=[];
 function optT(b){return b.opt||b.cmp||/^Facoltativo/.test(b.a||"")||/(_er|^se|^ric|^chp|^rvn)$/.test(b.id)}
 function stat(st){var t=0,d=0,i;
  if(st.end){var r=check(BL);return {t:1,d:(r.bad.length||r.warn.length)?0:1}}
- st.it.forEach(function(b){if(b.memo||b.opt)return;
+ var o=0;st.it.forEach(function(b){if(b.memo||b.opt){if(b.id&&S[b.id])o++;return}
   if(b.t==="c"||b.t==="g"||b.t==="sel"){t++;if(S[b.id])d++}
   else if(b.t==="t"&&!optT(b)){t++;if(gv(b.id))d++}
   else if(b.t==="cnt")for(i=1;i<=devN(S);i++){t+=2;if(gv("a"+i))d++;if(gv("c"+i))d++}});
- return {t:t,d:d}}
-function curStep(){var i=SI[view]||0;if(i>=ST.length)i=ST.length-1;if(i<0)i=0;SI[view]=i;return i}
-function goStep(i){SI[view]=i;ui.help={};render();window.scrollTo(0,0)}
+ return {t:t,d:d,o:o}}
+function siSet(v,i){SI[v]=i;lsSet("gla_si",JSON.stringify(SI))}
+function curStep(){var i=+SI[view]||0;if(i>=ST.length)i=ST.length-1;if(i<0)i=0;if(SI[view]!==i)siSet(view,i);return i}
+function goStep(i){siSet(view,i);ui.help={};render();window.scrollTo(0,0)}
 function railBuild(){var n=el("nav","rail"),cur=curStep();n.id="rail";n.setAttribute("aria-label","Passi della scheda");
- ST.forEach(function(st,k){var q=stat(st),c=(!q.t||q.d>=q.t)?" done":q.d>0?" part":"",b=btn("dot"+c+(k===cur?" cur":""),st.end?"✓":String(k+1),function(){goStep(k)});
+ ST.forEach(function(st,k){var q=stat(st),c=q.t?(q.d>=q.t?" done":q.d>0?" part":""):(q.o?" done":""),b=btn("dot"+c+(k===cur?" cur":""),st.end?"✓":String(k+1),function(){goStep(k)});
   b.setAttribute("aria-label","Passo "+(k+1)+": "+st.x);if(k===cur)b.setAttribute("aria-current","step");n.append(b)});
  return n}
 function dockBuild(){var cur=curStep(),last=cur===ST.length-1,q=stat(ST[cur]),rest=q.t-q.d,d=el("div","dock"),a;d.id="dock";
@@ -1114,7 +1120,7 @@ function dockBuild(){var cur=curStep(),last=cur===ST.length-1,q=stat(ST[cur]),re
  else{a=btn("go"+(rest>0?" wait":""),null,function(){goStep(cur+1)});a.append(el("b",0,"Avanti"),el("span",0,rest>0?(rest===1?"resta 1 voce qui":"restano "+rest+" voci qui"):ST[cur+1].x))}
  d.append(a);return d}
 function chrome(){if(!passi())return;BL=V[view].blocks(S);ST=steps(BL);var r=document.getElementById("rail"),d=document.getElementById("dock");if(r)r.replaceWith(railBuild());if(d)d.replaceWith(dockBuild())}
-function clearPassi(){var r=document.getElementById("rail"),d=document.getElementById("dock");if(r)r.remove();if(d)d.remove();document.body.classList.remove("passi","pv")}
+function clearPassi(){var r=document.getElementById("rail"),d=document.getElementById("dock");if(r)r.remove();if(d)d.remove();document.body.classList.remove("passi");document.body.classList.toggle("pv",!SOLO&&lsGet("gla_vista")==="passi")}
 function passiFrame(){clearPassi();if(!passi())return;document.body.classList.add("passi","pv");hdr.append(railBuild());document.body.append(dockBuild())}
 
 /* ---------- salti verso il dato mancante ---------- */
@@ -1125,15 +1131,20 @@ function stepOf(k){var m=/^(m|a|c|mt)(\d+)$/.exec(k),i;if(view==="inst"&&m)k="cn
  for(i=0;i<ST.length;i++)if(ST[i].it.some(function(b){return b.id===k||(k==="cnt"&&b.t==="cnt")||(k==="sng"&&b.t==="sw")}))return i;return -1}
 function canJump(k){if(!k)return false;if(!passi())return true;BL=V[view].blocks(S);ST=steps(BL);return stepOf(k)>=0}
 function jump(k){if(!canJump(k))return;var m=view==="inst"&&/^(m|a|c|mt)(\d+)$/.exec(k);closeOv();
- if(passi())SI[view]=stepOf(k);ui.dd=0;if(m){ui.dlg={i:+m[2]};pend="cnt"}else pend=k;render()}
+ if(passi())siSet(view,stepOf(k));ui.dd=0;if(m){ui.dlg={i:+m[2]};pend="cnt"}else pend=k;render()}
 function pendGo(){if(!pend)return;var k=pend,t=app.querySelector('[data-id="'+k+'"]');pend=null;if(!t)return;
  t.scrollIntoView({block:"center"});t.classList.add("flash");setTimeout(function(){t.classList.remove("flash")},1600);
  var f=t.querySelector("input[type=text],textarea,select");if(f&&!ui.dlg)try{f.focus({preventScroll:true})}catch(e){}}
 function firstGap(){var r=check(BL),a=r.bad.concat(r.warn),i,k;
  for(i=0;i<a.length;i++){k=keyOf(a[i]);if(/^(m|a|c|mt)\d+$|mat$|^rma$|^ric$|^mt$/.test(k)&&canJump(k))return k}
  for(i=0;i<a.length;i++){k=keyOf(a[i]);if(canJump(k))return k}return ""}
-function noteView(t){var d=el("div","notev"),g=firstGap();String(t).split(/(…|_{6,}|\[modello\])/).forEach(function(x,i){
-  if(i%2){var b=btn("gap","manca",function(){jump(g)});b.setAttribute("aria-label","Dato mancante: vai a compilarlo");d.append(b)}else d.append(x)});return d}
+function gapKeys(){var L=[],i;
+ if(view==="inst")for(i=1;i<=devN(S);i++){if(!S["m"+i])L.push("m"+i);if(!S["a"+i])L.push("a"+i);if(!S["c"+i])L.push("c"+i);if(!S["mt"+i])L.push("mt"+i)}
+ else if(view==="rip"){for(i=1;i<=(+S.rn||1);i++)if(!S["r"+i+"_mat"])L.push("r"+i+"_mat");if(!S.rma)L.push("rma")}
+ else if(view==="loc")locUnits(S).forEach(function(u){if(u.m&&!S[u.p+"mat"])L.push(u.p+"mat")});
+ return L}
+function noteView(t){var d=el("div","notev"),g0=firstGap(),GK=gapKeys(),gi=0;String(t).split(/(…|_{6,}|\[modello\])/).forEach(function(x,i){
+  if(i%2){var g=GK[gi++]||(view==="inst"?(/^_/.test(x)?"ric":"sng"):g0);if(!canJump(g))g=g0;var b=btn("gap","manca",function(){jump(g)});b.setAttribute("aria-label","Dato mancante: vai a compilarlo");d.append(b)}else d.append(x)});return d}
 function issueBox(cls,title,a){var bx=el("div","box"+cls);bx.append(el("b",0,title));wlist(bx,a);return bx}
 function stepClose(){var r=check(BL);
  if(r.bad.length)app.append(issueBox("","Mancano dati fondamentali",r.bad));
@@ -1153,10 +1164,11 @@ function noteDlg(){openOv(function(bx){var sg=el("div","seg");
 function gearDlg(){openOv(function(bx){var cur=lsGet("gla_vista")==="passi"?"passi":"unica";
  bx.append(el("h2",0,"Visualizzazione delle schede"),el("p","cnt","Cambia solo come scorri la scheda: voci, note, archivio e PDF restano gli stessi. Puoi cambiarla anche a lavoro iniziato."));
  [["unica","Scheda unica","Tutte le voci in una pagina: scorri liberamente."],["passi","A passi","Una sezione alla volta, con Avanti, la nota sempre a portata e l'elenco di cosa manca."]].forEach(function(o){
-  var b=btn("vopt"+(cur===o[0]?" on":""),null,function(){lsSet("gla_vista",o[0]);closeOv();if(view&&V[view]){render();window.scrollTo(0,0)}else if(!view&&!location.hash.replace("#",""))home()});
+  var b=btn("vopt"+(cur===o[0]?" on":""),null,function(){lsSet("gla_vista",o[0]);closeOv();if(view&&V[view]){render();window.scrollTo(0,0)}else route()});
   b.append(el("b",0,o[1]),el("span",0,o[2]));b.setAttribute("aria-pressed",cur===o[0]?"true":"false");bx.append(b)});
  bx.append(btn("reset tight","Chiudi",closeOv))})}
 gear.onclick=gearDlg;
+try{SI=JSON.parse(lsGet("gla_si"))||{}}catch(e){SI={}}if(typeof SI!=="object"||Array.isArray(SI))SI={};
 
 /* ---------- caricamento del DDT ---------- */
 var PXM={"50":"CI-5","100":"CI-10","200":"CI-10X"};
@@ -1165,17 +1177,18 @@ function serOld(t){var re=/R\s?([BC])\s?W\s?[-–]?\s?(200|100|50)\s?[-–—.:]
 function codeOf(s){var m=/^\s*CI\s?-?\s?(10X|10|5)\s?-?\s?(?:([BC])|(US))(?![A-Z0-9])/i.exec(s);return m?{md:"CI-"+m[1].toUpperCase(),t:m[2]?m[2].toUpperCase():"",us:m[3]?1:0}:null}
 function typeOf(s){s=String(s).toUpperCase();return /BANCONOT|\bBANCO/.test(s)?"B":/MONET/.test(s)?"C":""}
 function parseLines(L){var R={ser:[],mon:""},cur=null,exp=0,seen={},codes=0;
- function add(t,md,n){var k=md+n;if(!seen[k]){seen[k]=1;R.ser.push({t:t,md:md,n:n,us:cur&&cur.us?1:0,c:cur})}}
+ function add(t,md,n){var k=md+"|"+n+"|"+(cur?cur.q:"");if(!seen[k]){seen[k]=1;R.ser.push({t:t,md:md,n:n,us:cur&&cur.us?1:0,c:cur})}}
  L.forEach(function(raw){var s=String(raw).trim(),c=codeOf(s),m;if(!s)return;
-  if(c){cur=c;if(!c.t)c.t=typeOf(s.replace(/^\s*CI\S*/i,""));exp=0;codes++;return}
+  if(c){cur=c;c.q=codes;if(!c.t)c.t=typeOf(s.replace(/^\s*CI\S*/i,""));exp=0;codes++;return}
   if(cur&&!cur.t&&!exp)cur.t=typeOf(s);
   if(/^MONITOR/i.test(s)){R.mon="Sì";cur=null;exp=0;return}
   if(/codice\s+matricola/i.test(s)){exp=1;m=/codice\s+matricola\s*[:.]?\s*([A-Z0-9][A-Z0-9\-\/]{2,})\s*$/i.exec(s);if(m&&/\d/.test(m[1])&&cur){add(cur.t,cur.md,m[1]);exp=0}return}
   if(exp&&cur&&/^[A-Z0-9][A-Z0-9\-\/]{2,}$/.test(s)&&/\d/.test(s)&&!/^R\s?[BC]\s?W/i.test(s)){add(cur.t,cur.md,s);return}
   exp=0});
- cur=null;serOld(L.join("\n")).forEach(function(x){add(x.t,x.md,x.n)});
  R.ser.forEach(function(x){if(x.c&&x.c.t)x.t=x.c.t;delete x.c});
  R.ser.forEach(function(x){if(x.t)return;var o=R.ser.filter(function(y){return y!==x&&y.md===x.md&&y.us===x.us}),b=o.filter(function(y){return y.t==="B"}).length,c=o.filter(function(y){return y.t==="C"}).length;x.t=b>c?"C":"B"});
+ var dd={};R.ser=R.ser.filter(function(x){var k=x.t+x.md+x.n;if(dd[k])return false;dd[k]=1;return true});
+ serOld(L.join("\n")).forEach(function(x){if(!dd[x.t+x.md+x.n]){dd[x.t+x.md+x.n]=1;R.ser.push({t:x.t,md:x.md,n:x.n,us:0})}});
  if(codes&&!R.mon)R.mon="No";return R}
 function mkLines(P){var L=[],cur=null;P=P.filter(function(p){return String(p.s).trim()}).sort(function(a,b){return a.y-b.y||a.x-b.x});
  P.forEach(function(p){if(!cur||p.y-cur.y>3){cur={y:p.y,p:[]};L.push(cur)}cur.p.push(p)});
@@ -1186,7 +1199,7 @@ function parseDoc(LN){var R=parseLines(LN.map(function(l){return l.segs.map(func
  function under(re){var a=find(re),i,best="";if(!a)return "";for(i=a.i+1;i<LN.length&&i<=a.i+2&&!best;i++)LN[i].segs.forEach(function(g){if(!best&&Math.abs(g.x-a.x)<20)best=g.s.trim()});return best}
  function addr(bl){var k=-1,st,city;bl.forEach(function(s,i){if(/^\d{5}\s/.test(s))k=i});if(k<0)return null;
   city=bl[k].replace(/^(\d{5})\s+/,"$1 ").replace(/\s*(-\s*Itali[ae]|\(ITA\)|-\s*IT)\s*$/i,"").trim();
-  st=k>0&&/^(VIA|V\.\s?LE|VIALE|P\.?\s?ZA|PIAZZA|PIAZZALE|CORSO|C\.\s?SO|LARGO|LOC\.?|LOCALIT|STRADA|STR\.|FRAZ|CONTRADA|VICOLO|BORGO|SS\s|S\.S\.)|\d/i.test(bl[k-1])?bl[k-1]:"";
+  st=k>0&&(/^(VIA|V\.\s?LE|VIALE|P\.?\s?ZA|PIAZZA|PIAZZALE|CORSO|C\.\s?SO|LARGO|LOC\.?|LOCALIT|STRADA|STR\.|FRAZ|CONTRADA|VICOLO|BORGO|SS\s|S\.S\.)/i.test(bl[k-1])||(k>1&&/\d/.test(bl[k-1])))?bl[k-1]:"";
   return {name:bl.slice(0,st?k-1:k).join(" "),se:(st?st+", ":"")+city}}
  var a=find(/^Intestatario/i),b=find(/^Sede di consegna/i),c=find(/^Codice cliente/i),A,B;
  if(a&&b&&(A=addr(block(a,b.i)))){if(A.name)R.cl=A.name;R.se=A.se}
@@ -1196,15 +1209,17 @@ function parseDoc(LN){var R=parseLines(LN.map(function(l){return l.segs.map(func
 function gotAny(R){return R&&(R.ser.length||R.cl||R.se)}
 function freeSer(t,md,me){var used={},k,f=t==="B"?"a":"c";for(k=1;k<=devN(S);k++)if(k!==me)used[gv(f+k)]=1;
  return (S.ddtm||[]).filter(function(x){return x.t===t&&x.md===md&&!used[x.n]}).map(function(x){return x.n})}
-function nextDev(){if(!(S.ddtm||[]).length)return 0;for(var k=1;k<=devN(S);k++){var md=S["m"+k];if((!gv("a"+k)&&freeSer("B",md,k).length)||(!gv("c"+k)&&freeSer("C",md,k).length))return k}return 0}
+function nextDev(from){if(!(S.ddtm||[]).length)return 0;for(var k=(from||0)+1;k<=devN(S);k++){var md=S["m"+k];if((!gv("a"+k)&&freeSer("B",md,k).length)||(!gv("c"+k)&&freeSer("C",md,k).length))return k}return 0}
 function applyDoc(R){var F=R.ser,B=F.filter(function(x){return x.t==="B"}),C=F.filter(function(x){return x.t==="C"}),md=F[0]?F[0].md:"";
  if(R.cl&&(view==="inst"||view==="loc"||view==="rip"))S.cl=R.cl;
  if(R.se&&(view==="inst"||view==="loc"))S.se=R.se;
  if(R.int&&(view==="inst"||view==="loc"||view==="rip")){S.rv=1;S.rvn=R.int}
+ else if(R.cl&&(view==="inst"||view==="loc"||view==="rip")){S.rv=0;delete S.rvn}
  if(view==="inst"){if(R.mon)S.mon=R.mon;
   if(R.ddt){S.p5=1;var dn="DDT n. "+R.ddt+(R.dt?" del "+R.dt:"");if(String(S.nte||"").indexOf(dn)<0)S.nte=(gv("nte")?gv("nte")+"\n":"")+dn}
   var tk={};S.ddtm=F.map(function(x){return {t:x.t,md:x.md,n:x.n}});
-  ["CI-5","CI-10","CI-10X"].forEach(function(m){var b=B.filter(function(x){return x.md===m}),c=C.filter(function(x){return x.md===m}),k,i,one=b.length<=1&&c.length<=1;
+  var uA={},uC={},q;for(q=1;q<=devN(S);q++){uA[S["m"+q]+gv("a"+q)]=1;uC[S["m"+q]+gv("c"+q)]=1}
+  ["CI-5","CI-10","CI-10X"].forEach(function(m){var b=B.filter(function(x){return x.md===m&&!uA[m+x.n]}),c=C.filter(function(x){return x.md===m&&!uC[m+x.n]}),k,i,one=b.length<=1&&c.length<=1;
    for(k=0;k<Math.max(b.length,c.length);k++){for(i=1;i<=devN(S);i++)if(S["m"+i]===m&&!gv("a"+i)&&!gv("c"+i)&&!tk[i])break;
     if(i>devN(S)){S.n=devN(S)+1;i=S.n;S["m"+i]=m}tk[i]=1;if(one){if(b[k])S["a"+i]=b[k].n;if(c[k])S["c"+i]=c[k].n}}});
   devSort()}
@@ -1238,7 +1253,7 @@ function readerDlg(){openOv(function(bx){var R=RD.found;
   var many=view==="inst"&&["CI-5","CI-10","CI-10X"].some(function(m){return R.ser.filter(function(x){return x.md===m&&x.t==="B"}).length>1||R.ser.filter(function(x){return x.md===m&&x.t==="C"}).length>1});
   if(many)bx.append(el("p","tipb","Più dispositivi nello stesso DDT: creo i dispositivi, le matricole le abbini tu toccandole nella finestra di ogni dispositivo, davanti alla macchina."));
   bx.append(el("p","cnt","Controlla con il documento prima di confermare. Tutto resta modificabile a mano."));
-  var sg=el("div","seg");sg.append(btn("on","Compila",function(){applyDoc(R);RD={};closeOv();topMsg="Dati del DDT inseriti: controllali.";var nx=view==="inst"?nextDev():0;if(nx){ui.dlg={i:nx};pend="cnt";if(passi())SI[view]=stepOf("cnt")}render()}),btn("","Rifai",function(){RD.found=null;readerDlg()}));bx.append(sg)}
+  var sg=el("div","seg");sg.append(btn("on","Compila",function(){applyDoc(R);RD={};closeOv();topMsg="Dati del DDT inseriti: controllali.";var nx=view==="inst"?nextDev():0;if(nx){ui.dlg={i:nx};pend="cnt";if(passi())siSet(view,stepOf("cnt"))}render()}),btn("","Rifai",function(){RD.found=null;readerDlg()}));bx.append(sg)}
  else{bx.append(el("p","cnt","Carica il PDF del DDT: leggo cliente, rivenditore, sede, modello, matricole e monitor. Poi confermi tu."));
   var lb=el("label","reset ac tight filebtn"),fi=document.createElement("input");fi.type="file";fi.accept="application/pdf,.pdf";fi.disabled=!!RD.busy;fi.setAttribute("aria-label","Scegli il PDF del DDT");
   fi.onchange=function(){if(fi.files&&fi.files[0])rdFile(fi.files[0])};lb.append(RD.busy?"Sto leggendo…":"Scegli il PDF del DDT",fi);bx.append(lb);
