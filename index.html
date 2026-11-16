@@ -175,6 +175,15 @@ h2.ptitle{font-size:24px;margin:2px 0 14px;padding:0;border:0}
 .tile{aspect-ratio:1/1;justify-content:center}
 .tile:last-child:nth-child(odd){aspect-ratio:auto;min-height:84px}
 .dlg .mseg{margin-bottom:12px}
+.tmr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+.tmr .tmb{display:flex;gap:8px;flex:none}
+.tmr .tv{flex:1 1 auto;min-width:0;font:700 26px/1.1 ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+.tmr .ts{display:block;font:500 13px system-ui,sans-serif;color:var(--mu)}
+.tmr.run{border-color:var(--ok)}.tmr.run .ts{color:var(--ok);font-weight:650}
+.tmr.pau{border-color:var(--wn)}.tmr.pau .ts{color:var(--wn);font-weight:650}
+.tmr button{min-height:52px;min-width:78px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);border-radius:10px;font:inherit;font-weight:650;padding:0 12px}
+.tmr button.go1{background:var(--ac);border-color:var(--ac);color:var(--on)}
+body.pv .tmr .tv{font-size:30px}
 /* vista a passi: caratteri più grandi e marcati (menù e schede) */
 body.pv{font-size:18px}
 body.pv header h1{font-size:21px;font-weight:800}
@@ -239,6 +248,13 @@ function rmaGen(s){var src=(s.rv&&String(s.rvn||"").trim())?s.rvn:s.cl,
  l3=String(src||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z]/g,"").slice(0,3).toUpperCase(),
  num=[PX[s.r1_md],String(s.r1_mat||"").trim()].filter(Boolean).join("-"),er=String(s.r1_er||"").replace(/\s+/g,"").toUpperCase();
  return [l3,num,er].filter(Boolean).join("-")}
+/* cronometro della manodopera: tmS = millisecondi già contati, tmA = avvio in corso (timestamp), tmF = fermato */
+function tmMs(s){return (+s.tmS||0)+(s.tmA?Math.max(0,Date.now()-s.tmA):0)}
+function tmFmt(ms){var m=Math.floor(ms/60000);return Math.floor(m/60)+":"+p2(m%60)}
+function tmOre(ms){return String(Math.min(6,Math.max(1,Math.ceil(ms/3600000))))}
+function tmHalt(s){if(s.tmA){s.tmS=tmMs(s);delete s.tmA}}
+var tmIv=null;
+function tmTick(){var e=document.getElementById("tmv");if(!e){clearInterval(tmIv);tmIv=null;return}e.textContent=tmFmt(tmMs(S))}
 function DT(){return {t:"date",id:"dt",x:"Data intervento"}}
 function dIt(iso){var m=/^(\d{4})-(\d\d)-(\d\d)$/.exec(iso||"");return m?m[3]+"/"+m[2]+"/"+m[1]:""}
 var HELP={"rf": {"t": "Dove trovarlo · Codice chiamata o ticket", "l": ["Lo trovi nella chiamata aperta sul CRM."]}, "5": {"t": "Indirizzo IP", "l": ["Evita indirizzi nel range DHCP del router: potrebbero essere assegnati in seguito a un altro dispositivo.", "Prima di assegnarlo fai un ping: se qualcuno risponde, l'IP è già usato.", "Imposta l'IP prima di collegare la macchina alla rete del cliente."]}, "6": {"t": "Collegamento alla rete", "l": ["Fai un ping dal PC del gestionale verso l'IP della macchina.", "Se il ping non risponde: IP e subnet devono essere della stessa rete del gestionale, e l'IP non deve essere in conflitto con un altro dispositivo.", "Se il ping risponde ma il gestionale non comunica, su un'installazione nuova il problema è quasi sempre nel gestionale o nel firewall del PC.", "Più raro: memoria event dell'FCC satura. L'FCC tiene in memoria al massimo 5 collegamenti; oltre non ne accetta altri e le porte restano occupate."]}, "ct2": {"t": "Collegamento di rete", "l": ["Fai un ping dal PC del gestionale verso l'IP della macchina.", "Se il ping non risponde: IP e subnet devono essere della stessa rete del gestionale, e l'IP non deve essere in conflitto con un altro dispositivo.", "Se il ping risponde ma il gestionale non comunica, controlla gli event: l'FCC tiene in memoria al massimo 5 collegamenti e, se sono saturi, non ne accetta altri. Libera la memoria event e riprova.", "Se gli event sono a posto, il problema è nel gestionale o nel firewall del PC."]}, "7": {"t": "Interconnessione con il gestionale", "l": ["Se hai cambiato l'IP della macchina, aggiornalo anche nel gestionale.", "Nel gestionale controlla IP e porta impostati per la cassa automatica.", "Firewall o antivirus del PC del gestionale possono bloccare la comunicazione.", "Se tutto è impostato bene e ancora non comunica, controlla che la memoria event dell'FCC non sia satura (massimo 5 collegamenti)."]}, "4": {"t": "Accensione", "l": ["Uno sportello aperto o una valigetta non inserita bene possono bloccare l'avvio con un errore."]}, "ct1": {"t": "Alimentazione e cavi", "l": ["Collega direttamente alla presa a muro per escludere multipresa e UPS.", "Se c'è un UPS, verifica che non sia scarico o in allarme."]}, "8": {"t": "Deposito e prelievo", "l": ["Banconote: le cause principali di inceppamento, in inserimento o in erogazione, sono corpi estranei nel percorso e cinghie di trasporto logore. Controlla anche i sensori.", "Monete: verifica i sensori e cerca corpi estranei sul sensore di lega o nell'unità di trasporto.", "Se il prelievo non eroga e non c'è inceppamento, controlla che nei ricicli ci sia contante sufficiente."]}, "cnt": {"t": "Prova con il contante", "l": ["Banconote: controlla l'usura delle cinghie di trasporto (sulle macchine usate è la causa più frequente) e cerca corpi estranei nel percorso.", "Monete: verifica i sensori e cerca corpi estranei sul sensore di lega o nell'unità di trasporto.", "Se il prelievo non eroga e non c'è inceppamento, controlla che nei ricicli ci sia contante sufficiente."]}, "cfb": {"t": "Test con banconote", "l": ["Se la banconota si inceppa in inserimento o in erogazione: cerca corpi estranei nel percorso e controlla l'usura delle cinghie di trasporto.", "Banconote piegate o rovinate vengono rifiutate anche da una macchina sana."]}, "cfm": {"t": "Test con monete", "l": ["Se le monete vengono rifiutate o si bloccano: verifica i sensori e cerca corpi estranei sul sensore di lega o nell'unità di trasporto.", "Monete estere, deformate o sporche vengono rifiutate anche da una macchina sana."]}, "10": {"t": "Sensori e sportelli", "l": ["Con uno sportello aperto la macchina deve segnalarlo: se non lo fa, il sensore è sporco o scollegato."]}, "ss": {"t": "Sensori e sportelli", "l": ["Con uno sportello aperto la macchina deve segnalarlo: se non lo fa, il sensore è sporco o scollegato."]}, "s8": {"t": "Dip switch 8", "l": ["Sposta i dip switch solo a macchina spenta: la nuova posizione viene letta all'accensione.", "Se dopo il riavvio non cambia nulla, ricontrolla la posizione: è facile spostare quello accanto."]}, "ds8": {"t": "Dip switch 8", "l": ["Sposta i dip switch solo a macchina spenta: la nuova posizione viene letta all'accensione.", "Se dopo il riavvio non cambia nulla, ricontrolla la posizione: è facile spostare quello accanto."]}, "ds4": {"t": "Dip switch 4", "l": ["Sposta i dip switch solo a macchina spenta: la nuova posizione viene letta all'accensione.", "Se dopo il riavvio non cambia nulla, ricontrolla la posizione: è facile spostare quello accanto."]}, "sd": {"t": "Diverter", "l": ["Dopo il settaggio fai una prova di deposito e guarda dove finisce il contante: se va nel posto sbagliato, il diverter è bloccato o settato male."]}, "dvB": {"t": "Diverter", "l": ["Dopo il settaggio fai una prova di deposito e guarda dove finisce il contante: se va nel posto sbagliato, il diverter è bloccato o settato male."]}, "b0": {"t": "Licenza SNG Cloud", "l": ["Controlla cliente e CV, e che le postazioni della licenza coprano server e client indicati sopra.", "Se è errata, falla correggere prima di installare: dopo è più complicato."]}, "bsrv": {"t": "Postazione server SNG", "l": ["Il server deve stare nella stessa rete della macchina.", "Se il servizio SNG non parte, controlla che l'antivirus non lo blocchi."]}, "bcli": {"t": "Postazione client SNG", "l": ["Imposta l'indirizzo del server SNG e verifica con un ping che il client lo raggiunga."]}, "bc": {"t": "Configurazione SNG", "l": ["Dopo aver inserito IP della macchina e licenza, verifica che SNG veda la cassa e i livelli prima di consegnare."]}, "g11": {"t": "App SNG Cloud", "l": ["Accedi con account e credenziali del cliente, non con le tue."]}, "g13": {"t": "Cash Tools", "l": ["Se non si collega alla macchina, controlla antivirus e firewall del PC."]}, "cabb": {"t": "Cablaggio", "l": ["Se il modulo non viene riconosciuto, prova un'altra porta o un altro cavo USB."]}, "cabm": {"t": "Cablaggio", "l": ["Se il modulo non viene riconosciuto, prova un'altra porta o un altro cavo USB."]}, "dg": {"t": "Downgrade FCC", "l": ["Non spegnere e non scollegare nulla durante il downgrade.", "Se non va a buon fine, riavvia e ripeti dall'inizio."]}, "bk": {"t": "Backup di configurazione", "l": ["Usa il backup del modello e del tipo di installazione giusti: uno sbagliato carica parametri errati."]}, "er": {"t": "Codice errore", "l": ["Cercalo nella documentazione Glory per capire la causa.", "Se dopo un reset il codice cambia, annota anche il nuovo."]}, "sur": {"t": "Dove si imposta · Surplus (fondo cassa)", "l": ["Si imposta dalla web app, nella sezione Watermark."]}, "f1": {"t": "Cosa illustrare · Formazione al cliente", "l": ["Procedura di estrazione della valigetta.", "Svuotamento dell'overflow monete.", "Come liberare un inceppamento semplice di banconote o monete.", "Dove trovare l'adesivo con il codice di assistenza e i contatti per le chiamate."]}};
@@ -335,7 +351,7 @@ rip:{title:"Riparazioni in laboratorio",blocks:function(s){
    G(p+"es","Esito",["Riparato","Non riparabile"]));
   if(s[p+"es"]==="Riparato"){b.push(G(p+"de","Destinazione",["Reimballo","Reinstallazione in loco","Spedizione"]));
    if(s[p+"de"]==="Spedizione")b.push(G(p+"sp","Spedire a",["Cliente","Rivenditore","Tecnico di zona"]))}}
- b.push({t:"mod"},NT(),H("Manodopera"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
+ b.push({t:"mod"},NT(),H("Manodopera"),{t:"tmr"},{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
  return b}},
 loc:{title:"Interventi in loco",blocks:function(s){
  var U=locUnits(s),i,fl=C("fl","Contratto full: aggiornamenti inclusi");fl.memo=1;
@@ -346,7 +362,7 @@ loc:{title:"Interventi in loco",blocks:function(s){
  b.push(H("Controlli preliminari"),G("ct1","Alimentazione e cavi",["OK","Problema"]),G("ct2","Collegamento di rete",["OK","Problema"]));
  if(locPre(s)){b.push(H("Problema nei controlli preliminari"),T("ppb","Problematica riscontrata","Descrivi il problema",1),T("ppr","Interventi eseguiti","Cosa è stato fatto",1),G("pes","Esito",["Risolto","Non risolto"]));
   if(s.pes!=="Risolto"){if(s.pes==="Non risolto")b.push(G("pde","Destinazione",["Ritiro per riparazione in laboratorio","Nuovo intervento"]));
-   b.push({t:"tip",x:"Finché il problema dei controlli preliminari non è risolto non si passa all'analisi dei moduli."},NT(),H("Manodopera"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});return b}}
+   b.push({t:"tip",x:"Finché il problema dei controlli preliminari non è risolto non si passa all'analisi dei moduli."},NT(),H("Manodopera"),{t:"tmr"},{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});return b}}
  var PUL=s.sc==="Pulizia e revisione";
  if(U.length)b.push(H(PUL?"Pulizia e revisione":"Analisi dei moduli"));
  if(PUL)b.push({t:"tip",x:"Pulizia e revisione di entrambi i moduli. Se dopo la pulizia un modulo presenta un problema, segna «Sì» e compila l'intervento su quel modulo."});
@@ -370,13 +386,13 @@ loc:{title:"Interventi in loco",blocks:function(s){
   b.push(G("cfe","Esito",["Tutto OK","Problematica rilevata"]));
   if(s.cfe==="Problematica rilevata"){if(MD.length>1)b.push(G("cfq","Su quale modulo",["Modulo banconote","Modulo monete","Entrambi"]));
    b.push(G("cfx","Problematica",["Risolta","Non risolta"]));if(s.cfx==="Non risolta")b.push(G("cfd","Destinazione",["Ritiro per riparazione in laboratorio","Nuovo intervento"]))}}
- b.push(NT(),H("Manodopera"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
+ b.push(NT(),H("Manodopera"),{t:"tmr"},{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
  return b}},
 altro:{title:"Altre attività",blocks:function(s){
  var b=[TEC(),DT(),G("tp","Tipo di attività",["Installazione","Riparazione","Altro"]),G("rf","Riferimento",["CV","RMA"])];
  if(s.rf)b.push(T("rc",s.rf,"Codice "+(s.rf==="CV"?"contratto":"RMA")));
  b.push(T("ti","Titolo","Es. Installazione blindatura"),T("mt","Modello","Facoltativo"),T("ma","Matricola","Facoltativo"),
-  T("de","Descrizione dell'intervento","Descrivi cosa è stato fatto",1),G("es","Esito",["Eseguito","Non eseguito"]),NT(),H("Manodopera"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
+  T("de","Descrizione dell'intervento","Descrivi cosa è stato fatto",1),G("es","Esito",["Eseguito","Non eseguito"]),NT(),H("Manodopera"),{t:"tmr"},{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
  return b}}
 };
 var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Riparazione in laboratorio"],["loc","Intervento in loco"],["altro","Altra attività"]];
@@ -385,7 +401,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=75,svEl=null;
+var VER=76,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -802,7 +818,7 @@ function arcBox(){app.append(el("h2",0,"Archivio"));var m=el("div","cnt",arcMsg)
   sg.append(btn("on","Lavoro concluso",function(){arcSave(1,"fatto")}),btn("","Metti in pausa",function(){arcSave(1,"corso")}),btn("","Salva e continua",function(){arcSave(0,"corso")}),btn("","Annulla",function(){ui.arc=0;render()}));
   bx.append(sg,el("div","cnt","«Lavoro concluso» e «Metti in pausa» svuotano la scheda. Il lavoro in pausa si riprende da Archivio › In corso › Riapri."));app.append(bx)}
  app.append(m)}
-function arcSave(clr,st){var id=S._arc||Date.now(),s=JSON.parse(JSON.stringify(S)),nt="";delete s._arc;
+function arcSave(clr,st){if(clr)tmHalt(S);var id=S._arc||Date.now(),s=JSON.parse(JSON.stringify(S)),nt="";delete s._arc;
  try{if(V[view].blocks(S).some(function(x){return x.t==="n"}))nt=noteText()}catch(e){}
  var r={id:id,v:view,d:Date.now(),n:fnBase(),s:s,ph:phOf(view),st:st,nt:nt};
  arcPut(r,function(){ui.arc=0;
@@ -960,9 +976,9 @@ function home(){
  if(BIP)app.append(btn("reset ac tight","Installa l'app su questo dispositivo",function(){var p=BIP;BIP=null;try{p.prompt();p.userChoice.then(home,home)}catch(e){home()}}));
  var SQ=lsGet("gla_vista")==="passi",tl=el("div","tiles");document.body.classList.toggle("pv",SQ);NEWS.forEach(function(r){var s=load(r[0]),p=prog(V[r[0]].blocks(s),s,1),a=el("a",SQ?"tile":"card"),busy=hasData(s);
   a.href="#"+r[0];a.append(el("b",0,V[r[0]].title));
-  if(!SQ){a.append(el("span",0,busy?(s._arc?"Lavoro riaperto dall'archivio · ":"Scheda in corso · ")+p.d+" di "+p.t:DESC[r[0]]));app.append(a);return}
+  if(!SQ){a.append(el("span",0,busy?(s.tmA?"⏱ ":"")+(s._arc?"Lavoro riaperto dall'archivio · ":"Scheda in corso · ")+p.d+" di "+p.t:DESC[r[0]]));app.append(a);return}
   if(busy){var br=el("div","bar"),bi=document.createElement("i");bi.style.width=(p.t?p.d/p.t*100:0)+"%";br.append(bi);a.classList.add("busy");
-   a.append(br,el("span",0,(s._arc?"Riaperto dall'archivio · ":"In corso · ")+p.d+" di "+p.t+(String(s.cl||s.rma||s.cvc||s.ti||"").trim()?" · "+String(s.cl||s.rma||s.cvc||s.ti).trim():"")))}
+   a.append(br,el("span",0,(s.tmA?"⏱ ":"")+(s._arc?"Riaperto dall'archivio · ":"In corso · ")+p.d+" di "+p.t+(String(s.cl||s.rma||s.cvc||s.ti||"").trim()?" · "+String(s.cl||s.rma||s.cvc||s.ti).trim():"")))}
   else a.append(el("span",0,DESC[r[0]]));tl.append(a)});if(SQ)app.append(tl);
  app.append(el("h2",0,"RMA"),el("div","cnt","Codice RMA per una macchina appena arrivata."),btn("reset ac tight","Genera RMA",function(){location.hash="#rma"}));
  app.append(el("h2",0,"Archivio"),el("div","cnt",ARC.length?ARC.length+(ARC.length===1?" lavoro archiviato su questo dispositivo":" lavori archiviati su questo dispositivo"):"Nessun lavoro archiviato. A fine intervento usa «Archivia lavoro» in fondo alla scheda."),btn("reset ac tight","Apri archivio lavori",function(){location.hash="#arc"}));
@@ -1042,6 +1058,14 @@ function render(){
    if((+S.rn||1)<2)app.append(btn("reset ac tight","+ Aggiungi modulo",function(){S.rn=2;if(S.r1_tp)S.r2_tp=S.r1_tp==="Banconote"?"Monete":"Banconote";if(S.r1_md)S.r2_md=S.r1_md;save();render()}));
    else if(!ui.md)app.append(btn("reset dgo tight","Elimina modulo 2",function(){ui.md=1;render()}));
    else app.append(confirmBox("Sei sicuro di voler eliminare il Modulo 2?","Elimina",function(){var N={},k;for(k in S)if(!/^(nt_)?r2_/.test(k))N[k]=S[k];N.rn=1;S=N;save();ui.md=0;render()},function(){ui.md=0;render()}))}
+  else if(x.t==="tmr"){var ms=tmMs(S),st=S.tmA?"run":S.tmF?"fin":ms?"pau":"",tb=el("div","tmr"+(st==="run"?" run":st==="pau"?" pau":"")),tv=el("div","tv"),tt=el("span","ts",st==="run"?"In corso":st==="pau"?"In pausa":st==="fin"?"Fermato":"Cronometro manodopera"),tn=el("span",0,tmFmt(ms));
+   tn.id=st==="run"?"tmv":"";tv.append(tn,tt);var bb=el("div","tmb");tb.append(tv,bb);
+   function go(){save();render()}
+   if(!st)bb.append(btn("go1","Avvia",function(){S.tmA=Date.now();delete S.tmF;go()}));
+   else if(st==="run")bb.append(btn("","Pausa",function(){tmHalt(S);go()}),btn("go1","Stop",function(){tmHalt(S);S.tmF=1;S.ore=tmOre(+S.tmS||0);go()}));
+   else if(st==="pau")bb.append(btn("go1","Riprendi",function(){S.tmA=Date.now();go()}),btn("","Stop",function(){S.tmF=1;S.ore=tmOre(+S.tmS||0);go()}));
+   else bb.append(btn("","Riprendi",function(){S.tmA=Date.now();delete S.tmF;go()}),btn("","Azzera",function(){delete S.tmS;delete S.tmA;delete S.tmF;go()}));
+   tb.dataset.id="tmr";app.append(tb);if(st==="run"&&!tmIv)tmIv=setInterval(tmTick,15000)}
   else if(x.t==="sel"){var fs=el("div","fld"),se=document.createElement("select"),o0=el("option","","Seleziona");fs.append(el("label",0,x.x));o0.value="";se.append(o0);se.setAttribute("aria-label",x.x);
    x.o.forEach(function(v){var op=el("option","",v+(v==="1"?" ora":" ore"));op.value=v;if(S[x.id]===v)op.selected=true;se.append(op)});
    se.onchange=function(){S[x.id]=se.value||0;save();render()};fs.dataset.id=x.id;fs.append(se);app.append(fs)}
