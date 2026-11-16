@@ -338,7 +338,7 @@ prep:{title:"Preparazione macchine",blocks:function(s){
  b.push(NT());
  return b}},
 rip:{title:"Riparazioni in laboratorio",blocks:function(s){
- var rn=+s.rn||1,i,b=[TEC(),DT(),RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),GRM(),T("rma","RMA","Codice RMA")]);
+ var rn=+s.rn||1,i,b=[TEC(),DT(),{t:"tmr"},RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),GRM(),T("rma","RMA","Codice RMA")]);
  for(i=1;i<=rn;i++){var p="r"+i+"_",mi=modInfo(s,p);
   b.push(H("Modulo "+i+(mi.t?" · "+mi.n+(mi.m?" · "+mi.m:""):"")),G(p+"tp","Tipo di modulo",["Banconote","Monete"]),G(p+"md","Modello",["CI-5","CI-10","CI-10X"]),T(p+"mat","Matricola"+(mi.sig?" "+mi.sig:""),"Numero di matricola"),
    H3("Diagnosi e intervento"),T(p+"er","Codice errore","Es. 1234"),T(p+"pb","Problematica riscontrata","Descrivi il problema",1));
@@ -351,18 +351,18 @@ rip:{title:"Riparazioni in laboratorio",blocks:function(s){
    G(p+"es","Esito",["Riparato","Non riparabile"]));
   if(s[p+"es"]==="Riparato"){b.push(G(p+"de","Destinazione",["Reimballo","Reinstallazione in loco","Spedizione"]));
    if(s[p+"de"]==="Spedizione")b.push(G(p+"sp","Spedire a",["Cliente","Rivenditore","Tecnico di zona"]))}}
- b.push({t:"mod"},NT(),H("Manodopera"),{t:"tmr"},{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
+ b.push({t:"mod"},NT(),H("Manodopera"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
  return b}},
 loc:{title:"Interventi in loco",blocks:function(s){
  var U=locUnits(s),i,fl=C("fl","Contratto full: aggiornamenti inclusi");fl.memo=1;
- var b=[TEC(),DT(),T("rf","Riferimento intervento","Codice chiamata o ticket"),RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),T("se","Sede","Sede"),fl,
+ var b=[TEC(),DT(),{t:"tmr"},T("rf","Riferimento intervento","Codice chiamata o ticket"),RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),T("se","Sede","Sede"),fl,
   H("Dispositivo"),G("sc","Intervento su",["Modulo banconote","Modulo monete","Entrambi i moduli","Pulizia e revisione","Dispositivo / altro"]),G("md","Modello dispositivo",["CI-5","CI-10","CI-10X"]),T("mt","Codice impianto","Facoltativo")]);
  if(s.sc==="Dispositivo / altro"){var si=0;b.forEach(function(x,k){if(x.id==="sc")si=k});b.splice(si+1,0,T("sp","Specifica","Es. monitor, stampante, PC"))}
  U.forEach(function(u){if(u.m)b.push(T(u.p+"mat","Matricola "+u.n+(u.sig?" "+u.sig:""),"Numero di matricola"))});
  b.push(H("Controlli preliminari"),G("ct1","Alimentazione e cavi",["OK","Problema"]),G("ct2","Collegamento di rete",["OK","Problema"]));
  if(locPre(s)){b.push(H("Problema nei controlli preliminari"),T("ppb","Problematica riscontrata","Descrivi il problema",1),T("ppr","Interventi eseguiti","Cosa è stato fatto",1),G("pes","Esito",["Risolto","Non risolto"]));
   if(s.pes!=="Risolto"){if(s.pes==="Non risolto")b.push(G("pde","Destinazione",["Ritiro per riparazione in laboratorio","Nuovo intervento"]));
-   b.push({t:"tip",x:"Finché il problema dei controlli preliminari non è risolto non si passa all'analisi dei moduli."},NT(),H("Manodopera"),{t:"tmr"},{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});return b}}
+   b.push({t:"tip",x:"Finché il problema dei controlli preliminari non è risolto non si passa all'analisi dei moduli."},NT(),H("Manodopera"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});return b}}
  var PUL=s.sc==="Pulizia e revisione";
  if(U.length)b.push(H(PUL?"Pulizia e revisione":"Analisi dei moduli"));
  if(PUL)b.push({t:"tip",x:"Pulizia e revisione di entrambi i moduli. Se dopo la pulizia un modulo presenta un problema, segna «Sì» e compila l'intervento su quel modulo."});
@@ -386,13 +386,13 @@ loc:{title:"Interventi in loco",blocks:function(s){
   b.push(G("cfe","Esito",["Tutto OK","Problematica rilevata"]));
   if(s.cfe==="Problematica rilevata"){if(MD.length>1)b.push(G("cfq","Su quale modulo",["Modulo banconote","Modulo monete","Entrambi"]));
    b.push(G("cfx","Problematica",["Risolta","Non risolta"]));if(s.cfx==="Non risolta")b.push(G("cfd","Destinazione",["Ritiro per riparazione in laboratorio","Nuovo intervento"]))}}
- b.push(NT(),H("Manodopera"),{t:"tmr"},{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
+ b.push(NT(),H("Manodopera"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
  return b}},
 altro:{title:"Altre attività",blocks:function(s){
- var b=[TEC(),DT(),G("tp","Tipo di attività",["Installazione","Riparazione","Altro"]),G("rf","Riferimento",["CV","RMA"])];
+ var b=[TEC(),DT(),{t:"tmr"},G("tp","Tipo di attività",["Installazione","Riparazione","Altro"]),G("rf","Riferimento",["CV","RMA"])];
  if(s.rf)b.push(T("rc",s.rf,"Codice "+(s.rf==="CV"?"contratto":"RMA")));
  b.push(T("ti","Titolo","Es. Installazione blindatura"),T("mt","Modello","Facoltativo"),T("ma","Matricola","Facoltativo"),
-  T("de","Descrizione dell'intervento","Descrivi cosa è stato fatto",1),G("es","Esito",["Eseguito","Non eseguito"]),NT(),H("Manodopera"),{t:"tmr"},{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
+  T("de","Descrizione dell'intervento","Descrivi cosa è stato fatto",1),G("es","Esito",["Eseguito","Non eseguito"]),NT(),H("Manodopera"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
  return b}}
 };
 var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Riparazione in laboratorio"],["loc","Intervento in loco"],["altro","Altra attività"]];
@@ -401,7 +401,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=76,svEl=null;
+var VER=77,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -1058,7 +1058,7 @@ function render(){
    if((+S.rn||1)<2)app.append(btn("reset ac tight","+ Aggiungi modulo",function(){S.rn=2;if(S.r1_tp)S.r2_tp=S.r1_tp==="Banconote"?"Monete":"Banconote";if(S.r1_md)S.r2_md=S.r1_md;save();render()}));
    else if(!ui.md)app.append(btn("reset dgo tight","Elimina modulo 2",function(){ui.md=1;render()}));
    else app.append(confirmBox("Sei sicuro di voler eliminare il Modulo 2?","Elimina",function(){var N={},k;for(k in S)if(!/^(nt_)?r2_/.test(k))N[k]=S[k];N.rn=1;S=N;save();ui.md=0;render()},function(){ui.md=0;render()}))}
-  else if(x.t==="tmr"){var ms=tmMs(S),st=S.tmA?"run":S.tmF?"fin":ms?"pau":"",tb=el("div","tmr"+(st==="run"?" run":st==="pau"?" pau":"")),tv=el("div","tv"),tt=el("span","ts",st==="run"?"In corso":st==="pau"?"In pausa":st==="fin"?"Fermato":"Cronometro manodopera"),tn=el("span",0,tmFmt(ms));
+  else if(x.t==="tmr"){var ms=tmMs(S),st=S.tmA?"run":S.tmF?"fin":ms?"pau":"",tb=el("div","tmr"+(st==="run"?" run":st==="pau"?" pau":"")),tv=el("div","tv"),tt=el("span","ts",st==="run"?"In corso":st==="pau"?"In pausa":st==="fin"?"Fermato · ore in Manodopera":"Cronometro manodopera"),tn=el("span",0,tmFmt(ms));
    tn.id=st==="run"?"tmv":"";tv.append(tn,tt);var bb=el("div","tmb");tb.append(tv,bb);
    function go(){save();render()}
    if(!st)bb.append(btn("go1","Avvia",function(){S.tmA=Date.now();delete S.tmF;go()}));
