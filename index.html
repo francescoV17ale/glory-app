@@ -29,6 +29,8 @@ main{max-width:640px;margin:0 auto;padding:16px 16px 48px}
 .card b{display:block;font-size:17px;margin-bottom:2px;overflow-wrap:anywhere}
 .card span{color:var(--mu);font-size:14px}
 .card.arcc{border-color:var(--ac)}
+.card.aok{border-left:6px solid var(--ok)}.card.aok b{color:var(--ok)}.card.aok span{color:var(--ok)}
+.card.acor{border-left:6px solid var(--wn)}.card.aatt{border-left:6px solid var(--ac)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .new{min-height:64px;border:1px solid var(--ac);background:var(--sf);color:var(--ac);border-radius:12px;font:inherit;font-weight:650;padding:8px 10px}
 .bar{height:6px;background:var(--ln);border-radius:3px;margin:0 0 4px;overflow:hidden}
@@ -401,7 +403,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=77,svEl=null;
+var VER=78,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -813,7 +815,7 @@ function rmaToRip(R){var tc=load("rip").tec,s={grm:1};if(tc)s.tec=tc;["rv","rvn"
 function arcBox(){app.append(el("h2",0,"Archivio"));var m=el("div","cnt",arcMsg);m.setAttribute("role","status");arcMsg="";
  if(!IDB){app.append(el("p","cnt","Archivio non disponibile in questo browser: usa Scarica backup dal menù."));return}
  if(!ui.arc){app.append(btn("reset ac tight",S._arc?"Aggiorna nell'archivio":"Archivia o metti in pausa",function(){if(!hasData(S)){arcMsg="Scheda vuota: niente da archiviare.";render();return}ui.arc=1;render()}))}
- else{var bx=el("div","box wn"),sg=el("div","seg");
+ else{var bx=el("div","box wn"),sg=el("div","seg");bx.dataset.id="arcb";
   bx.append(el("div",0,(S._arc?"Aggiorno nell'archivio il lavoro «":"Salvo nell'archivio di questo dispositivo il lavoro «")+fnBase()+"», con note e foto."));
   sg.append(btn("on","Lavoro concluso",function(){arcSave(1,"fatto")}),btn("","Metti in pausa",function(){arcSave(1,"corso")}),btn("","Salva e continua",function(){arcSave(0,"corso")}),btn("","Annulla",function(){ui.arc=0;render()}));
   bx.append(sg,el("div","cnt","«Lavoro concluso» e «Metti in pausa» svuotano la scheda. Il lavoro in pausa si riprende da Archivio › In corso › Riapri."));app.append(bx)}
@@ -838,16 +840,16 @@ function arcView(){view="";ttl.textContent="Archivio lavori";back.hidden=false;g
  var q=document.createElement("input");q.type="text";q.placeholder="Cerca cliente, CV, RMA, matricola…";q.setAttribute("aria-label","Cerca nell'archivio");q.value=ui.q||"";
  var fs=el("div","fld");fs.append(q);
  var tf=el("div","seg");tf.className="seg fsm";tf.style.marginBottom="12px";
- [["","Tutti"],["att","In attesa"],["cor","In corso"],["inst","Installazioni"],["prep","Preparazioni"],["rip","Riparazioni"],["loc","In loco"],["altro","Altro"]].forEach(function(o){tf.append(btn((ui.tf||"")===o[0]?"on":"",o[1],function(){ui.tf=o[0];arcView()}))});
+ [["","Tutti"],["att","In attesa"],["cor","In corso"],["fat","Conclusi"],["inst","Installazioni"],["prep","Preparazioni"],["rip","Riparazioni"],["loc","In loco"],["altro","Altro"]].forEach(function(o){tf.append(btn((ui.tf||"")===o[0]?"on":"",o[1],function(){ui.tf=o[0];arcView()}))});
  var L=el("div");
  function draw(){L.textContent="";var t=String(q.value||"").toLowerCase().trim(),
-   F=ARC.filter(function(r){return (!ui.tf||(ui.tf==="att"?r.st==="attesa":ui.tf==="cor"?r.st==="corso":r.v===ui.tf))&&(!t||arcTxt(r).indexOf(t)>=0)});
+   F=ARC.filter(function(r){return (!ui.tf||(ui.tf==="att"?r.st==="attesa":ui.tf==="cor"?r.st==="corso":ui.tf==="fat"?(!r.st||r.st==="fatto"):r.v===ui.tf))&&(!t||arcTxt(r).indexOf(t)>=0)});
   if(!ARC.length){L.append(el("p","cnt","Nessun lavoro archiviato. Dalla scheda usa «Archivia lavoro» a fine intervento."));return}
   if(!F.length){L.append(el("p","cnt","Nessun risultato."));return}
   L.append(el("p","cnt",F.length+(F.length===1?" lavoro":" lavori")));
-  F.forEach(function(r){var c=btn("card"+(ui.ao===r.id?" arcc":""),null,function(){ui.ao=ui.ao===r.id?0:r.id;ui.ad=0;ui.ap=0;draw()});
+  F.forEach(function(r){var fat=!r.st||r.st==="fatto",c=btn("card "+(fat?"aok":r.st==="corso"?"acor":"aatt")+(ui.ao===r.id?" arcc":""),null,function(){ui.ao=ui.ao===r.id?0:r.id;ui.ad=0;ui.ap=0;draw()});
    var np=(r.ph&&r.ph.length)||0;
-   c.append(el("b",0,r.n),el("span",0,(r.st==="attesa"?"In attesa di riparazione":(r.st==="corso"?"In corso · ":"")+(V[r.v]?V[r.v].title:r.v))+" · "+fmtDate(new Date(r.d))+(np?" · "+np+" foto":"")));
+   c.append(el("b",0,(fat?"✓ ":"")+r.n),el("span",0,(r.st==="attesa"?"In attesa di riparazione":(r.st==="corso"?"In corso · ":"Concluso · ")+(V[r.v]?V[r.v].title:r.v))+" · "+fmtDate(new Date(r.d))+(np?" · "+np+" foto":"")));
    c.setAttribute("aria-expanded",ui.ao===r.id?"true":"false");L.append(c);
    if(ui.ao!==r.id)return;
    var sg=el("div","seg");sg.style.marginBottom="10px";
@@ -1140,7 +1142,9 @@ function railBuild(){var n=el("nav","rail"),cur=curStep();n.id="rail";n.setAttri
 function dockBuild(){var cur=curStep(),last=cur===ST.length-1,q=stat(ST[cur]),rest=q.t-q.d,d=el("div","dock"),a;d.id="dock";
  var p=btn("ib","‹",function(){goStep(cur-1)});p.disabled=cur===0;p.setAttribute("aria-label","Passo precedente");d.append(p);
  if(hasNote())d.append(btn("mid","Nota",noteDlg));
- if(last){a=btn("go wait",null,function(){location.hash=""});a.append(el("b",0,"Menù"),el("span",0,"torna alle schede"))}
+ var rk=last&&IDB&&!SOLO&&hasData(S)?check(BL):null;
+ if(rk&&!rk.bad.length&&!rk.warn.length){a=btn("go",null,function(){ui.arc=1;pend="arcb";render()});a.append(el("b",0,S._arc?"Aggiorna":"Archivia"),el("span",0,"tutto completato"))}
+ else if(last){a=btn("go wait",null,function(){location.hash=""});a.append(el("b",0,"Menù"),el("span",0,"torna alle schede"))}
  else{a=btn("go"+(rest>0?" wait":""),null,function(){goStep(cur+1)});a.append(el("b",0,"Avanti"),el("span",0,rest>0?(rest===1?"resta 1 voce qui":"restano "+rest+" voci qui"):ST[cur+1].x))}
  d.append(a);return d}
 function chrome(){if(!passi())return;BL=V[view].blocks(S);ST=steps(BL);var r=document.getElementById("rail"),d=document.getElementById("dock");if(r)r.replaceWith(railBuild());if(d)d.replaceWith(dockBuild())}
