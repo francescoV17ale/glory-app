@@ -340,7 +340,7 @@ prep:{title:"Preparazione macchine",blocks:function(s){
  b.push(NT());
  return b}},
 rip:{title:"Riparazioni in laboratorio",blocks:function(s){
- var rn=+s.rn||1,AS=ripAs(s),i,b=[TEC(),DT(),{t:"tmr"},RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),GRM(),T("rma","RMA","Codice RMA")]);
+ var rn=+s.rn||1,AS=ripAs(s),i,b=[TEC(),DT(),{t:"tmr"},RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),GRM(),T("rma","RMA","Codice RMA"),(function(){var t=T("cv","CV","Facoltativo · se manca l'RMA");t.opt=1;return t})()]);
  for(i=1;i<=rn;i++){var p="r"+i+"_",mi=modInfo(s,p);
   if(AS&&i===2){b.push(H("Modulo associato · "+mi.n+" · revisione"),T(p+"mat","Matricola"+(mi.sig?" "+mi.sig:""),"Numero di matricola"),H3("Revisione"),C(p+"pl","Pulizia completa del modulo eseguita"),C(p+"ss","Sensori e sportelli verificati"),G(p+"pp","Problema rilevato durante la revisione",["No","Sì"]));
    if(s[p+"pp"]==="Sì"){b.push(T(p+"er","Codice errore","Es. 1234"),T(p+"pb","Problematica riscontrata","Descrivi il problema",1));
@@ -409,7 +409,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=79,svEl=null;
+var VER=80,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -439,6 +439,7 @@ function modInfo(s,p){var t=s[p+"tp"]==="Banconote"?"B":s[p+"tp"]==="Monete"?"C"
  return {t:t,n:t==="B"?"banconote":t==="C"?"monete":"",m:m,sig:sg,full:sg+(s[p+"mat"]||"…")}}
 function verT(s,id){var a=String(s[id+"_a"]||"").trim(),n=String(s[id+"_n"]||"").trim();return n?(a?" (da "+a+" a "+n+")":" (versione "+n+")"):(a?" (da "+a+")":"")}
 /* modulo associato: l'altro modulo della stessa macchina, revisionato; collaudo unico */
+function ripRif(s){var r=String(s.rma||"").trim(),c=String(s.cv||"").trim();return r?"RMA: "+r:c?"CV: "+c:"RMA: …"}
 function ripAs(s){return (+s.rn||1)===2&&!!s.rva}
 function ripEnd(b,s,p,hd,cnt){b.push(hd,C(p+"acc","Test di accensione"),C(p+"res","Reset"),C(p+"cnt",cnt),G(p+"es","Esito",["Riparato","Non riparabile"]));
  if(s[p+"es"]==="Riparato"){b.push(G(p+"de","Destinazione",["Reimballo","Reinstallazione in loco","Spedizione"]));
@@ -454,7 +455,7 @@ function ripDest(s,p,d,ok,nr,w){if(ok){d.push(w+" riparato.");var de=s[p+"de"],s
  else if(nr)d.push(w+" non riparabile.")}
 function ripTextAs(s){var A=modInfo(s,"r1_"),Bm=modInfo(s,"r2_"),o=[],d,x,ok=s.r1_es==="Riparato",nr=s.r1_es==="Non riparabile";
  o.push("Riparazione in laboratorio del modulo"+(A.n?" "+A.n:"")+" e revisione totale del modulo"+(Bm.n?" "+Bm.n:"")+(A.m?" del dispositivo Glory "+A.m:"")+".");
- o.push(A.full,Bm.full,"RMA: "+(s.rma||"…"));
+ o.push(A.full,Bm.full,ripRif(s));
  d=ripDet(s,"r1_",ripPz(s,"r1_"));x=ripAg(s,"r1_",A);if(x)d.push(x);
  if(d.length){o.push("","Modulo "+(A.n||"1")+":");o=o.concat(d)}
  d=[];var q=[];if(s.r2_pl)q.push("pulizia completa");if(s.r2_ss)q.push("verifica di sensori e sportelli");
@@ -473,7 +474,7 @@ function ripText(s){if(ripAs(s))return ripTextAs(s);var rn=+s.rn||1,o=[],i,j,M=[
  if(rn>1)o.push("Riparazione in laboratorio "+(nm.length===rn&&nm[0]===nm[1]?"di due moduli "+nm[0]:"dei moduli"+(nm.length===rn?" "+nm.join(" e "):""))+(same?" Glory "+mdl[0]:"")+".");
  else o.push("Riparazione in laboratorio del modulo"+(M[0].n?" "+M[0].n:"")+(M[0].m?" Glory "+M[0].m:"")+".");
  M.forEach(function(m){o.push(m.full+(rn>1&&!same&&m.m?" ("+m.m+")":""))});
- o.push("RMA: "+(s.rma||"…"));
+ o.push(ripRif(s));
  for(i=1;i<=rn;i++){var p="r"+i+"_",mi=M[i-1],pz=[],ag=[],d=[],ts=s[p+"acc"]||s[p+"res"]||s[p+"cnt"];
   for(j=1;j<=(+s[p+"np"]||0);j++)if(s[p+"pz"+j])pz.push(s[p+"pz"+j]);
   if(s[p+"er"])d.push("Codice errore: "+String(s[p+"er"]).trim()+".");
@@ -589,7 +590,7 @@ function check(bl){var bad=[],warn=[],s=S,i,n,sec="",sub="";
    else if(s.cfe==="Problematica rilevata"){if(LU.filter(function(u){return u.m}).length>1&&!s.cfq)bad.push("Su quale modulo è la problematica del collaudo");if(!s.cfx)bad.push("Problematica del collaudo: risolta o non risolta")}}
   if(s.fl&&!stp){if(!s.rev&&s.sc!=="Pulizia e revisione")warn.push("Contratto full: pulizia e revisione del dispositivo non eseguita");if(!s.ufc&&!s.ubc&&!s.ubb&&!s.umc)warn.push("Contratto full: nessun aggiornamento eseguito (firmware CPU, BV, FCC)")}
   want("ore","Ore di manodopera")}
- else if(view==="rip"){need("rma","Codice RMA");n=+s.rn||1;
+ else if(view==="rip"){if(!has("rma")&&!has("cv")){bad.push("Codice RMA (oppure il CV)");MK["Codice RMA (oppure il CV)"]="rma"}n=+s.rn||1;
   var AS=ripAs(s);
   for(i=1;i<=n;i++){var p="r"+i+"_";if(AS&&i===2){need(p+"mat","Matricola del modulo associato");if(!s[p+"pp"]){bad.push("Revisione del modulo associato: problema rilevato? (Sì o No)");MK["Revisione del modulo associato: problema rilevato? (Sì o No)"]=p+"pp"}else if(s[p+"pp"]==="Sì"){want(p+"pb","Problematica riscontrata sul modulo associato");want(p+"pr","Interventi eseguiti sul modulo associato")}continue}
    need(p+"tp","Tipo del modulo "+i);need(p+"md","Modello del modulo "+i);need(p+"mat","Matricola del modulo "+i);
@@ -616,7 +617,7 @@ function tryCopy(cb,cm){var r=check(V[view].blocks(S));cm.textContent="";
  cm.append(bx)}
 /* ---------- PDF ---------- */
 function prog(bl,s,all){var t=0,d=0;bl.forEach(function(x){if(x.memo||x.opt)return;if(x.t==="c"||(all&&(x.t==="g"||x.t==="sel"))){t++;if(s[x.id])d++}});return {t:t,d:d}}
-var PSKIP={inst:["tec","cv","cl","se","rvn","nte"],prep:["tec","cvc","nte","mtM","mtB","mtD"],rip:["tec","rma","rvn","cl","nte"],loc:["tec","rf","cl","se","rvn","nte"],altro:["tec","nte"]};
+var PSKIP={inst:["tec","cv","cl","se","rvn","nte"],prep:["tec","cvc","nte","mtM","mtB","mtD"],rip:["tec","rma","cv","rvn","cl","nte"],loc:["tec","rf","cl","se","rvn","nte"],altro:["tec","nte"]};
 function pdfEnc(t){return String(t==null?"":t).replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,"-").replace(/≥/g,">=").replace(/…/g,"...").replace(/\s/g," ").replace(/[^\x20-\xFF]/g,"?")}
 function pdfEsc(t){return pdfEnc(t).replace(/[\\()]/g,"\\$&")}
 function pdfWrap(t,n){var l=[];String(t==null?"":t).split(/\r?\n/).forEach(function(par){var c="";
@@ -722,7 +723,7 @@ function pdfRows(bl){var r=[];bl.forEach(function(x){
 function fmtDate(dt){return p2(dt.getDate())+"/"+p2(dt.getMonth()+1)+"/"+dt.getFullYear()+" "+p2(dt.getHours())+":"+p2(dt.getMinutes())}
 function pdfMeta(bl,when){var pr=prog(bl,S,0),dt=when?new Date(when):new Date();
  var tt={inst:"Checklist installazione Glory",prep:"Checklist preparazione macchine Glory",rip:"Checklist riparazione Glory",loc:"Checklist intervento in loco Glory",altro:"Attività Glory"},
-  hl={inst:["CV: "+(S.cv||"-")].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],["Cliente: "+(S.cl||"-"),"Sede: "+(S.se||"-")]),prep:["CV: "+(S.cvc||"da associare")].concat(prepMode(S)==="Completa"&&prepMat("mtB")?["Matricola banconote: "+prepMat("mtB")]:[],prepMode(S)==="Completa"&&prepMat("mtM")?["Matricola monete: "+prepMat("mtM")]:[],prepMode(S)==="Completa"&&S.mtD?["Codice impianto: "+S.mtD]:[]),rip:["RMA: "+(S.rma||"-")].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],S.cl?["Cliente: "+S.cl]:[]),loc:["Riferimento: "+(S.rf||"-")].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],["Cliente: "+(S.cl||"-"),"Sede: "+(S.se||"-")]),altro:[(S.tp||"Attività")+(S.ti?": "+S.ti:""),S.rf?S.rf+": "+(S.rc||"-"):"Riferimento: -"]};
+  hl={inst:["CV: "+(S.cv||"-")].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],["Cliente: "+(S.cl||"-"),"Sede: "+(S.se||"-")]),prep:["CV: "+(S.cvc||"da associare")].concat(prepMode(S)==="Completa"&&prepMat("mtB")?["Matricola banconote: "+prepMat("mtB")]:[],prepMode(S)==="Completa"&&prepMat("mtM")?["Matricola monete: "+prepMat("mtM")]:[],prepMode(S)==="Completa"&&S.mtD?["Codice impianto: "+S.mtD]:[]),rip:[S.rma||!S.cv?"RMA: "+(S.rma||"-"):"CV: "+S.cv].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],S.cl?["Cliente: "+S.cl]:[]),loc:["Riferimento: "+(S.rf||"-")].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],["Cliente: "+(S.cl||"-"),"Sede: "+(S.se||"-")]),altro:[(S.tp||"Attività")+(S.ti?": "+S.ti:""),S.rf?S.rf+": "+(S.rc||"-"):"Riferimento: -"]};
  hl[view]=["Tecnico: "+(S.tec||"-"),"Data intervento: "+(dIt(S.dt)||dIt(day()))].concat(hl[view]);
  return {title:tt[view],date:fmtDate(dt),
   lines:hl[view].concat(["Voci completate: "+pr.d+" di "+pr.t])}}
@@ -732,11 +733,11 @@ function fdate(iso){var m=/^(\d{4})-(\d\d)-(\d\d)$/.exec(iso||"");if(m)return m[
 function fnBase(){var o=[],rv=S.rv?fcut(S.rvn,20):"",er="";
  if(view==="loc"){er=fcut(locUnits(S).map(function(u){return String(S[u.p+"er"]||"").trim()}).filter(Boolean).join("-"),12)}
  if(view==="inst"||view==="loc")o=[rv,fcut(S.cl,30),er];
- else if(view==="rip")o=[fcut(S.rma,40)||fcut(S.cl,30)];
+ else if(view==="rip")o=fcut(S.rma,40)?[fcut(S.rma,40)]:[fcut(S.cv,30),fcut(S.cl,30)];
  else if(view==="prep")o=(S.m==="CI-5"&&prepMode(S)==="Downgrade CI-5")?["Downgrade CI-5"+(dgCount()?" - "+dgCount()+(dgCount()===1?" dispositivo":" dispositivi"):"")]:[fcut(S.cvc,30)||fcut(prepMat("mtM"),30)];
  else o=[fcut(S.ti,40)];
  o=o.filter(Boolean);if(!o.length)o=[V[view].title];
- return o.join(" - ")+" - "+fdate(S.dt)}
+ return o.join(" - ")+" - "+(view==="rip"?fdate():fdate(S.dt))}
 function pdfName(){return fnBase()+".pdf"}
 function pdfFile(){var bl=V[view].blocks(S);return {u:buildPdf(pdfMeta(bl),pdfRows(bl)),fn:pdfName()}}
 function saveFile(blob,fn,ok,ko){
