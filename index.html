@@ -340,20 +340,26 @@ prep:{title:"Preparazione macchine",blocks:function(s){
  b.push(NT());
  return b}},
 rip:{title:"Riparazioni in laboratorio",blocks:function(s){
- var rn=+s.rn||1,i,b=[TEC(),DT(),{t:"tmr"},RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),GRM(),T("rma","RMA","Codice RMA")]);
+ var rn=+s.rn||1,AS=ripAs(s),i,b=[TEC(),DT(),{t:"tmr"},RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente"),GRM(),T("rma","RMA","Codice RMA")]);
  for(i=1;i<=rn;i++){var p="r"+i+"_",mi=modInfo(s,p);
-  b.push(H("Modulo "+i+(mi.t?" · "+mi.n+(mi.m?" · "+mi.m:""):"")),G(p+"tp","Tipo di modulo",["Banconote","Monete"]),G(p+"md","Modello",["CI-5","CI-10","CI-10X"]),T(p+"mat","Matricola"+(mi.sig?" "+mi.sig:""),"Numero di matricola"),
-   H3("Diagnosi e intervento"),T(p+"er","Codice errore","Es. 1234"),T(p+"pb","Problematica riscontrata","Descrivi il problema",1));
+  if(AS&&i===2){b.push(H("Modulo associato · "+mi.n+" · revisione"),T(p+"mat","Matricola"+(mi.sig?" "+mi.sig:""),"Numero di matricola"),H3("Revisione"),C(p+"pl","Pulizia completa del modulo eseguita"),C(p+"ss","Sensori e sportelli verificati"),G(p+"pp","Problema rilevato durante la revisione",["No","Sì"]));
+   if(s[p+"pp"]==="Sì"){b.push(T(p+"er","Codice errore","Es. 1234"),T(p+"pb","Problematica riscontrata","Descrivi il problema",1));
+    for(var qi=1;qi<=(+s[p+"np"]||0);qi++)b.push(T(p+"pz"+qi,"Pezzo sostituito "+qi,"Quale pezzo"));
+    b.push({t:"addp",p:p},{t:"delp",p:p},T(p+"pr","Interventi eseguiti","Descrivi gli interventi",1))}
+   b.push(H3("Aggiornamenti"));b=b.concat(UPD(s,p+"ucp","Aggiornamento firmware CPU"));if(mi.t!=="C")b=b.concat(UPD(s,p+"ubv","Aggiornamento BV (lettore banconote)"));
+   b.push({t:"mod"});continue}
+  b.push(H("Modulo "+(AS?"":i)+(mi.t?(AS?"":" · ")+mi.n+(mi.m?" · "+mi.m:""):"")),G(p+"tp","Tipo di modulo",["Banconote","Monete"]),G(p+"md","Modello",["CI-5","CI-10","CI-10X"]),T(p+"mat","Matricola"+(mi.sig?" "+mi.sig:""),"Numero di matricola"));
+  if(i===1&&rn===1&&mi.t)b.push({t:"mod"});
+  b.push(H3("Diagnosi e intervento"),T(p+"er","Codice errore","Es. 1234"),T(p+"pb","Problematica riscontrata","Descrivi il problema",1));
   for(var pi=1;pi<=(+s[p+"np"]||0);pi++)b.push(T(p+"pz"+pi,"Pezzo sostituito "+pi,"Quale pezzo"));
   b.push({t:"addp",p:p},{t:"delp",p:p},T(p+"pr","Interventi eseguiti","Descrivi gli interventi (es. rimozione corpo estraneo, disassemblaggio)",1),
    H3("Aggiornamenti"));
   b=b.concat(UPD(s,p+"ucp","Aggiornamento firmware CPU"));
   if(mi.t!=="C")b=b.concat(UPD(s,p+"ubv","Aggiornamento BV (lettore banconote)"));
-  b.push(H3("Test"),C(p+"acc","Test di accensione"),C(p+"res","Reset"),C(p+"cnt","Prova con "+(mi.t==="C"?"monete":mi.t==="B"?"banconote":"contante")),
-   G(p+"es","Esito",["Riparato","Non riparabile"]));
-  if(s[p+"es"]==="Riparato"){b.push(G(p+"de","Destinazione",["Reimballo","Reinstallazione in loco","Spedizione"]));
-   if(s[p+"de"]==="Spedizione")b.push(G(p+"sp","Spedire a",["Cliente","Rivenditore","Tecnico di zona"]))}}
- b.push({t:"mod"},NT(),H("Manodopera"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
+  if(!AS)ripEnd(b,s,p,H3("Test"),"Prova con "+(mi.t==="C"?"monete":mi.t==="B"?"banconote":"contante"))}
+ if(AS)ripEnd(b,s,"r1_",H("Collaudo · entrambi i moduli"),"Prova con banconote e monete");
+ if(!AS&&rn>1)b.push({t:"mod"});
+ b.push(NT(),H("Manodopera"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
  return b}},
 loc:{title:"Interventi in loco",blocks:function(s){
  var U=locUnits(s),i,fl=C("fl","Contratto full: aggiornamenti inclusi");fl.memo=1;
@@ -403,7 +409,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=78,svEl=null;
+var VER=79,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -432,7 +438,36 @@ function prepMat(k){var pf={mtM:"RCW50-",mtB:"RBW50-"}[k],v=String(S[k]||"").tri
 function modInfo(s,p){var t=s[p+"tp"]==="Banconote"?"B":s[p+"tp"]==="Monete"?"C":"",m=s[p+"md"]||"",n=PX[m]||"",sg=t&&n?"R"+t+"W"+n+"-":"";
  return {t:t,n:t==="B"?"banconote":t==="C"?"monete":"",m:m,sig:sg,full:sg+(s[p+"mat"]||"…")}}
 function verT(s,id){var a=String(s[id+"_a"]||"").trim(),n=String(s[id+"_n"]||"").trim();return n?(a?" (da "+a+" a "+n+")":" (versione "+n+")"):(a?" (da "+a+")":"")}
-function ripText(s){var rn=+s.rn||1,o=[],i,j,M=[];
+/* modulo associato: l'altro modulo della stessa macchina, revisionato; collaudo unico */
+function ripAs(s){return (+s.rn||1)===2&&!!s.rva}
+function ripEnd(b,s,p,hd,cnt){b.push(hd,C(p+"acc","Test di accensione"),C(p+"res","Reset"),C(p+"cnt",cnt),G(p+"es","Esito",["Riparato","Non riparabile"]));
+ if(s[p+"es"]==="Riparato"){b.push(G(p+"de","Destinazione",["Reimballo","Reinstallazione in loco","Spedizione"]));
+  if(s[p+"de"]==="Spedizione")b.push(G(p+"sp","Spedire a",["Cliente","Rivenditore","Tecnico di zona"]))}}
+function ripDet(s,p,pz){var d=[];if(s[p+"er"])d.push("Codice errore: "+String(s[p+"er"]).trim()+".");
+ if(s[p+"pb"])d.push("Problematica riscontrata: "+String(s[p+"pb"]).trim());
+ if(s[p+"pr"])d.push("Interventi eseguiti: "+String(s[p+"pr"]).trim());
+ if(pz.length)d.push("Per ripristinare il corretto funzionamento "+(pz.length>1?"sono stati sostituiti i componenti: ":"è stato sostituito il componente: ")+pz.join(", ")+".");return d}
+function ripAg(s,p,mi){var ag=[];if(s[p+"ucp"])ag.push("firmware CPU"+verT(s,p+"ucp"));if(s[p+"ubv"]&&mi.t!=="C")ag.push("BV"+verT(s,p+"ubv"));return ag.length?"Eseguito aggiornamento "+ag.join(" e ")+".":""}
+function ripPz(s,p){var o=[],j;for(j=1;j<=(+s[p+"np"]||0);j++)if(s[p+"pz"+j])o.push(s[p+"pz"+j]);return o}
+function ripDest(s,p,d,ok,nr,w){if(ok){d.push(w+" riparato.");var de=s[p+"de"],sp={"Cliente":"al cliente","Rivenditore":"al rivenditore","Tecnico di zona":"al tecnico di zona"}[s[p+"sp"]]||"";
+  if(de)d.push("Destinazione: "+(de==="Spedizione"?"spedizione"+(sp?" "+sp:""):de.charAt(0).toLowerCase()+de.slice(1))+".")}
+ else if(nr)d.push(w+" non riparabile.")}
+function ripTextAs(s){var A=modInfo(s,"r1_"),Bm=modInfo(s,"r2_"),o=[],d,x,ok=s.r1_es==="Riparato",nr=s.r1_es==="Non riparabile";
+ o.push("Riparazione in laboratorio del modulo"+(A.n?" "+A.n:"")+" e revisione totale del modulo"+(Bm.n?" "+Bm.n:"")+(A.m?" del dispositivo Glory "+A.m:"")+".");
+ o.push(A.full,Bm.full,"RMA: "+(s.rma||"…"));
+ d=ripDet(s,"r1_",ripPz(s,"r1_"));x=ripAg(s,"r1_",A);if(x)d.push(x);
+ if(d.length){o.push("","Modulo "+(A.n||"1")+":");o=o.concat(d)}
+ d=[];var q=[];if(s.r2_pl)q.push("pulizia completa");if(s.r2_ss)q.push("verifica di sensori e sportelli");
+ if(q.length)d.push("Eseguita "+q.join(" e ")+".");
+ if(s.r2_pp==="Sì"){d.push("Durante la revisione rilevato un problema.");d=d.concat(ripDet(s,"r2_",ripPz(s,"r2_")))}
+ else if(s.r2_pp==="No")d.push("Nessun problema rilevato.");
+ x=ripAg(s,"r2_",Bm);if(x)d.push(x);
+ if(d.length){o.push("","Modulo "+(Bm.n||"2")+" (revisione):");o=o.concat(d)}
+ d=[];if(s.r1_acc||s.r1_res||s.r1_cnt)d.push("Eseguite prove di funzionamento su entrambi i moduli"+(ok?" con esito positivo":"")+".");
+ ripDest(s,"r1_",d,ok,nr,"Dispositivo");
+ if(d.length){o.push("");o=o.concat(d)}
+ return o.join("\n")}
+function ripText(s){if(ripAs(s))return ripTextAs(s);var rn=+s.rn||1,o=[],i,j,M=[];
  for(i=1;i<=rn;i++)M.push(modInfo(s,"r"+i+"_"));
  var mdl=M.map(function(m){return m.m}).filter(Boolean),same=mdl.length===M.length&&mdl.every(function(x){return x===mdl[0]}),nm=M.map(function(m){return m.n}).filter(Boolean);
  if(rn>1)o.push("Riparazione in laboratorio "+(nm.length===rn&&nm[0]===nm[1]?"di due moduli "+nm[0]:"dei moduli"+(nm.length===rn?" "+nm.join(" e "):""))+(same?" Glory "+mdl[0]:"")+".");
@@ -555,7 +590,9 @@ function check(bl){var bad=[],warn=[],s=S,i,n,sec="",sub="";
   if(s.fl&&!stp){if(!s.rev&&s.sc!=="Pulizia e revisione")warn.push("Contratto full: pulizia e revisione del dispositivo non eseguita");if(!s.ufc&&!s.ubc&&!s.ubb&&!s.umc)warn.push("Contratto full: nessun aggiornamento eseguito (firmware CPU, BV, FCC)")}
   want("ore","Ore di manodopera")}
  else if(view==="rip"){need("rma","Codice RMA");n=+s.rn||1;
-  for(i=1;i<=n;i++){var p="r"+i+"_";need(p+"tp","Tipo del modulo "+i);need(p+"md","Modello del modulo "+i);need(p+"mat","Matricola del modulo "+i);
+  var AS=ripAs(s);
+  for(i=1;i<=n;i++){var p="r"+i+"_";if(AS&&i===2){need(p+"mat","Matricola del modulo associato");if(!s[p+"pp"]){bad.push("Revisione del modulo associato: problema rilevato? (Sì o No)");MK["Revisione del modulo associato: problema rilevato? (Sì o No)"]=p+"pp"}else if(s[p+"pp"]==="Sì"){want(p+"pb","Problematica riscontrata sul modulo associato");want(p+"pr","Interventi eseguiti sul modulo associato")}continue}
+   need(p+"tp","Tipo del modulo "+i);need(p+"md","Modello del modulo "+i);need(p+"mat","Matricola del modulo "+i);
    if(!s[p+"es"])bad.push("Esito del modulo "+i+" (riparato o non riparabile)");
    else if(s[p+"es"]==="Riparato"){if(!s[p+"de"]){warn.push("Destinazione del modulo "+i);MK["Destinazione del modulo "+i]=p+"de"}else if(s[p+"de"]==="Spedizione"&&!s[p+"sp"]){warn.push("A chi spedire il modulo "+i);MK["A chi spedire il modulo "+i]=p+"sp"}}
    want(p+"pb","Problematica riscontrata sul modulo "+i);want(p+"pr","Interventi eseguiti sul modulo "+i)}
@@ -996,6 +1033,7 @@ function rstBox(){
  if(!ui.rst)app.append(btn("reset tight","Azzera la scheda",function(){ui.rst=1;render()}));
  else app.append(confirmBox("Sei sicuro di voler azzerare tutte le voci di questa scheda?"+(S._arc?" Il lavoro resta comunque nell'archivio.":""),"Azzera",function(){var tc=S.tec;S={};if(tc)S.tec=tc;PH[view]=[];phSave(view);siSet(view,0);save();rui();render();window.scrollTo(0,0)},function(){ui.rst=0;render()}))}
 function render(){
+ if(view==="rip"&&ripAs(S)){var t2=S.r1_tp==="Banconote"?"Monete":S.r1_tp==="Monete"?"Banconote":"";if(t2&&S.r2_tp!==t2||S.r2_md!==S.r1_md){if(t2)S.r2_tp=t2;if(S.r1_md)S.r2_md=S.r1_md;save()}}
  if(view==="rip"&&S.grm&&!S.rmaM){var gg=rmaGen(S);if(S.rma!==gg){S.rma=gg;save()}}
  var bl=V[view].blocks(S),pr=prog(bl,S,1),PS=passi(),cs=0,last=1,list=bl;
  BL=bl;ST=steps(bl);if(PS){cs=curStep();last=cs===ST.length-1;list=ST[cs].it}
@@ -1057,9 +1095,10 @@ function render(){
     if(ui.pdSel)app.append(confirmBox("Sei sicuro di voler eliminare il Pezzo "+ui.pdSel+"?","Elimina",function(){delPz(x.p,ui.pdSel);ui.pd=0;ui.pdSel=0;render()},function(){ui.pd=0;ui.pdSel=0;render()}));
     else app.append(btn("reset tight","Annulla",function(){ui.pd=0;render()}))}}}
   else if(x.t==="mod"){
-   if((+S.rn||1)<2)app.append(btn("reset ac tight","+ Aggiungi modulo",function(){S.rn=2;if(S.r1_tp)S.r2_tp=S.r1_tp==="Banconote"?"Monete":"Banconote";if(S.r1_md)S.r2_md=S.r1_md;save();render()}));
-   else if(!ui.md)app.append(btn("reset dgo tight","Elimina modulo 2",function(){ui.md=1;render()}));
-   else app.append(confirmBox("Sei sicuro di voler eliminare il Modulo 2?","Elimina",function(){var N={},k;for(k in S)if(!/^(nt_)?r2_/.test(k))N[k]=S[k];N.rn=1;S=N;save();ui.md=0;render()},function(){ui.md=0;render()}))}
+   var AS2=ripAs(S),altro=S.r1_tp==="Banconote"?"monete":"banconote";
+   if((+S.rn||1)<2)app.append(btn("reset ac tight","+ Associa modulo "+altro+" (revisione totale)",function(){S.rn=2;S.rva=1;S.r2_tp=S.r1_tp==="Banconote"?"Monete":"Banconote";if(S.r1_md)S.r2_md=S.r1_md;save();pend="r2_mat";render()}));
+   else if(!ui.md)app.append(btn("reset dgo tight",AS2?"Togli modulo associato":"Elimina modulo 2",function(){ui.md=1;render()}));
+   else app.append(confirmBox(AS2?"Togliere il modulo associato e i suoi dati?":"Sei sicuro di voler eliminare il Modulo 2?","Elimina",function(){var N={},k;for(k in S)if(!/^(nt_)?r2_/.test(k))N[k]=S[k];N.rn=1;delete N.rva;S=N;save();ui.md=0;render()},function(){ui.md=0;render()}))}
   else if(x.t==="tmr"){var ms=tmMs(S),st=S.tmA?"run":S.tmF?"fin":ms?"pau":"",tb=el("div","tmr"+(st==="run"?" run":st==="pau"?" pau":"")),tv=el("div","tv"),tt=el("span","ts",st==="run"?"In corso":st==="pau"?"In pausa":st==="fin"?"Fermato · ore in Manodopera":"Cronometro manodopera"),tn=el("span",0,tmFmt(ms));
    tn.id=st==="run"?"tmv":"";tv.append(tn,tt);var bb=el("div","tmb");tb.append(tv,bb);
    function go(){save();render()}
