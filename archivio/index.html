@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1f5f99">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="../icon-192.png">
+<title>Glory Archivio</title>
+<style>
+:root{--bg:#f2f4f5;--sf:#fff;--tx:#14191d;--mu:#5b6770;--ln:#d5dbdf;--ac:#1f5f99;--on:#fff;--ok:#1f7a4d;--dg:#c23b22;--wn:#9a5b00;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#101417;--sf:#1a2025;--tx:#e8edf0;--mu:#97a4ad;--ln:#2d363d;--ac:#6fb3ea;--on:#0b1620;--ok:#5fc78f;--dg:#ff8a75;--wn:#f0b04a;color-scheme:dark}}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--ln);padding:10px 18px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+header h1{margin:0;font-size:19px;flex:1 0 auto}
+header h1 span{color:var(--mu);font-weight:400;font-size:14px;margin-left:8px}
+.b{min-height:40px;padding:0 14px;border:1px solid var(--ln);background:var(--sf);border-radius:9px;font-weight:600}
+.b.ac{background:var(--ac);border-color:var(--ac);color:var(--on)}
+.b.sm{min-height:32px;padding:0 10px;font-size:13px;font-weight:500}
+.st{font-size:13px;color:var(--mu)}
+.st.ok{color:var(--ok)}.st.wn{color:var(--wn);font-weight:600}
+main{display:grid;grid-template-columns:minmax(320px,440px) 1fr;gap:16px;padding:14px 18px;max-width:1500px;margin:0 auto}
+@media (max-width:860px){main{grid-template-columns:1fr}}
+.pane{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:12px;min-width:0}
+.list{position:sticky;top:70px;max-height:calc(100vh - 90px);display:flex;flex-direction:column}
+.q{width:100%;min-height:42px;border:1px solid var(--ln);border-radius:9px;padding:8px 12px;background:var(--bg)}
+.fl{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.ch{min-height:30px;padding:0 10px;border:1px solid var(--ln);border-radius:15px;background:var(--sf);font-size:13px}
+.ch.on{background:var(--ac);border-color:var(--ac);color:var(--on)}
+.sel{min-height:30px;border:1px solid var(--ln);border-radius:15px;background:var(--sf);font-size:13px;padding:0 8px}
+.cnt{font-size:13px;color:var(--mu);margin:2px 0 8px}
+.items{overflow:auto;flex:1;margin:0 -4px;padding:0 4px}
+.it{display:block;width:100%;text-align:left;border:1px solid var(--ln);border-left:5px solid var(--ac);border-radius:9px;background:var(--sf);padding:8px 10px;margin-bottom:6px}
+.it.fat{border-left-color:var(--ok)}.it.cor{border-left-color:var(--wn)}
+.it.on{outline:2px solid var(--ac)}
+.it b{display:block;overflow-wrap:anywhere}.it span{display:block;font-size:12.5px;color:var(--mu)}
+.mh{background:var(--bg);border:1px solid var(--ac);border-radius:9px;padding:8px 10px;margin-bottom:8px;font-size:13.5px}
+.mh b{color:var(--ac)}
+.det h2{margin:0 0 2px;font-size:20px;overflow-wrap:anywhere}
+.det .sub{color:var(--mu);font-size:13px;margin-bottom:12px}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:4px 12px;margin:0 0 14px;font-size:14px}
+.kv dt{color:var(--mu)}.kv dd{margin:0;overflow-wrap:anywhere}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mu);margin:16px 0 6px}
+.mats{display:flex;flex-wrap:wrap;gap:6px}
+.mat{min-height:32px;padding:0 12px;border:1px dashed var(--ac);border-radius:16px;background:var(--sf);color:var(--ac);font-weight:600;font-variant-numeric:tabular-nums}
+.mat i{font-style:normal;color:var(--mu);font-weight:400;margin-right:4px}
+.note{white-space:pre-wrap;background:var(--bg);border:1px solid var(--ln);border-radius:9px;padding:12px;font-size:14px;margin:0}
+.ph{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.ph a{display:block;border:1px solid var(--ln);border-radius:8px;overflow:hidden;background:var(--bg)}
+.ph img{display:block;width:100%;height:110px;object-fit:cover}
+.ph span{display:block;font-size:11.5px;color:var(--mu);padding:3px 6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.empty{color:var(--mu);text-align:center;padding:40px 10px}
+.drop{position:fixed;inset:0;z-index:50;background:rgba(31,95,153,.18);border:4px dashed var(--ac);display:grid;place-items:center;font-size:22px;font-weight:700;color:var(--ac)}
+.msg{margin:0 18px;padding:10px 14px;border-radius:9px;background:var(--sf);border:1px solid var(--ok);color:var(--ok);font-weight:600;max-width:1464px}
+.msg.ko{border-color:var(--dg);color:var(--dg)}
+.raw{font-size:12.5px;color:var(--mu)}
+.raw summary{cursor:pointer}
+.raw table{border-collapse:collapse;width:100%;margin-top:6px}.raw td{border-top:1px solid var(--ln);padding:3px 6px;vertical-align:top;overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<header>
+ <h1>Glory Archivio <span>sul PC</span></h1>
+ <label class="b ac" style="display:inline-flex;align-items:center;position:relative">Importa file<input id="fi" type="file" multiple accept=".txt,.json,text/plain,application/json" style="position:absolute;inset:0;opacity:0;cursor:pointer" aria-label="Importa file dall'app"></label>
+ <button class="b" id="dirb" type="button"></button>
+ <button class="b" id="csv" type="button">Esporta Excel</button>
+ <span class="st" id="st"></span>
+</header>
+<div id="msg" class="msg" role="status" hidden></div>
+<main>
+ <section class="pane list" aria-label="Elenco rapportini">
+  <input class="q" id="q" type="search" placeholder="Cerca matricola, cliente, CV, RMA, tecnico…" aria-label="Cerca">
+  <div class="fl" id="fl"></div>
+  <div id="mh"></div>
+  <div class="cnt" id="cn"></div>
+  <div class="items" id="its"></div>
+ </section>
+ <section class="pane det" id="det" aria-label="Dettaglio"></section>
+</main>
+<div class="drop" id="drop" hidden>Rilascia qui i file da importare</div>
+<script>
+"use strict";
+/* Archivio dei rapportini arrivati dall'app Glory 2.0 ("Archivio per il PC").
+   I dati restano su questo PC: nel browser (IndexedDB) e, se collegata, in una cartella (un file per lavoro). */
+var DB=null,L=[],SEL=null,F={q:"",v:"",t:""},DIR=null;
+var TIT={inst:"Installazione",prep:"Preparazione",rip:"Riparazione",loc:"In loco",altro:"Altra attività",rit:"Ritiro"};
+var PX={"CI-5":"50","CI-10":"100","CI-10X":"200"};
+function $(i){return document.getElementById(i)}
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function btn(c,x,fn){var b=el("button",c,x);b.type="button";b.onclick=fn;return b}
+function p2(n){return n<10?"0"+n:""+n}
+function dIt(t){var d=new Date(t);return p2(d.getDate())+"/"+p2(d.getMonth()+1)+"/"+d.getFullYear()}
+function dLav(r){var m=/^(\d{4})-(\d\d)-(\d\d)$/.exec((r.s&&r.s.dt)||"");return m?m[3]+"/"+m[2]+"/"+m[1]:dIt(r.d)}
+function tLav(r){var m=/^(\d{4})-(\d\d)-(\d\d)$/.exec((r.s&&r.s.dt)||"");return m?new Date(+m[1],+m[2]-1,+m[3]).getTime():r.d}
+function g(s,k){return String(s[k]==null?"":s[k]).trim()}
+function say(t,ko){var m=$("msg");m.textContent=t;m.className="msg"+(ko?" ko":"");m.hidden=!t;clearTimeout(say.t);if(t)say.t=setTimeout(function(){m.hidden=true},9000)}
+
+/* ---------- matricole e codici impianto di un lavoro ---------- */
+function mats(r){var s=r.s||{},o=[],i,v=r.v;
+ function add(k,pre,n){n=String(n||"").trim();if(n)o.push({k:k,v:(pre||"")+n,n:n})}
+ function dev(n){for(i=1;i<=n;i++){var px=PX[s["m"+i]]||"";add("Banconote","RBW"+px+"-",s["a"+i]);add("Monete","RCW"+px+"-",s["c"+i]);add("Impianto","",s["mt"+i])}}
+ if(v==="inst"||v==="rit")dev(+s.n||(s.m1||s.a1||s.c1?1:0));
+ else if(v==="rip"){for(i=1;i<=(+s.rn||1);i++){var p="r"+i+"_",t=s[p+"tp"]==="Banconote"?"B":s[p+"tp"]==="Monete"?"C":"",px=PX[s[p+"md"]]||"";add(t==="B"?"Banconote":t==="C"?"Monete":"Modulo",t&&px?"R"+t+"W"+px+"-":"",s[p+"mat"])}}
+ else if(v==="loc"){var q=PX[s.md]||"";add("Banconote",q?"RBW"+q+"-":"",s.r1_mat);add("Monete",q?"RCW"+q+"-":"",s.r2_mat);add("Impianto","",s.mt)}
+ else if(v==="prep"){var z=PX[s.m]||"50";add("Banconote","RBW"+z+"-",s.mtB);add("Monete","RCW"+z+"-",s.mtM);for(i=2;i<=(+s.dn||1);i++)add("Monete","RCW50-",s["mtM"+i]);add("Impianto","",s.mtD)}
+ else add("Matricola","",s.ma);
+ return o}
+function cliente(r){var s=r.s||{};return g(s,"cl")||g(s,"rvn")}
+function rif(r){var s=r.s||{},o=[];if(g(s,"rma"))o.push("RMA "+g(s,"rma"));if(g(s,"cv"))o.push("CV "+g(s,"cv"));if(g(s,"cvc"))o.push("CV "+g(s,"cvc"));if(g(s,"rf"))o.push(g(s,"rf"));if(g(s,"rc"))o.push((s.rf||"")+" "+g(s,"rc"));return o.join(" · ")}
+function testo(r){var s=r.s||{};return [r.n,r.tec,TIT[r.v],cliente(r),g(s,"rvn"),g(s,"se"),rif(r),r.nt].concat(mats(r).map(function(m){return m.v+" "+m.n})).join(" ").toLowerCase()}
+
+/* ---------- archivio locale (IndexedDB) ---------- */
+function dbOpen(){return new Promise(function(ok,ko){var q=indexedDB.open("glory_pc",1);q.onupgradeneeded=function(){var d=q.result;d.createObjectStore("lav",{keyPath:"u"});d.createObjectStore("cfg")};q.onsuccess=function(){DB=q.result;ok()};q.onerror=function(){ko(q.error)}})}
+function dbAll(){return new Promise(function(ok){var t=DB.transaction("lav").objectStore("lav").getAll();t.onsuccess=function(){ok(t.result||[])};t.onerror=function(){ok([])}})}
+function dbPut(arr){return new Promise(function(ok,ko){if(!arr.length){ok();return}var t=DB.transaction("lav","readwrite"),st=t.objectStore("lav");arr.forEach(function(r){st.put(r)});t.oncomplete=ok;t.onerror=t.onabort=function(){ko(t.error)}})}
+function cfg(k,v){return new Promise(function(ok){var t=DB.transaction("cfg",v===undefined?"readonly":"readwrite"),st=t.objectStore("cfg"),q=v===undefined?st.get(k):st.put(v,k);q.onsuccess=function(){ok(q.result)};q.onerror=function(){ok(null)}})}
+
+/* ---------- cartella sul PC (Chrome/Edge): un file .json per lavoro ---------- */
+var FSA=!!window.showDirectoryPicker;
+function dirLabel(){var b=$("dirb");if(!FSA){b.hidden=true;return}b.hidden=false;b.textContent=DIR?(DIR.ok?"Cartella: "+DIR.h.name:"Riapri la cartella "+DIR.h.name):"Collega una cartella"}
+function dirPick(){if(DIR&&!DIR.ok){DIR.h.requestPermission({mode:"readwrite"}).then(function(p){if(p==="granted"){DIR.ok=1;dirSync()}dirLabel()});return}
+ window.showDirectoryPicker({mode:"readwrite",id:"glory-archivio"}).then(function(h){DIR={h:h,ok:1};cfg("dir",h);dirSync();dirLabel()},function(){})}
+function dirInit(){if(!FSA)return Promise.resolve();return cfg("dir").then(function(h){if(!h)return;DIR={h:h,ok:0};return h.queryPermission({mode:"readwrite"}).then(function(p){if(p==="granted"){DIR.ok=1;return dirSync()}})}).catch(function(){})}
+function dirWrite(arr){if(!DIR||!DIR.ok||!arr.length)return Promise.resolve();
+ return arr.reduce(function(pr,r){return pr.then(function(){return DIR.h.getFileHandle(fnSafe(r.u)+".json",{create:true}).then(function(fh){return fh.createWritable()}).then(function(w){return w.write(JSON.stringify(r)).then(function(){return w.close()})})})},Promise.resolve()).catch(function(){say("Non riesco a scrivere nella cartella: ricollegala.",1)})}
+function fnSafe(t){return String(t).replace(/[^A-Za-z0-9_-]/g,"_")}
+/* allinea cartella e browser: cosa manca da una parte viene copiato dall'altra */
+function dirSync(){if(!DIR||!DIR.ok)return Promise.resolve();var got={},inF=[];
+ return (async function(){for await (var e of DIR.h.values()){if(e.kind!=="file"||!/\.json$/.test(e.name))continue;try{var r=JSON.parse(await (await e.getFile()).text());if(r&&r.u){got[r.u]=r}}catch(x){}}})().then(function(){
+  var M={};L.forEach(function(r){M[r.u]=r});var toDb=[],toDir=[];
+  Object.keys(got).forEach(function(u){var r=got[u];if(!M[u]||r.d>M[u].d){toDb.push(r);M[u]=r}});
+  L.forEach(function(r){if(!got[r.u]||got[r.u].d<r.d)toDir.push(r)});
+  L=Object.keys(M).map(function(u){return M[u]});
+  return dbPut(toDb).then(function(){return dirWrite(toDir)}).then(function(){if(toDb.length)say("Dalla cartella: "+toDb.length+" lavori caricati.");draw()})}).catch(function(){})}
+
+/* ---------- importazione: solo lavori nuovi o aggiornati ---------- */
+function readFile(f){return new Promise(function(ok){var rd=new FileReader();rd.onload=function(){ok(String(rd.result||""))};rd.onerror=function(){ok("")};rd.readAsText(f)})}
+function norm(o){var arr=[],dev=o.dev||"bk";
+ if(o&&o.glory===2&&Array.isArray(o.arc))o.arc.forEach(function(r){if(!r||!r.v||!r.s)return;var x=JSON.parse(JSON.stringify(r));x.u=x.u||dev+"-"+(g(x.s,"tec")||"x")+"-"+x.id;x.tec=x.tec||g(x.s,"tec")||o.tec||"";x.d=+x.d||Date.now();delete x.xd;arr.push(x)});
+ return arr}
+function importa(files){var M={},nu=0,ag=0,ug=0,bad=0,ch=[];L.forEach(function(r){M[r.u]=r});
+ Promise.all(Array.prototype.map.call(files,readFile)).then(function(T){
+  T.forEach(function(t){var o=null;try{o=JSON.parse(t)}catch(e){}var A=o?norm(o):[];if(!A.length){bad++;return}
+   A.forEach(function(r){var e=M[r.u];if(!e){nu++;M[r.u]=r;ch.push(r)}else if(r.d>e.d){ag++;M[r.u]=r;ch.push(r)}else ug++})});
+  return dbPut(ch).then(function(){return dirWrite(ch)}).then(function(){L=Object.keys(M).map(function(u){return M[u]});
+   say(bad&&!nu&&!ag&&!ug?"File non riconosciuto: usa il file creato dall'app con «Archivio per il PC».":nu+(nu===1?" nuovo, ":" nuovi, ")+ag+(ag===1?" aggiornato, ":" aggiornati, ")+ug+" già present"+(ug===1?"e":"i")+(bad?", "+bad+" file non validi":"")+".",bad&&!nu&&!ag&&!ug);
+   if(ch.length&&!SEL)SEL=ch[0].u;draw()})}).catch(function(){say("Importazione non riuscita.",1)})}
+
+/* ---------- elenco e ricerca ---------- */
+function filtrati(){var q=F.q.toLowerCase().trim(),W=q.split(/\s+/).filter(Boolean);
+ return L.filter(function(r){if(F.v&&r.v!==F.v)return false;if(F.t&&r.tec!==F.t)return false;if(!W.length)return true;var t=testo(r);return W.every(function(w){return t.indexOf(w)>=0})}).sort(function(a,b){return tLav(b)-tLav(a)||b.d-a.d})}
+function matStoria(){var q=F.q.trim().toUpperCase().replace(/\s+/g,"");if(q.length<3)return null;var hit=null;
+ L.some(function(r){return mats(r).some(function(m){if(m.v.toUpperCase()===q||m.n.toUpperCase()===q){hit=m;return true}})});return hit}
+function draw(){
+ var fl=$("fl");fl.textContent="";[["","Tutti"]].concat(Object.keys(TIT).map(function(k){return [k,TIT[k]]})).forEach(function(o){var n=o[0]?L.filter(function(r){return r.v===o[0]}).length:L.length;if(o[0]&&!n)return;fl.append(btn("ch"+(F.v===o[0]?" on":""),o[1]+" "+n,function(){F.v=o[0];draw()}))});
+ var tecs={};L.forEach(function(r){if(r.tec)tecs[r.tec]=1});var tk=Object.keys(tecs).sort();
+ if(tk.length>1){var se=el("select","sel");se.setAttribute("aria-label","Tecnico");se.append(new Option("Tutti i tecnici",""));tk.forEach(function(t){var op=new Option(t,t);if(F.t===t)op.selected=true;se.append(op)});se.onchange=function(){F.t=se.value;draw()};fl.append(se)}
+ var R=filtrati(),h=matStoria(),mh=$("mh");mh.textContent="";
+ if(h){var b=el("div","mh");b.append(document.createTextNode("Storia di "),el("b",0,h.v),document.createTextNode(" · "+R.length+(R.length===1?" rapportino":" rapportini")+", dal più recente"));mh.append(b)}
+ $("cn").textContent=L.length?R.length+" di "+L.length+" lavori":"";
+ var it=$("its");it.textContent="";
+ if(!L.length){it.append(el("p","empty","Archivio vuoto. Importa i file che arrivano dall'app (Archivio › Archivio per il PC) oppure trascinali in questa finestra."))}
+ else if(!R.length)it.append(el("p","empty","Nessun risultato."));
+ R.slice(0,400).forEach(function(r){var c=btn("it"+((!r.st||r.st==="fatto")?" fat":r.st==="corso"?" cor":"")+(SEL===r.u?" on":""),null,function(){SEL=r.u;draw();if(innerWidth<860)$("det").scrollIntoView()});
+  c.append(el("b",0,r.n||"Senza nome"),el("span",0,TIT[r.v]+" · "+dLav(r)+(r.tec?" · "+r.tec:"")+(r.st==="corso"?" · in corso":r.st==="attesa"?" · in attesa":"")));it.append(c)});
+ if(R.length>400)it.append(el("p","cnt","Mostrati i primi 400: affina la ricerca."));
+ dett();$("st").textContent=L.length+" lavori · "+Object.keys(tecs).length+(Object.keys(tecs).length===1?" tecnico":" tecnici");dirLabel()}
+function dett(){var d=$("det");d.textContent="";var r=L.filter(function(x){return x.u===SEL})[0];
+ if(!r){d.append(el("p","empty",L.length?"Scegli un lavoro dall'elenco. Cerca una matricola per vedere tutta la sua storia.":"Qui vedrai il rapportino, le matricole e le foto."));return}
+ var s=r.s||{};d.append(el("h2",0,r.n||"Senza nome"),el("div","sub",TIT[r.v]+" · "+((!r.st||r.st==="fatto")?"concluso":r.st==="corso"?"in corso":"in attesa")+" · archiviato il "+dIt(r.d)));
+ var kv=el("dl","kv");function row(k,v){if(!v)return;kv.append(el("dt",0,k),el("dd",0,v))}
+ row("Tecnico",r.tec);row("Data intervento",dLav(r));row("Cliente",g(s,"cl"));if(s.rv)row("Rivenditore",g(s,"rvn"));row("Sede",g(s,"se"));row("Riferimento",rif(r));row("Manodopera",g(s,"ore")?g(s,"ore")+(g(s,"ore")==="1"?" ora":" ore"):"");d.append(kv);
+ var M=mats(r);if(M.length){d.append(el("h3",0,"Matricole · tocca per la storia"));var w=el("div","mats");M.forEach(function(m){var b=btn("mat",null,function(){F.q=m.v;F.v="";$("q").value=m.v;draw()});b.append(el("i",0,m.k),document.createTextNode(m.v));b.title="Tutti i rapportini di "+m.v;w.append(b)});d.append(w)}
+ if(r.nt){d.append(el("h3",0,"Note rapportino"));var p=el("pre","note",r.nt);d.append(p,btn("b sm","Copia note",function(e){var b=e.target;navigator.clipboard.writeText(r.nt).then(function(){b.textContent="Copiato";setTimeout(function(){b.textContent="Copia note"},1500)})}))}
+ var nte=g(s,"nte");if(nte){d.append(el("h3",0,"Note tecniche"),el("pre","note",nte))}
+ var P=(r.ph||[]).filter(function(f){return f&&typeof f.d==="string"&&f.d.indexOf("data:image/")===0});
+ if(P.length){d.append(el("h3",0,"Foto · "+P.length));var ph=el("div","ph");P.forEach(function(f){var a=el("a");a.href="#";a.onclick=function(e){e.preventDefault();var wn=window.open();if(wn){wn.document.title=f.n||"foto";var im=wn.document.createElement("img");im.src=f.d;im.style.maxWidth="100%";wn.document.body.append(im)}};var im=document.createElement("img");im.src=f.d;im.alt=f.n||"";a.append(im,el("span",0,f.n||""));ph.append(a)});d.append(ph)}
+ var det=el("details","raw");det.append(el("summary",0,"Tutti i dati della scheda"));var tb=el("table");Object.keys(s).sort().forEach(function(k){if(/^_/.test(k)||s[k]===""||s[k]===0||s[k]==null)return;var tr=el("tr");tr.append(el("td",0,k),el("td",0,typeof s[k]==="object"?JSON.stringify(s[k]):String(s[k])));tb.append(tr)});det.append(tb);d.append(el("h3",0,"Dettagli"),det)}
+
+/* ---------- Excel (CSV con separatore ;) ---------- */
+function csv(){var R=filtrati();if(!R.length){say("Niente da esportare.",1);return}
+ function q(v){v=String(v==null?"":v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
+ var H=["Data","Tipo","Stato","Tecnico","Cliente","Rivenditore","Sede","Riferimento","Matricole","Ore","Nome lavoro","Note rapportino"],rows=[H.join(";")];
+ R.forEach(function(r){var s=r.s||{};rows.push([dLav(r),TIT[r.v],(!r.st||r.st==="fatto")?"Concluso":r.st==="corso"?"In corso":"In attesa",r.tec,g(s,"cl"),s.rv?g(s,"rvn"):"",g(s,"se"),rif(r),mats(r).map(function(m){return m.v}).join(", "),g(s,"ore"),r.n,r.nt||""].map(q).join(";"))});
+ var a=document.createElement("a"),u=URL.createObjectURL(new Blob(["﻿"+rows.join("\r\n")],{type:"text/csv"}));a.href=u;a.download="Glory archivio - "+p2(new Date().getDate())+"-"+p2(new Date().getMonth()+1)+"-"+new Date().getFullYear()+".csv";document.body.append(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000)}
+
+/* ---------- avvio ---------- */
+$("fi").onchange=function(){if(this.files.length)importa(this.files);this.value=""};
+$("q").oninput=function(){F.q=this.value;draw()};
+$("dirb").onclick=dirPick;$("csv").onclick=csv;
+var dc=0;document.addEventListener("dragenter",function(e){e.preventDefault();dc++;$("drop").hidden=false});
+document.addEventListener("dragleave",function(){if(--dc<=0){dc=0;$("drop").hidden=true}});
+document.addEventListener("dragover",function(e){e.preventDefault()});
+document.addEventListener("drop",function(e){e.preventDefault();dc=0;$("drop").hidden=true;if(e.dataTransfer.files.length)importa(e.dataTransfer.files)});
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+dbOpen().then(dbAll).then(function(a){L=a;draw();return dirInit()}).then(draw).catch(function(){say("Questo browser non può salvare l'archivio: usa Chrome o Edge.",1)});
+if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(function(){});
+</script>
+</body>
+</html>

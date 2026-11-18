@@ -29,6 +29,7 @@ main{max-width:640px;margin:0 auto;padding:16px 16px 48px}
 .card b{display:block;font-size:17px;margin-bottom:2px;overflow-wrap:anywhere}
 .card span{color:var(--mu);font-size:14px}
 .card.arcc{border-color:var(--ac)}
+.pcx{border:1px dashed var(--ac);border-radius:12px;padding:10px 12px;margin:0 0 12px}.pcx>b{display:block}.pcx>span{display:block;font-size:13px;color:var(--mu);margin-bottom:8px}
 .card.aok{border-left:6px solid var(--ok)}.card.aok b{color:var(--ok)}.card.aok span{color:var(--ok)}
 .card.acor{border-left:6px solid var(--wn)}.card.aatt{border-left:6px solid var(--ac)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -422,7 +423,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=81,svEl=null;
+var VER=82,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -900,6 +901,20 @@ function arcPdf(r,m){var v0=view,s0=S,p0=PH[r.v],out=null;view=r.v;S=mig(r.v,JSO
  if(!out){m.textContent="PDF non riuscito.";return}
  saveFile(new Blob([out.u],{type:"application/pdf"}),out.fn,function(){m.textContent="PDF salvato."},function(){m.textContent="Salvataggio non riuscito."})}
 function arcTxt(r){var s=r.s||{};return (r.n+" "+(V[r.v]?V[r.v].title:"")+" "+Object.keys(s).map(function(k){return typeof s[k]==="string"?s[k]:""}).join(" ")).toLowerCase()}
+/* ---------- esportazione dell'archivio per il programma sul PC ---------- */
+function devId(){var d=lsGet("gla_dev");if(!d){d=Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-4);lsSet("gla_dev",d)}return d}
+function pcNew(){return ARC.filter(function(r){return !r.xd||r.d>r.xd})}
+function pcFile(L){var D=devId(),tec=String((L[0]&&L[0].s&&L[0].s.tec)||lsGet("gla_tec")||"").trim();
+ return {t:JSON.stringify({glory:2,pc:1,dev:D,saved:Date.now(),tec:tec,arc:L.map(function(r){var o=JSON.parse(JSON.stringify(r));o.u=r.u||D+"-"+r.id;o.tec=String((r.s&&r.s.tec)||tec||"").trim();delete o.xd;return o})}),
+  fn:"Archivio Glory"+(tec?" - "+fcut(tec,30):"")+" - "+L.length+(L.length===1?" lavoro":" lavori")+" - "+fdate()+".txt"}}
+function pcMark(L,done){var n=L.length,t=Date.now();if(!n){done();return}L.forEach(function(r){var x=JSON.parse(JSON.stringify(r));x.xd=t;arcPut(x,fin,fin)});function fin(){if(--n<=0)done()}}
+function pcBox(){var N=pcNew(),bx=el("div","pcx"),m=el("div","cnt","");m.setAttribute("role","status");
+ bx.append(el("b",0,"Archivio per il PC"),el("span",0,N.length?N.length+(N.length===1?" lavoro nuovo o aggiornato":" lavori nuovi o aggiornati")+" da inviare":"Nessun lavoro nuovo da inviare"));
+ function go(L,share){if(!L.length){m.textContent="Niente da esportare.";return}var f=pcFile(L),bl=new Blob([f.t],{type:"text/plain"}),ok=function(){pcMark(L,function(){arcMsg="Inviati "+L.length+(L.length===1?" lavoro":" lavori")+" per il PC.";arcView()})};
+  if(share&&CANSH)shareFile(bl,f.fn,"text/plain",m,"",ok);else saveFile(bl,f.fn,ok,function(){m.textContent="Salvataggio non riuscito."})}
+ var sg=el("div","seg");sg.append(btn(N.length?"on":"",CANSH?"Condividi i nuovi":"Scarica i nuovi",function(){go(pcNew(),1)}));
+ if(ui.pcAll)sg.append(btn("","Tutto l'archivio ("+ARC.length+")",function(){go(ARC.slice(),1)}));else sg.append(btn("","Altro…",function(){ui.pcAll=1;arcView()}));
+ bx.append(sg,m);return bx}
 function arcView(){view="";ttl.textContent="Archivio lavori";back.hidden=false;gear.hidden=true;clearPassi();closeOv();app.textContent="";noteTa=null;
  var m=el("div","cnt",arcMsg);m.setAttribute("role","status");arcMsg="";
  var q=document.createElement("input");q.type="text";q.placeholder="Cerca cliente, CV, RMA, matricola…";q.setAttribute("aria-label","Cerca nell'archivio");q.value=ui.q||"";
@@ -927,7 +942,7 @@ function arcView(){view="";ttl.textContent="Archivio lavori";back.hidden=false;g
    if(ui.ad===r.id)L.append(confirmBox("Eliminare definitivamente «"+r.n+"» dall'archivio?","Elimina",function(){arcDel(r.id,function(){ui.ad=0;ui.ao=0;arcMsg="Lavoro eliminato dall'archivio.";arcView()},function(){ui.ad=0;arcMsg="Eliminazione non riuscita.";arcView()})},function(){ui.ad=0;draw()}));
    var sp=el("div");sp.style.height="8px";L.append(sp)})}
  q.oninput=function(){ui.q=q.value;draw()};
- app.append(fs,tf,m,L);draw();
+ app.append(pcBox(),fs,tf,m,L);draw();
  if(!IDB)app.append(el("p","cnt","Archivio non disponibile in questo browser."))}
 
 /* ---------- backup della scheda (file) ---------- */
@@ -1030,7 +1045,7 @@ function updCheck(manual){
   if(manual||NEWV){if(!view&&!location.hash.replace("#",""))home()}},
   function(){if(manual){updMsg="Controllo non riuscito: verifica la connessione e riprova.";if(!view&&!location.hash.replace("#",""))home()}})}
 function updApply(){updMsg="Aggiornamento in corso…";if(!SOLO)home();var p=[];
- try{if(window.caches)p.push(caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}))}catch(e){}
+ try{if(window.caches)p.push(caches.keys().then(function(k){return Promise.all(k.filter(function(x){return /^glory-v/.test(x)}).map(function(x){return caches.delete(x)}))}))}catch(e){}
  try{if(navigator.serviceWorker)p.push(navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.update().catch(function(){})}))}))}catch(e){}
  function go(){try{location.replace(location.pathname+"?v="+(NEWV||Date.now()))}catch(e){location.reload()}}
  Promise.all(p).then(go,go)}
