@@ -396,6 +396,19 @@ loc:{title:"Interventi in loco",blocks:function(s){
    b.push(G("cfx","Problematica",["Risolta","Non risolta"]));if(s.cfx==="Non risolta")b.push(G("cfd","Destinazione",["Ritiro per riparazione in laboratorio","Nuovo intervento"]))}}
  b.push(NT(),H("Manodopera"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
  return b}},
+rit:{title:"Ritiro dispositivo",blocks:function(s){
+ var LOC=s.dv==="In loco",MAG=s.dv==="In magazzino",n=devN(s),b=[TEC(),DT(),{t:"tmr"},G("dv","Dove",["In loco","In magazzino"]),T("rf","Riferimento","CV, ticket o RMA"),RVC()].concat(s.rv?[T("rvn","Rivenditore","Nome rivenditore")]:[],[T("cl","Cliente","Nome cliente")]);
+ if(LOC)b.push(T("se","Sede","Sede"));
+ b.push(G("mo","Motivo",["Dismissione","Sostituzione","Furto","Danneggiata","Altro"]));
+ if(s.mo==="Altro")b.push(T("mos","Specifica il motivo","Descrivi"));
+ b.push(H("Dispositivi ritirati"),{t:"cnt"});
+ if(LOC)b.push(H("Ritiro dal cliente"),C("w1","Dispositivo scollegato da alimentazione e rete"),C("w2","Contante rimosso e valigette svuotate in presenza del cliente"),C("w3","Chiavi ritirate"));
+ if(MAG)b.push(H("Ricezione in magazzino"),G("imb","Imballo ricevuto integro",["Sì","No"]));
+ b.push(H("Stato del dispositivo"),G("dn","Danni riscontrati",["No","Sì"]));
+ if(s.dn==="Sì")b.push(T("dnd","Descrizione dei danni","Descrivi i danni (le foto si allegano in fondo)",1));
+ if(LOC)b.push(H("Firma"),C("w4","Firma del cliente sul rapporto"));
+ b.push(NT(),H("Manodopera"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
+ return b}},
 altro:{title:"Altre attività",blocks:function(s){
  var b=[TEC(),DT(),{t:"tmr"},G("tp","Tipo di attività",["Installazione","Riparazione","Altro"]),G("rf","Riferimento",["CV","RMA"])];
  if(s.rf)b.push(T("rc",s.rf,"Codice "+(s.rf==="CV"?"contratto":"RMA")));
@@ -403,13 +416,13 @@ altro:{title:"Altre attività",blocks:function(s){
   T("de","Descrizione dell'intervento","Descrivi cosa è stato fatto",1),G("es","Esito",["Eseguito","Non eseguito"]),NT(),H("Manodopera"),{t:"sel",id:"ore",x:"Manodopera (ore)",o:["1","2","3","4","5","6"]},{t:"n"});
  return b}}
 };
-var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Riparazione in laboratorio"],["loc","Intervento in loco"],["altro","Altra attività"]];
+var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Riparazione in laboratorio"],["loc","Intervento in loco"],["altro","Altra attività"],["rit","Ritiro dispositivo"]];
 
 /* ---------- salvataggio della scheda in corso (solo su questo dispositivo) ---------- */
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=80,svEl=null;
+var VER=81,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -566,7 +579,16 @@ function notes(s){var sn=s.sng==="Android"?"SNG 3":s.sng==="Windows"?"SNG Suite"
  if(n&&s.f3)o.push("","Chiavi "+(pl?"dei dispositivi":"del dispositivo")+" (rosse, gialle"+(big?" e blu":"")+") consegnate a: "+(String(s.ric||"").trim()||"______________")+".");
  if(n&&String(s.altm||"").trim())o.push("","Fornito e installato: "+String(s.altm).trim().replace(/\.$/,"")+".");
  return o.join("\n")}
-function noteText(){return view==="inst"?notes(S):view==="rip"?ripText(S):view==="loc"?locText(S):altroText(S)}
+function noteText(){return view==="inst"?notes(S):view==="rip"?ripText(S):view==="loc"?locText(S):view==="rit"?ritText(S):altroText(S)}
+function ritText(s){var n=devN(s),o=[],i,pl=n>1,LOC=s.dv==="In loco",MAG=s.dv==="In magazzino",mo={"Dismissione":"per dismissione","Sostituzione":"per sostituzione","Furto":"a seguito di furto","Danneggiata":"perché danneggiat"+(pl?"i":"o")}[s.mo]||(s.mo==="Altro"&&String(s.mos||"").trim()?"("+String(s.mos).trim()+")":"");
+ var md=[];for(i=1;i<=n;i++)if(s["m"+i])md.push(s["m"+i]);var same=md.length===n&&md.every(function(x){return x===md[0]});
+ o.push((MAG?(pl?"Ricevuti":"Ricevuto")+" in magazzino ":LOC?(pl?"Ritirati":"Ritirato")+" presso il cliente ":(pl?"Ritirati ":"Ritirato "))+(pl?(same?n+" dispositivi Glory "+md[0]:n+" dispositivi Glory"):"dispositivo Glory "+(s.m1||"[modello]"))+(mo?" "+mo:"")+".");
+ for(i=1;i<=n;i++){var p=PX[s["m"+i]]||"";if(pl&&!same)o.push("Dispositivo "+i+": Glory "+(s["m"+i]||"[modello]"));o.push("RBW"+p+"-"+(s["a"+i]||"…"),"RCW"+p+"-"+(s["c"+i]||"…"));if(String(s["mt"+i]||"").trim())o.push("Codice impianto: "+String(s["mt"+i]).trim())}
+ var f=[];if(LOC){if(s.w1)f.push((pl?"Dispositivi scollegati":"Dispositivo scollegato")+" da alimentazione e rete");if(s.w2)f.push("contante rimosso e valigette svuotate in presenza del cliente");if(s.w3)f.push("chiavi ritirate")}
+ if(f.length){var t=f.join(", ");o.push("",t.charAt(0).toUpperCase()+t.slice(1)+".")}
+ if(MAG&&s.imb)o.push("",s.imb==="Sì"?"Imballo ricevuto integro.":"Imballo ricevuto non integro.");
+ if(s.dn==="Sì")o.push("","Danni riscontrati: "+(String(s.dnd||"").trim()||"…"));else if(s.dn==="No")o.push("","Nessun danno riscontrato.");
+ return o.join("\n")}
 
 /* ---------- controllo prima di copiare ---------- */
 function check(bl){var bad=[],warn=[],s=S,i,n,sec="",sub="";
@@ -574,7 +596,10 @@ function check(bl){var bad=[],warn=[],s=S,i,n,sec="",sub="";
  function need(k,t){if(!has(k)){bad.push(t);MK[t]=k}}
  function want(k,t){if(!has(k)){warn.push(t);MK[t]=k}}
  want("tec","Nome del tecnico");
- if(view==="inst"){n=devN(s);if(!n&&!(s.bo==="Sì"||(s.app&&s.sng!=="Android")))bad.push("Almeno un dispositivo (CI-5, CI-10 o CI-10X) oppure il software da installare");
+ if(view==="rit"){n=devN(s);if(!n)bad.push("Almeno un dispositivo ritirato (CI-5, CI-10 o CI-10X)");if(!s.dv)bad.push("Dove: in loco o in magazzino");if(!s.mo){warn.push("Motivo del ritiro");MK["Motivo del ritiro"]="mo"}
+  for(i=1;i<=n;i++){need("m"+i,"Modello del dispositivo "+i);need("a"+i,"Matricola banconote del dispositivo "+i);need("c"+i,"Matricola monete del dispositivo "+i)}
+  want("cl","Cliente");if(s.rv)want("rvn","Rivenditore");want("rf","Riferimento (CV, ticket o RMA)");if(!s.dn){warn.push("Danni riscontrati (Sì o No)");MK["Danni riscontrati (Sì o No)"]="dn"}else if(s.dn==="Sì")want("dnd","Descrizione dei danni");want("ore","Ore di manodopera")}
+ else if(view==="inst"){n=devN(s);if(!n&&!(s.bo==="Sì"||(s.app&&s.sng!=="Android")))bad.push("Almeno un dispositivo (CI-5, CI-10 o CI-10X) oppure il software da installare");
   for(i=1;i<=n;i++){need("m"+i,"Modello del dispositivo "+i);need("a"+i,"Matricola banconote del dispositivo "+i);need("c"+i,"Matricola monete del dispositivo "+i);want("mt"+i,"Codice impianto del dispositivo "+i)}
   var dupI={};for(i=1;i<=n;i++)["a","c"].forEach(function(f){var v=mnorm(s[f+i]),k=f+s["m"+i]+v,t;if(!v)return;if(dupI[k]){t="Matricola "+(f==="a"?"banconote":"monete")+" duplicata: "+s[f+i]+" (dispositivi "+dupI[k]+" e "+i+")";warn.push(t);MK[t]=f+i}else dupI[k]=i});
   if(s.bo==="Sì"){need("sng","Sistema del gestionale del cliente (Windows o Android)");if(!(+s.nsv||0)&&!(+s.ncl||0))warn.push("Numero di postazioni server e client SNG")}
@@ -617,7 +642,7 @@ function tryCopy(cb,cm){var r=check(V[view].blocks(S));cm.textContent="";
  cm.append(bx)}
 /* ---------- PDF ---------- */
 function prog(bl,s,all){var t=0,d=0;bl.forEach(function(x){if(x.memo||x.opt)return;if(x.t==="c"||(all&&(x.t==="g"||x.t==="sel"))){t++;if(s[x.id])d++}});return {t:t,d:d}}
-var PSKIP={inst:["tec","cv","cl","se","rvn","nte"],prep:["tec","cvc","nte","mtM","mtB","mtD"],rip:["tec","rma","cv","rvn","cl","nte"],loc:["tec","rf","cl","se","rvn","nte"],altro:["tec","nte"]};
+var PSKIP={inst:["tec","cv","cl","se","rvn","nte"],prep:["tec","cvc","nte","mtM","mtB","mtD"],rip:["tec","rma","cv","rvn","cl","nte"],loc:["tec","rf","cl","se","rvn","nte"],altro:["tec","nte"],rit:["tec","rf","cl","se","rvn","nte"]};
 function pdfEnc(t){return String(t==null?"":t).replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,"-").replace(/≥/g,">=").replace(/…/g,"...").replace(/\s/g," ").replace(/[^\x20-\xFF]/g,"?")}
 function pdfEsc(t){return pdfEnc(t).replace(/[\\()]/g,"\\$&")}
 function pdfWrap(t,n){var l=[];String(t==null?"":t).split(/\r?\n/).forEach(function(par){var c="";
@@ -722,8 +747,9 @@ function pdfRows(bl){var r=[];bl.forEach(function(x){
  return r}
 function fmtDate(dt){return p2(dt.getDate())+"/"+p2(dt.getMonth()+1)+"/"+dt.getFullYear()+" "+p2(dt.getHours())+":"+p2(dt.getMinutes())}
 function pdfMeta(bl,when){var pr=prog(bl,S,0),dt=when?new Date(when):new Date();
- var tt={inst:"Checklist installazione Glory",prep:"Checklist preparazione macchine Glory",rip:"Checklist riparazione Glory",loc:"Checklist intervento in loco Glory",altro:"Attività Glory"},
+ var tt={inst:"Checklist installazione Glory",prep:"Checklist preparazione macchine Glory",rip:"Checklist riparazione Glory",loc:"Checklist intervento in loco Glory",altro:"Attività Glory",rit:"Ritiro dispositivo Glory"},
   hl={inst:["CV: "+(S.cv||"-")].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],["Cliente: "+(S.cl||"-"),"Sede: "+(S.se||"-")]),prep:["CV: "+(S.cvc||"da associare")].concat(prepMode(S)==="Completa"&&prepMat("mtB")?["Matricola banconote: "+prepMat("mtB")]:[],prepMode(S)==="Completa"&&prepMat("mtM")?["Matricola monete: "+prepMat("mtM")]:[],prepMode(S)==="Completa"&&S.mtD?["Codice impianto: "+S.mtD]:[]),rip:[S.rma||!S.cv?"RMA: "+(S.rma||"-"):"CV: "+S.cv].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],S.cl?["Cliente: "+S.cl]:[]),loc:["Riferimento: "+(S.rf||"-")].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],["Cliente: "+(S.cl||"-"),"Sede: "+(S.se||"-")]),altro:[(S.tp||"Attività")+(S.ti?": "+S.ti:""),S.rf?S.rf+": "+(S.rc||"-"):"Riferimento: -"]};
+ hl.rit=["Riferimento: "+(S.rf||"-")].concat(S.rv?["Rivenditore: "+(S.rvn||"-")]:[],["Cliente: "+(S.cl||"-")],S.dv==="In loco"?["Sede: "+(S.se||"-")]:[],["Ritiro: "+(S.dv||"-")+(S.mo?" · "+(S.mo==="Altro"&&S.mos?S.mos:S.mo):"")]);
  hl[view]=["Tecnico: "+(S.tec||"-"),"Data intervento: "+(dIt(S.dt)||dIt(day()))].concat(hl[view]);
  return {title:tt[view],date:fmtDate(dt),
   lines:hl[view].concat(["Voci completate: "+pr.d+" di "+pr.t])}}
@@ -733,6 +759,7 @@ function fdate(iso){var m=/^(\d{4})-(\d\d)-(\d\d)$/.exec(iso||"");if(m)return m[
 function fnBase(){var o=[],rv=S.rv?fcut(S.rvn,20):"",er="";
  if(view==="loc"){er=fcut(locUnits(S).map(function(u){return String(S[u.p+"er"]||"").trim()}).filter(Boolean).join("-"),12)}
  if(view==="inst"||view==="loc")o=[rv,fcut(S.cl,30),er];
+ else if(view==="rit")o=["Ritiro",fcut(S.cl,30)||fcut(S.rf,30),fcut([S.m1,S.a1].filter(Boolean).join(" "),24)];
  else if(view==="rip")o=fcut(S.rma,40)?[fcut(S.rma,40)]:[fcut(S.cv,30),fcut(S.cl,30)];
  else if(view==="prep")o=(S.m==="CI-5"&&prepMode(S)==="Downgrade CI-5")?["Downgrade CI-5"+(dgCount()?" - "+dgCount()+(dgCount()===1?" dispositivo":" dispositivi"):"")]:[fcut(S.cvc,30)||fcut(prepMat("mtM"),30)];
  else o=[fcut(S.ti,40)];
@@ -878,7 +905,7 @@ function arcView(){view="";ttl.textContent="Archivio lavori";back.hidden=false;g
  var q=document.createElement("input");q.type="text";q.placeholder="Cerca cliente, CV, RMA, matricola…";q.setAttribute("aria-label","Cerca nell'archivio");q.value=ui.q||"";
  var fs=el("div","fld");fs.append(q);
  var tf=el("div","seg");tf.className="seg fsm";tf.style.marginBottom="12px";
- [["","Tutti"],["att","In attesa"],["cor","In corso"],["fat","Conclusi"],["inst","Installazioni"],["prep","Preparazioni"],["rip","Riparazioni"],["loc","In loco"],["altro","Altro"]].forEach(function(o){tf.append(btn((ui.tf||"")===o[0]?"on":"",o[1],function(){ui.tf=o[0];arcView()}))});
+ [["","Tutti"],["att","In attesa"],["cor","In corso"],["fat","Conclusi"],["inst","Installazioni"],["prep","Preparazioni"],["rip","Riparazioni"],["loc","In loco"],["altro","Altro"],["rit","Ritiri"]].forEach(function(o){tf.append(btn((ui.tf||"")===o[0]?"on":"",o[1],function(){ui.tf=o[0];arcView()}))});
  var L=el("div");
  function draw(){L.textContent="";var t=String(q.value||"").toLowerCase().trim(),
    F=ARC.filter(function(r){return (!ui.tf||(ui.tf==="att"?r.st==="attesa":ui.tf==="cor"?r.st==="corso":ui.tf==="fat"?(!r.st||r.st==="fatto"):r.v===ui.tf))&&(!t||arcTxt(r).indexOf(t)>=0)});
@@ -1009,7 +1036,7 @@ function updApply(){updMsg="Aggiornamento in corso…";if(!SOLO)home();var p=[];
  Promise.all(p).then(go,go)}
 
 /* ---------- menù ---------- */
-var DESC={inst:"Dal contratto alla consegna al cliente",prep:"Configurazione e imballo in magazzino",rip:"Diagnosi, ricambi e collaudo dei moduli",loc:"Guasti, aggiornamenti e collaudo dal cliente",altro:"Lavori fuori dalle schede standard"};
+var DESC={inst:"Dal contratto alla consegna al cliente",prep:"Configurazione e imballo in magazzino",rip:"Diagnosi, ricambi e collaudo dei moduli",loc:"Guasti, aggiornamenti e collaudo dal cliente",altro:"Lavori fuori dalle schede standard",rit:"Macchine dismesse, rubate o danneggiate"};
 function home(){
  view="";ttl.textContent="Glory 2.0";back.hidden=true;gear.hidden=false;clearPassi();closeOv();app.textContent="";noteTa=null;
  if(NEWV)app.append(btn("reset ac tight","È disponibile un aggiornamento: tocca per aggiornare",updApply));
@@ -1195,10 +1222,10 @@ function passiFrame(){clearPassi();if(!passi())return;document.body.classList.ad
 var KT=[[/Almeno un dispositivo/,"cnt"],[/Sistema del gestionale/,"sng"],[/Numero di postazioni/,"nsv"],[/Surplus/,"sur"],[/Controlli preliminari: alimentazione/,"ct1"],[/Esito dei controlli preliminari/,"pes"],[/collaudo finale/,"cfe"],[/Su quale modulo/,"cfq"],[/risolta o non risolta/,"cfx"],[/Contratto full: pulizia/,"rev"],[/nessun aggiornamento/,"ufc"],[/Riferimento CV o RMA/,"rf"],[/Matricola duplicata/,"mtM"]];
 function keyOf(t){var m,i;if(MK[t])return MK[t];if((m=/Esito del modulo (\d)/.exec(t)))return "r"+m[1]+"_es";if(/Pulizia: problema rilevato/.test(t))return (/banconote/.test(t)?"r1_":"r2_")+"pp";
  for(i=0;i<KT.length;i++)if(KT[i][0].test(t))return KT[i][1];return ""}
-function stepOf(k){var m=/^(m|a|c|mt)(\d+)$/.exec(k),i;if(view==="inst"&&m)k="cnt";
+function stepOf(k){var m=/^(m|a|c|mt)(\d+)$/.exec(k),i;if((view==="inst"||view==="rit")&&m)k="cnt";
  for(i=0;i<ST.length;i++)if(ST[i].it.some(function(b){return b.id===k||(k==="cnt"&&b.t==="cnt")||(k==="sng"&&b.t==="sw")}))return i;return -1}
 function canJump(k){if(!k)return false;if(!passi())return true;BL=V[view].blocks(S);ST=steps(BL);return stepOf(k)>=0}
-function jump(k){if(!canJump(k))return;var m=view==="inst"&&/^(m|a|c|mt)(\d+)$/.exec(k);closeOv();
+function jump(k){if(!canJump(k))return;var m=(view==="inst"||view==="rit")&&/^(m|a|c|mt)(\d+)$/.exec(k);closeOv();
  if(passi())siSet(view,stepOf(k));ui.dd=0;if(m){ui.dlg={i:+m[2]};pend="cnt"}else pend=k;render()}
 function pendGo(){if(!pend)return;var k=pend,t=app.querySelector('[data-id="'+k+'"]');pend=null;if(!t)return;
  t.scrollIntoView({block:"center"});t.classList.add("flash");setTimeout(function(){t.classList.remove("flash")},1600);
@@ -1207,7 +1234,8 @@ function firstGap(){var r=check(BL),a=r.bad.concat(r.warn),i,k;
  for(i=0;i<a.length;i++){k=keyOf(a[i]);if(/^(m|a|c|mt)\d+$|mat$|^rma$|^ric$|^mt$/.test(k)&&canJump(k))return k}
  for(i=0;i<a.length;i++){k=keyOf(a[i]);if(canJump(k))return k}return ""}
 function gapKeys(){var L=[],i;
- if(view==="inst")for(i=1;i<=devN(S);i++){if(!S["m"+i])L.push("m"+i);if(!S["a"+i])L.push("a"+i);if(!S["c"+i])L.push("c"+i);if(!S["mt"+i])L.push("mt"+i)}
+ if(view==="rit")for(i=1;i<=devN(S);i++){if(!S["m"+i])L.push("m"+i);if(!S["a"+i])L.push("a"+i);if(!S["c"+i])L.push("c"+i)}
+ else if(view==="inst")for(i=1;i<=devN(S);i++){if(!S["m"+i])L.push("m"+i);if(!S["a"+i])L.push("a"+i);if(!S["c"+i])L.push("c"+i);if(!S["mt"+i])L.push("mt"+i)}
  else if(view==="rip"){for(i=1;i<=(+S.rn||1);i++)if(!S["r"+i+"_mat"])L.push("r"+i+"_mat");if(!S.rma)L.push("rma")}
  else if(view==="loc")locUnits(S).forEach(function(u){if(u.m&&!S[u.p+"mat"])L.push(u.p+"mat")});
  return L}
