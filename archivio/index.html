@@ -67,6 +67,7 @@ h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mu);
  <h1>Glory Archivio <span>sul PC</span></h1>
  <label class="b ac" style="display:inline-flex;align-items:center;position:relative">Importa file<input id="fi" type="file" multiple accept=".txt,.json,text/plain,application/json" style="position:absolute;inset:0;opacity:0;cursor:pointer" aria-label="Importa file dall'app"></label>
  <button class="b" id="dirb" type="button"></button>
+ <button class="b" id="sync" type="button" hidden title="Rileggi la cartella">Aggiorna</button>
  <button class="b" id="csv" type="button">Esporta Excel</button>
  <span class="st" id="st"></span>
 </header>
@@ -121,21 +122,39 @@ function cfg(k,v){return new Promise(function(ok){var t=DB.transaction("cfg",v==
 
 /* ---------- cartella sul PC (Chrome/Edge): un file .json per lavoro ---------- */
 var FSA=!!window.showDirectoryPicker;
-function dirLabel(){var b=$("dirb");if(!FSA){b.hidden=true;return}b.hidden=false;b.textContent=DIR?(DIR.ok?"Cartella: "+DIR.h.name:"Riapri la cartella "+DIR.h.name):"Collega una cartella"}
+function dirLabel(){var b=$("dirb");if(!FSA){b.hidden=true;return}b.hidden=false;b.textContent=DIR?(DIR.ok?"Cartella: "+DIR.h.name:"Riapri la cartella "+DIR.h.name):"Collega una cartella";$("sync").hidden=!(DIR&&DIR.ok)}
 function dirPick(){if(DIR&&!DIR.ok){DIR.h.requestPermission({mode:"readwrite"}).then(function(p){if(p==="granted"){DIR.ok=1;dirSync()}dirLabel()});return}
- window.showDirectoryPicker({mode:"readwrite",id:"glory-archivio"}).then(function(h){DIR={h:h,ok:1};cfg("dir",h);dirSync();dirLabel()},function(){})}
-function dirInit(){if(!FSA)return Promise.resolve();return cfg("dir").then(function(h){if(!h)return;DIR={h:h,ok:0};return h.queryPermission({mode:"readwrite"}).then(function(p){if(p==="granted"){DIR.ok=1;return dirSync()}})}).catch(function(){})}
+ window.showDirectoryPicker({mode:"readwrite",id:"glory-archivio"}).then(function(h){DIR={h:h,ok:1};SEEN={};cfg("seen",SEEN);cfg("dir",h);dirSync();dirLabel()},function(){})}
+function dirInit(){if(!FSA)return Promise.resolve();return cfg("seen").then(function(x){SEEN=x||{}}).then(function(){return cfg("dir")}).then(function(h){if(!h)return;DIR={h:h,ok:0};return h.queryPermission({mode:"readwrite"}).then(function(p){if(p==="granted"){DIR.ok=1;return dirSync()}})}).catch(function(){})}
+/* nella cartella (anche una cartella condivisa di Google Drive):
+   - i file "Archivio Glory …" che arrivano dai tecnici vengono importati da soli
+   - la copia dell'archivio va nella sottocartella _archivio (un file .json per lavoro) */
+var SUB="_archivio",SEEN={};
+function subDir(){return DIR.h.getDirectoryHandle(SUB,{create:true})}
 function dirWrite(arr){if(!DIR||!DIR.ok||!arr.length)return Promise.resolve();
- return arr.reduce(function(pr,r){return pr.then(function(){return DIR.h.getFileHandle(fnSafe(r.u)+".json",{create:true}).then(function(fh){return fh.createWritable()}).then(function(w){return w.write(JSON.stringify(r)).then(function(){return w.close()})})})},Promise.resolve()).catch(function(){say("Non riesco a scrivere nella cartella: ricollegala.",1)})}
+ return subDir().then(function(sd){return arr.reduce(function(pr,r){return pr.then(function(){return sd.getFileHandle(fnSafe(r.u)+".json",{create:true}).then(function(fh){return fh.createWritable()}).then(function(w){return w.write(JSON.stringify(r)).then(function(){return w.close()})})})},Promise.resolve())}).catch(function(){say("Non riesco a scrivere nella cartella: ricollegala.",1)})}
 function fnSafe(t){return String(t).replace(/[^A-Za-z0-9_-]/g,"_")}
-/* allinea cartella e browser: cosa manca da una parte viene copiato dall'altra */
-function dirSync(){if(!DIR||!DIR.ok)return Promise.resolve();var got={},inF=[];
- return (async function(){for await (var e of DIR.h.values()){if(e.kind!=="file"||!/\.json$/.test(e.name))continue;try{var r=JSON.parse(await (await e.getFile()).text());if(r&&r.u){got[r.u]=r}}catch(x){}}})().then(function(){
-  var M={};L.forEach(function(r){M[r.u]=r});var toDb=[],toDir=[];
+var syncing=0;
+function dirSync(){if(!DIR||!DIR.ok||syncing)return Promise.resolve();syncing=1;var got={},inc=[],nf=0;
+ return (async function(){
+  for await (var e of DIR.h.values()){if(e.kind!=="file"||!/\.(txt|json)$/i.test(e.name))continue;
+   var f=await e.getFile(),key=e.name+"|"+f.size+"|"+f.lastModified;if(SEEN[key])continue;
+   var o=null;try{o=JSON.parse(await f.text())}catch(x){}SEEN[key]=1;
+   if(o&&o.u&&o.s&&o.v){got[o.u]=o;continue}            /* copia di un lavoro lasciata nella cartella principale (versione precedente) */
+   var A=o?norm(o):[];if(A.length){nf++;inc=inc.concat(A)}}
+  var sd=await subDir();
+  for await (var e2 of sd.values()){if(e2.kind!=="file"||!/\.json$/.test(e2.name))continue;var f2=await e2.getFile(),k2=SUB+"/"+e2.name+"|"+f2.size+"|"+f2.lastModified;if(SEEN[k2])continue;SEEN[k2]=1;try{var r=JSON.parse(await f2.text());if(r&&r.u)got[r.u]=r}catch(x){}}
+ })().then(function(){
+  var M={},toDb=[],nu=0,ag=0;L.forEach(function(r){M[r.u]=r});
   Object.keys(got).forEach(function(u){var r=got[u];if(!M[u]||r.d>M[u].d){toDb.push(r);M[u]=r}});
-  L.forEach(function(r){if(!got[r.u]||got[r.u].d<r.d)toDir.push(r)});
+  var toDir=[];inc.forEach(function(r){var e=M[r.u];if(!e){nu++;M[r.u]=r;toDb.push(r);toDir.push(r)}else if(r.d>e.d){ag++;M[r.u]=r;toDb.push(r);toDir.push(r)}});
+  L.forEach(function(r){if(!got[r.u]&&toDir.indexOf(r)<0&&!SEEN["w|"+r.u+"|"+r.d])toDir.push(r)});
   L=Object.keys(M).map(function(u){return M[u]});
-  return dbPut(toDb).then(function(){return dirWrite(toDir)}).then(function(){if(toDb.length)say("Dalla cartella: "+toDb.length+" lavori caricati.");draw()})}).catch(function(){})}
+  return dbPut(toDb).then(function(){return dirWrite(toDir)}).then(function(){toDir.forEach(function(r){SEEN["w|"+r.u+"|"+r.d]=1});cfg("seen",SEEN);
+   if(nu||ag)say("Dalla cartella: "+nu+(nu===1?" nuovo":" nuovi")+(ag?", "+ag+(ag===1?" aggiornato":" aggiornati"):"")+".");draw()})})
+ .catch(function(){say("Lettura della cartella non riuscita: ricollegala.",1)}).then(function(){syncing=0})}
+/* torna sulla finestra o tocca Aggiorna: rilegge la cartella */
+window.addEventListener("focus",function(){if(DIR&&DIR.ok)dirSync()});
 
 /* ---------- importazione: solo lavori nuovi o aggiornati ---------- */
 function readFile(f){return new Promise(function(ok){var rd=new FileReader();rd.onload=function(){ok(String(rd.result||""))};rd.onerror=function(){ok("")};rd.readAsText(f)})}
@@ -191,7 +210,7 @@ function csv(){var R=filtrati();if(!R.length){say("Niente da esportare.",1);retu
 /* ---------- avvio ---------- */
 $("fi").onchange=function(){if(this.files.length)importa(this.files);this.value=""};
 $("q").oninput=function(){F.q=this.value;draw()};
-$("dirb").onclick=dirPick;$("csv").onclick=csv;
+$("dirb").onclick=dirPick;$("sync").onclick=function(){dirSync()};$("csv").onclick=csv;
 var dc=0;document.addEventListener("dragenter",function(e){e.preventDefault();dc++;$("drop").hidden=false});
 document.addEventListener("dragleave",function(){if(--dc<=0){dc=0;$("drop").hidden=true}});
 document.addEventListener("dragover",function(e){e.preventDefault()});
