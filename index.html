@@ -29,7 +29,7 @@ main{max-width:640px;margin:0 auto;padding:16px 16px 48px}
 .card b{display:block;font-size:17px;margin-bottom:2px;overflow-wrap:anywhere}
 .card span{color:var(--mu);font-size:14px}
 .card.arcc{border-color:var(--ac)}
-.pcx{border:1px dashed var(--ac);border-radius:12px;padding:10px 12px;margin:0 0 12px}.pcx>b{display:block}.pcx>span{display:block;font-size:13px;color:var(--mu);margin-bottom:8px}
+.pcx{margin:0 0 12px}.pcx>b{display:block}.pcx>span{display:block;font-size:13px;color:var(--mu);margin-bottom:8px}
 .card.aok{border-left:6px solid var(--ok)}.card.aok b{color:var(--ok)}.card.aok span{color:var(--ok)}
 .card.acor{border-left:6px solid var(--wn)}.card.aatt{border-left:6px solid var(--ac)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -423,7 +423,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=82,svEl=null;
+var VER=83,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -909,11 +909,9 @@ function pcFile(L){var D=devId(),tec=String((L[0]&&L[0].s&&L[0].s.tec)||lsGet("g
   fn:"Archivio Glory"+(tec?" - "+fcut(tec,30):"")+" - "+L.length+(L.length===1?" lavoro":" lavori")+" - "+fdate()+".txt"}}
 function pcMark(L,done){var n=L.length,t=Date.now();if(!n){done();return}L.forEach(function(r){var x=JSON.parse(JSON.stringify(r));x.xd=t;arcPut(x,fin,fin)});function fin(){if(--n<=0)done()}}
 function pcBox(){var N=pcNew(),bx=el("div","pcx"),m=el("div","cnt","");m.setAttribute("role","status");
- bx.append(el("b",0,"Archivio per il PC"),el("span",0,N.length?N.length+(N.length===1?" lavoro nuovo o aggiornato":" lavori nuovi o aggiornati")+" da inviare":"Nessun lavoro nuovo da inviare"));
  function go(L,share){if(!L.length){m.textContent="Niente da esportare.";return}var f=pcFile(L),bl=new Blob([f.t],{type:"text/plain"}),ok=function(){pcMark(L,function(){arcMsg="Inviati "+L.length+(L.length===1?" lavoro":" lavori")+" per il PC.";arcView()})};
   if(share&&CANSH)shareFile(bl,f.fn,"text/plain",m,"",ok);else saveFile(bl,f.fn,ok,function(){m.textContent="Salvataggio non riuscito."})}
- var sg=el("div","seg");sg.append(btn(N.length?"on":"",CANSH?"Condividi i nuovi":"Scarica i nuovi",function(){go(pcNew(),1)}));
- if(ui.pcAll)sg.append(btn("","Tutto l'archivio ("+ARC.length+")",function(){go(ARC.slice(),1)}));else sg.append(btn("","Altro…",function(){ui.pcAll=1;arcView()}));
+ var sg=el("div","seg");sg.append(btn(N.length?"on":"","Invia al PC · "+N.length+(N.length===1?" nuovo":" nuovi"),function(){go(pcNew(),1)}),btn("","Tutto ("+ARC.length+")",function(){go(ARC.slice(),1)}));
  bx.append(sg,m);return bx}
 function arcView(){view="";ttl.textContent="Archivio lavori";back.hidden=false;gear.hidden=true;clearPassi();closeOv();app.textContent="";noteTa=null;
  var m=el("div","cnt",arcMsg);m.setAttribute("role","status");arcMsg="";
