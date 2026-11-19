@@ -247,7 +247,7 @@ function grow(t){t.style.height="auto";t.style.height=Math.min(Math.max(t.scroll
 function UPD(s,id,x){var c=C(id,x);c.opt=1;return [c].concat(s[id]?[T(id+"_a","Versione precedente","Es. 1.2.3"),T(id+"_n","Versione installata ora","Es. 1.2.4")]:[])}
 function GRM(){var c=C("grm","Genera RMA automaticamente");c.memo=1;return c}
 var rmaEl=null;
-function rmaGen(s){var src=(s.rv&&String(s.rvn||"").trim())?s.rvn:s.cl,
+function rmaGen(s){var src=crm((s.rv&&String(s.rvn||"").trim())?s.rvn:s.cl).n,
  l3=String(src||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z]/g,"").slice(0,3).toUpperCase(),
  num=[PX[s.r1_md],String(s.r1_mat||"").trim()].filter(Boolean).join("-"),er=String(s.r1_er||"").replace(/\s+/g,"").toUpperCase();
  return [l3,num,er].filter(Boolean).join("-")}
@@ -423,7 +423,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=83,svEl=null;
+var VER=84,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -453,11 +453,40 @@ function modInfo(s,p){var t=s[p+"tp"]==="Banconote"?"B":s[p+"tp"]==="Monete"?"C"
  return {t:t,n:t==="B"?"banconote":t==="C"?"monete":"",m:m,sig:sg,full:sg+(s[p+"mat"]||"…")}}
 function verT(s,id){var a=String(s[id+"_a"]||"").trim(),n=String(s[id+"_n"]||"").trim();return n?(a?" (da "+a+" a "+n+")":" (versione "+n+")"):(a?" (da "+a+")":"")}
 /* modulo associato: l'altro modulo della stessa macchina, revisionato; collaudo unico */
+/* mail al magazzino: il minimo per la spedizione. Il codice CRM è il prefisso del nome cliente */
+function crm(t){var m=/^\s*([A-Za-z]{0,4}\d[\w.\/]*)\s*[-–—:·,]?\s+(.+)$/.exec(String(t||""));return m?{c:m[1],n:m[2].trim()}:{c:"",n:String(t||"").trim()}}
+function magMail(s){var o=[],cl=crm(s.cl),rv=s.rv?crm(s.rvn):null,ss=[],i,t,v=view;
+ function L(k,x){x=String(x==null?"":x).trim();if(x)o.push(k+": "+x)}
+ function pz(p){var q=[],j;for(j=1;j<=(+s[p+"np"]||0);j++)if(String(s[p+"pz"+j]||"").trim())q.push(String(s[p+"pz"+j]).trim());return q}
+ function cli(){L("Codice cliente",cl.c);L("Cliente",cl.n);if(rv)L("Rivenditore",(rv.c?rv.c+" ":"")+rv.n)}
+ function devs(){var n=devN(s);for(i=1;i<=n;i++){var px=PX[s["m"+i]]||"";o.push("Dispositivo"+(n>1?" "+i:"")+": Glory "+(s["m"+i]||"…")+" · RBW"+px+"-"+(String(s["a"+i]||"").trim()||"…")+" · RCW"+px+"-"+(String(s["c"+i]||"").trim()||"…")+(String(s["mt"+i]||"").trim()?" · impianto "+String(s["mt"+i]).trim():""))}}
+ var sp={"Cliente":"al cliente","Rivenditore":"al rivenditore","Tecnico di zona":"al tecnico di zona"};
+ if(v==="rip"){var A=ripAs(s),M=[modInfo(s,"r1_")].concat(A?[modInfo(s,"r2_")]:[]),es=s.r1_es,de=s.r1_de;
+  ss=[es==="Riparato"?"Riparato":es==="Non riparabile"?"Non riparabile":"Riparazione",s.rma?"RMA "+String(s.rma).trim():s.cv?"CV "+String(s.cv).trim():""];
+  o.push(es==="Riparato"?"la macchina è stata riparata"+(de==="Spedizione"?" ed è pronta per la spedizione.":"."):es==="Non riparabile"?"la macchina non è riparabile.":"aggiornamento sulla riparazione.","");
+  cli();L("RMA",s.rma);if(!s.rma)L("CV",s.cv);o.push("Dispositivo: Glory "+(M[0].m||"…")+" · "+M.map(function(m){return m.full}).join(" · "));
+  t=pz("r1_").concat(A?pz("r2_"):[]);if(t.length)L("Pezzi sostituiti",t.join(", "));
+  if(es==="Riparato"&&de){L("Destinazione",de==="Spedizione"?"spedizione"+(s.r1_sp?" "+sp[s.r1_sp]:""):de.toLowerCase());if(de==="Spedizione")L("Indirizzo di spedizione",String(s.r1_spa||"").trim()||"…")}}
+ else if(v==="inst"){ss=["Installazione",s.cv?"CV "+String(s.cv).trim():""];o.push(s.f4?"installazione completata.":"installazione.","");cli();L("CV",s.cv);L("Sede",s.se);devs();if(String(s.altm||"").trim())L("Materiale fornito",s.altm)}
+ else if(v==="loc"){var U=locUnits(s),dest=s.cfd||(s.pes==="Non risolto"?s.pde:"");ss=["Intervento in loco",s.rf?"rif. "+String(s.rf).trim():""];
+  o.push(dest==="Ritiro per riparazione in laboratorio"?"dispositivo da ritirare per riparazione in laboratorio.":dest==="Nuovo intervento"?"serve un nuovo intervento.":s.cfe==="Tutto OK"?"intervento concluso, dispositivo operativo.":"intervento in loco.","");
+  cli();L("Riferimento",s.rf);L("Sede",s.se);o.push("Dispositivo: Glory "+(s.md||"…")+U.filter(function(u){return u.m}).map(function(u){return " · "+u.full}).join("")+(String(s.mt||"").trim()?" · impianto "+String(s.mt).trim():""));
+  t=[];U.forEach(function(u){t=t.concat(pz(u.p))});if(t.length)L("Pezzi sostituiti",t.join(", "))}
+ else if(v==="prep"){var c5=s.m==="CI-5"&&prepMode(s)==="Downgrade CI-5";ss=["Preparazione "+(s.m||""),s.cvc?"CV "+String(s.cvc).trim():c5?"downgrade":""];
+  o.push(s.imb?(c5?"moduli pronti e reimballati.":"macchina pronta e reimballata."):"preparazione in corso.","");L("CV",s.cvc||"da associare");L("Modello",s.m+(c5?" · downgrade FCC":""));
+  if(c5){for(i=1;i<=(+s.dn||1);i++)if(String(s[mrk(i)]||"").trim())o.push("Modulo monete "+i+": RCW50-"+String(s[mrk(i)]).trim())}
+  else{L("Matricola banconote",prepMat("mtB"));L("Matricola monete",prepMat("mtM"));L("Codice impianto",s.mtD);L("Monitor",s.mon);L("Chiavi",s.mon==="Sì"?"nella scatola del monitor":s.chp)}}
+ else if(v==="rit"){ss=["Ritiro dispositivo",s.dv?String(s.dv).toLowerCase():""];o.push((s.dv==="In magazzino"?"dispositivo ricevuto in magazzino":"dispositivo ritirato dal cliente")+(s.mo?" · motivo: "+(s.mo==="Altro"&&s.mos?s.mos:s.mo).toLowerCase():"")+".","");
+  cli();L("Riferimento",s.rf);if(s.dv==="In loco")L("Sede",s.se);devs();if(s.dv==="In magazzino"&&s.imb)L("Imballo integro",s.imb);L("Danni",s.dn==="Sì"?(String(s.dnd||"").trim()||"sì"):s.dn==="No"?"nessuno":"")}
+ else{ss=[s.tp||"Attività",String(s.ti||"").trim()];o.push((String(s.ti||"").trim()||"attività")+".","");L(s.rf||"Riferimento",s.rc);L("Modello",s.mt);L("Matricola",s.ma);L("Esito",s.es)}
+ var sogg=ss.concat(cl.c?[cl.c]:[],cl.n?[cl.n]:[]).filter(Boolean).join(" · ");
+ o.unshift("Ciao,");o.push("","Grazie"+(String(s.tec||"").trim()?",\n"+String(s.tec).trim():""));
+ return "mailto:?subject="+encodeURIComponent(sogg)+"&body="+encodeURIComponent(o.join("\n"))}
 function ripRif(s){var r=String(s.rma||"").trim(),c=String(s.cv||"").trim();return r?"RMA: "+r:c?"CV: "+c:"RMA: …"}
 function ripAs(s){return (+s.rn||1)===2&&!!s.rva}
 function ripEnd(b,s,p,hd,cnt){b.push(hd,C(p+"acc","Test di accensione"),C(p+"res","Reset"),C(p+"cnt",cnt),G(p+"es","Esito",["Riparato","Non riparabile"]));
  if(s[p+"es"]==="Riparato"){b.push(G(p+"de","Destinazione",["Reimballo","Reinstallazione in loco","Spedizione"]));
-  if(s[p+"de"]==="Spedizione")b.push(G(p+"sp","Spedire a",["Cliente","Rivenditore","Tecnico di zona"]))}}
+  if(s[p+"de"]==="Spedizione"){b.push(G(p+"sp","Spedire a",["Cliente","Rivenditore","Tecnico di zona"]));var ad=T("spa","Indirizzo di spedizione","Via, CAP, comune, provincia",1);ad.opt=1;b.push(ad)}}}
 function ripDet(s,p,pz){var d=[];if(s[p+"er"])d.push("Codice errore: "+String(s[p+"er"]).trim()+".");
  if(s[p+"pb"])d.push("Problematica riscontrata: "+String(s[p+"pb"]).trim());
  if(s[p+"pr"])d.push("Interventi eseguiti: "+String(s[p+"pr"]).trim());
@@ -1152,7 +1181,8 @@ function render(){
    x.o.forEach(function(v){var op=el("option","",v+(v==="1"?" ora":" ore"));op.value=v;if(S[x.id]===v)op.selected=true;se.append(op)});
    se.onchange=function(){S[x.id]=se.value||0;save();render()};fs.dataset.id=x.id;fs.append(se);app.append(fs)}
   else if(x.t==="n"){app.append(el("h2",0,"Note rapportino"));noteTa=el("textarea");noteTa.readOnly=true;noteTa.style.minHeight="300px";noteTa.value=noteText();noteTa.setAttribute("aria-label","Note per il rapportino");
-   var cm=el("div"),cb=btn("reset ac","Copia note",function(){tryCopy(cb,cm)});cb.style.marginTop="10px";app.append(noteTa,cb,cm);pdfBox()}
+   var cm=el("div"),cb=btn("reset ac","Copia note",function(){tryCopy(cb,cm)});cb.style.marginTop="10px";app.append(noteTa,cb,cm);
+   app.append(btn("reset tight","Mail al magazzino",function(){location.href=magMail(S)}));pdfBox()}
   else if(x.t==="c"){var nk="nt_"+x.id,rw=el("div","rowc"),
     b=btn("chk"+(S[x.id]?" on":""),null,function(){S[x.id]=S[x.id]?0:1;if(x.id==="grm"&&S.grm)S.rmaM=0;save();render()}),
     nb=btn("nb"+(S[nk]?" has":""),"Nota",function(){ui.notes[x.id]=!ui.notes[x.id];ui.foc=ui.notes[x.id]?x.id:null;render()});
@@ -1174,7 +1204,7 @@ function render(){
     rl.append(rc,document.createTextNode("Ricordami: usa questo nome in tutte le schede"));ft.append(rl)}app.append(ft);if(x.cmp){i.style.minHeight="56px";i.style.overflowY="auto";grow(i)}}
  });
  if(PS&&!last)markAll(list);
- if(!PS||last){if(view==="prep")pdfBox();if(!SOLO)arcBox();if(PS)rstBox()}
+ if(!PS||last){if(view==="prep"){app.append(btn("reset tight","Mail al magazzino",function(){location.href=magMail(S)}));pdfBox()}if(!SOLO)arcBox();if(PS)rstBox()}
  passiFrame();pendGo()}
 
 /* ---------- menu Condividi della scheda ---------- */
