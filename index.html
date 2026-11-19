@@ -423,7 +423,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=85,svEl=null;
+var VER=86,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -937,7 +937,7 @@ function pcNew(){return ARC.filter(function(r){return !r.xd||r.d>r.xd})}
 function pcFile(L){var D=devId(),tec=String((L[0]&&L[0].s&&L[0].s.tec)||lsGet("gla_tec")||"").trim();
  return {t:JSON.stringify({glory:2,pc:1,dev:D,saved:Date.now(),tec:tec,arc:L.map(function(r){var o=JSON.parse(JSON.stringify(r));o.u=r.u||D+"-"+r.id;o.tec=String((r.s&&r.s.tec)||tec||"").trim();delete o.xd;return o})}),
   fn:"Archivio Glory"+(tec?" - "+fcut(tec,30):"")+" - "+L.length+(L.length===1?" lavoro":" lavori")+" - "+fdate()+".txt"}}
-function pcMark(L,done){var n=L.length,t=Date.now();if(!n){done();return}var D=devId();L.forEach(function(r){var x=JSON.parse(JSON.stringify(r));x.xd=t;x.u=r.u||D+"-"+r.id;arcPut(x,fin,fin)});function fin(){if(--n<=0)done()}}
+function pcMark(L,done){var n=L.length,t=Date.now();if(!n){done();return}var D=devId();lsSet("gla_lastpc",String(t));L.forEach(function(r){var x=JSON.parse(JSON.stringify(r));x.xd=t;x.u=r.u||D+"-"+r.id;arcPut(x,fin,fin)});function fin(){if(--n<=0)done()}}
 function pcBox(){var N=pcNew(),bx=el("div","pcx"),m=el("div","cnt","");m.setAttribute("role","status");
  function go(L,share){if(!L.length){m.textContent="Niente da esportare.";return}var f=pcFile(L),bl=new Blob([f.t],{type:"text/plain"}),ok=function(){pcMark(L,function(){arcMsg="Inviati "+L.length+(L.length===1?" lavoro":" lavori")+" per il PC.";arcView()})};
   if(share&&CANSH)shareFile(bl,f.fn,"text/plain",m,"",ok);else saveFile(bl,f.fn,ok,function(){m.textContent="Salvataggio non riuscito."})}
@@ -1091,7 +1091,9 @@ function home(){
    a.append(br,el("span",0,(s.tmA?"⏱ ":"")+(s._arc?"Riaperto dall'archivio · ":"In corso · ")+p.d+" di "+p.t+(String(s.cl||s.rma||s.cvc||s.ti||"").trim()?" · "+String(s.cl||s.rma||s.cvc||s.ti).trim():"")))}
   else a.append(el("span",0,DESC[r[0]]));tl.append(a)});if(SQ)app.append(tl);
  app.append(el("h2",0,"RMA"),el("div","cnt","Codice RMA per una macchina appena arrivata."),btn("reset ac tight","Genera RMA",function(){location.hash="#rma"}));
- app.append(el("h2",0,"Archivio"),el("div","cnt",ARC.length?ARC.length+(ARC.length===1?" lavoro archiviato su questo dispositivo":" lavori archiviati su questo dispositivo"):"Nessun lavoro archiviato. A fine intervento usa «Archivia lavoro» in fondo alla scheda."),btn("reset ac tight","Apri archivio lavori",function(){location.hash="#arc"}));
+ var NP=pcNew(),lp=+lsGet("gla_lastpc")||0,old=NP.length?Math.min.apply(null,NP.map(function(r){return r.d})):0,gg=NP.length?Math.floor((Date.now()-Math.max(lp,old))/864e5):0,
+  ai=el("div","cnt"+(gg>=3?" bw":""),ARC.length?ARC.length+(ARC.length===1?" lavoro archiviato":" lavori archiviati")+(NP.length?" · "+NP.length+" da inviare al PC"+(gg>=3?" · ultimo invio "+(lp?gg+" giorni fa":"mai"):""):""):"Nessun lavoro archiviato. A fine intervento usa «Archivia lavoro» in fondo alla scheda.");
+ app.append(el("h2",0,"Archivio"),ai,btn("reset ac tight",NP.length?"Apri archivio · "+NP.length+" da inviare":"Apri archivio lavori",function(){location.hash="#arc"}));
  app.append(el("h2",0,"Backup"));var u=bkUi(home);app.append(bkLast(),el("p","cnt","Il backup completo comprende le schede in corso e tutto l'archivio."),bkRow(u,function(){var r=bkAll();return r.n?r:null},"Niente da salvare: nessuna scheda compilata e archivio vuoto."),u.fi,u.m);if(ui.bkPend)app.append(pendBox(home));
  if(!LS)app.append(el("p","cnt","Questo browser non conserva i dati: genera PDF e note prima di chiudere la pagina."));
  app.append(el("h2",0,"Aggiornamenti"));
