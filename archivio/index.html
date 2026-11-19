@@ -75,6 +75,7 @@ h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mu);
 .cms{display:flex;flex-direction:column;gap:6px}.cm{background:var(--bg);border:1px solid var(--ln);border-radius:9px;padding:7px 10px}
 .cmh{display:flex;gap:8px;align-items:baseline;font-size:12.5px;color:var(--mu)}.cmh b{color:var(--tx)}.cmt{white-space:pre-wrap;font-size:14px;margin-top:2px}
 .cmx{margin-left:auto;border:0;background:none;color:var(--dg);font-size:12px;cursor:pointer}
+.pdfv{margin:0 0 12px}.pdfv canvas{width:100%;height:auto;display:block;border:1px solid var(--ln);border-radius:6px;margin-top:8px;background:#fff}
 .az{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.b.dgb{color:var(--dg);border-color:var(--dg)}
 .inv{font-size:12.5px;color:var(--mu);margin:0 0 8px}.inv .old{color:var(--wn);font-weight:600}
 .it.nw{box-shadow:inset 0 0 0 2px var(--ac)}.nwb{font-style:normal;font-size:11px;font-weight:700;background:var(--ac);color:var(--on);border-radius:6px;padding:1px 6px;margin-right:6px;vertical-align:middle}
@@ -191,11 +192,11 @@ function dirSync(){if(!DIR||!DIR.ok||syncing)return Promise.resolve();syncing=1;
  })().then(function(){
   var M={},toDb=[],nu=0,ag=0;L.forEach(function(r){M[r.u]=r});
   Object.keys(got).forEach(function(u){var r=got[u];if(!M[u]||r.d>M[u].d){toDb.push(r);M[u]=r}});
-  inc.forEach(function(r){var e=M[r.u];if(!e){nu++;r.imp=Date.now();M[r.u]=r;toDb.push(r)}else if(r.d>e.d){ag++;r.imp=Date.now();M[r.u]=r;toDb.push(r)}});
+  inc.forEach(function(r){var e=M[r.u];if(!e){nu++;r.imp=Date.now();M[r.u]=r;toDb.push(r)}else if(r.d>e.d){ag++;r.imp=Date.now();M[r.u]=passa(r,e);toDb.push(r)}});
   L=Object.keys(M).map(function(u){return M[u]});
   var tch=0;tms.forEach(function(t){if(teamMerge(t))tch=1});if(mtOld&&metaToTeam(mtOld))tch=1;if(tch)cfg("team",TEAM);
   return dbPut(toDb).then(teamDir).then(pulisci).then(function(){cfg("seen",SEEN);
-   if(nu||ag)say("Dalla cartella: "+nu+(nu===1?" nuovo":" nuovi")+(ag?", "+ag+(ag===1?" aggiornato":" aggiornati"):"")+".");draw()})})
+   if(nu||ag)say("Dalla cartella: "+nu+(nu===1?" nuovo":" nuovi")+(ag?", "+ag+(ag===1?" aggiornato":" aggiornati"):"")+".");if(nu||ag||tch||toDb.length)draw();else dirLabel()})})
  .catch(function(){say("Lettura della cartella non riuscita: ricollegala.",1)}).then(function(){syncing=0})}
 /* PC principale: i file dei tecnici già importati da più di 30 giorni vanno in _importati (una volta al giorno) */
 var MAIN=0,PULITO=0;
@@ -278,6 +279,8 @@ function tagEditor(){var ov=el("div","ov"),d=el("div","dlg");ov.setAttribute("ro
 
 /* ---------- importazione: solo lavori nuovi o aggiornati ---------- */
 function readFile(f){return new Promise(function(ok){var rd=new FileReader();rd.onload=function(){ok(String(rd.result||""))};rd.onerror=function(){ok("")};rd.readAsText(f)})}
+function tecL(r){var t=(r.s&&Array.isArray(r.s._tp)?r.s._tp:[]).concat(r.tp||[]).filter(function(x){return x&&x!==r.tec}),u=[];t.forEach(function(x){if(u.indexOf(x)<0)u.push(x)});return r.tec?u.concat(r.tec):u}
+function passa(r,e){if(e&&e.tec&&e.tec!==r.tec){var t=(e.tp||[]).concat(r.tp||[],[e.tec]);r.tp=t.filter(function(x,i){return x!==r.tec&&t.indexOf(x)===i})}return r}
 function norm(o){var arr=[],dev=o.dev||"bk";
  if(o&&o.glory===2&&Array.isArray(o.arc))o.arc.forEach(function(r){if(!r||!r.v||!r.s)return;var x=JSON.parse(JSON.stringify(r));x.u=x.u||dev+"-"+(g(x.s,"tec")||"x")+"-"+x.id;x.tec=x.tec||g(x.s,"tec")||o.tec||"";x.d=+x.d||Date.now();x.sent=+o.saved||x.d;delete x.xd;arr.push(x)});
  if(o&&o.gloryPc===1&&Array.isArray(o.lav))o.lav.forEach(function(r){if(r&&r.u&&r.v&&r.s)arr.push(r)});
@@ -287,7 +290,7 @@ function importa(files){var M={},nu=0,ag=0,ug=0,bad=0,ch=[],mt=0;L.forEach(funct
   T.forEach(function(t){var o=null;try{o=JSON.parse(t)}catch(e){}var A=o?norm(o):[];
    if(o&&o.gloryPc===1&&((o.team&&teamMerge(o.team))|(o.meta&&metaToTeam(o.meta))))mt=1
    if(!A.length&&!mt){bad++;return}
-   A.forEach(function(r){var e=M[r.u];if(!e){nu++;r.imp=Date.now();M[r.u]=r;ch.push(r)}else if(r.d>e.d){ag++;r.imp=Date.now();M[r.u]=r;ch.push(r)}else ug++})});
+   A.forEach(function(r){var e=M[r.u];if(!e){nu++;r.imp=Date.now();M[r.u]=r;ch.push(r)}else if(r.d>e.d){ag++;r.imp=Date.now();M[r.u]=passa(r,e);ch.push(r)}else ug++})});
   if(mt)teamSave();
   return dbPut(ch).then(function(){L=Object.keys(M).map(function(u){return M[u]});
    say(bad&&!nu&&!ag&&!ug&&!mt?"File non riconosciuto: usa il file inviato dall'app (Invia al PC) o un «Salva tutto».":nu+(nu===1?" nuovo, ":" nuovi, ")+ag+(ag===1?" aggiornato, ":" aggiornati, ")+ug+" già present"+(ug===1?"e":"i")+(mt?", etichette e commenti uniti":"")+(bad?", "+bad+" file non validi":"")+".",bad&&!nu&&!ag&&!ug&&!mt);
@@ -380,10 +383,12 @@ function dett(h){var d=$("det");d.textContent="";var r=L.filter(function(x){retu
  if(!r&&h){d.append(macchina(h),el("p","st","Scegli un rapportino dall'elenco per aprirlo."));return}
  if(!r){d.append(el("p","empty",L.length?"Scegli un lavoro dall'elenco, oppure cerca una matricola o un codice impianto per vedere la scheda della macchina.":"Qui vedrai il rapportino, le matricole e le foto."));return}
  var s=r.s||{};d.append(el("h2",0,r.n||"Senza nome"),el("div","sub",TIT[r.v]+" · "+(stato(r)==="fatto"?"concluso":stato(r)==="corso"?"in corso":"in attesa")+" · archiviato il "+dIt(r.d)+(hid(r)?" · eliminato da "+(TEAM.hid[r.u].a||"?"):"")));
- var az=el("div","az");az.append(btn("b sm","PDF",function(){pdfLav(r)}),btn("b sm","Mail al magazzino",function(){mailLav(r)}),
-  hid(r)?btn("b sm","Ripristina",function(){TEAM.hid[r.u]={on:0,ts:Date.now(),a:NOME};teamSave();draw()}):btn("b sm dgb","Elimina",function(){if(!confirm("Eliminare «"+(r.n||"lavoro")+"» per tutta la squadra?\nSi può ripristinare da Stato › Eliminati."))return;TEAM.hid[r.u]={on:1,ts:Date.now(),a:NOME};teamSave();F.sel=null;draw()}));d.append(az);
+ var az=el("div","az"),pv=el("div","pdfv");pv.hidden=true;az.append(btn("b sm","PDF",function(){pdfLav(r,pv)}),btn("b sm","Mail al magazzino",function(){mailLav(r)}));
+ if(stato(r)!=="fatto")az.append(btn("b sm","Scheda da riprendere",function(){riprendi(r)}));
+ az.append(
+  hid(r)?btn("b sm","Ripristina",function(){TEAM.hid[r.u]={on:0,ts:Date.now(),a:NOME};teamSave();draw()}):btn("b sm dgb","Elimina",function(){if(!confirm("Eliminare «"+(r.n||"lavoro")+"» per tutta la squadra?\nSi può ripristinare da Stato › Eliminati."))return;TEAM.hid[r.u]={on:1,ts:Date.now(),a:NOME};teamSave();F.sel=null;draw()}));d.append(az,pv);
  var kv=el("dl","kv");function row(k,v){if(!v)return;kv.append(el("dt",0,k),el("dd",0,v))}
- row("Tecnico",r.tec);row("Data intervento",dLav(r));row("Cliente",g(s,"cl"));if(s.rv)row("Rivenditore",g(s,"rvn"));row("Sede",g(s,"se"));row("Riferimento",rif(r));row("Manodopera",g(s,"ore")?g(s,"ore")+(g(s,"ore")==="1"?" ora":" ore"):"");d.append(kv);
+ var TL=tecL(r);row(TL.length>1?"Tecnici":"Tecnico",TL.join(" → "));row("Data intervento",dLav(r));row("Cliente",g(s,"cl"));if(s.rv)row("Rivenditore",g(s,"rvn"));row("Sede",g(s,"se"));row("Riferimento",rif(r));row("Manodopera",g(s,"ore")?g(s,"ore")+(g(s,"ore")==="1"?" ora":" ore"):"");d.append(kv);
  d.append(el("h3",0,"Etichette"),tagRow("L",r.u),el("h3",0,"Commenti"),commBox("L",r.u));
  var M=mats(r);if(M.length){d.append(el("h3",0,"Matricole · scheda macchina"));var w=el("div","mats");M.forEach(function(m){var b=btn("mat",null,function(){apri(m.v)});b.append(el("i",0,m.k),document.createTextNode(m.v));var mt=tagsK("M",mk(m.v));mt.forEach(function(id){var t=tagOf(id);if(t){var dd=el("i","dot");dd.style.background=t.c;dd.style.marginLeft="6px";dd.title=t.n;b.append(dd)}});w.append(b)});d.append(w)}
  if(r.nt){d.append(el("h3",0,"Note rapportino"));var p=el("pre","note",r.nt);d.append(p,btn("b sm","Copia note",function(e){var b=e.target;navigator.clipboard.writeText(r.nt).then(function(){b.textContent="Copiato";setTimeout(function(){b.textContent="Copia note"},1500)})}))}
@@ -398,8 +403,18 @@ function appWin(){if(APPW)return APPW;APPW=new Promise(function(ok,ko){var f=doc
  f.src=location.protocol==="chrome-extension:"?"app.html":"../index.html";
  f.onload=function(){var n=0;(function t(){var w=f.contentWindow;if(w&&w.buildPdf&&w.magMail&&w.V&&w.mig){ok(w)}else if(++n>60){APPW=null;ko()}else setTimeout(t,100)})()};document.body.append(f)});return APPW}
 function conApp(r,fn){return appWin().then(function(w){var v0=w.view,s0=w.S,p0=w.PH[r.v];w.view=r.v;w.S=w.mig(r.v,JSON.parse(JSON.stringify(r.s)));w.PH[r.v]=w.bkPh(r.ph);try{return fn(w)}finally{w.view=v0;w.S=s0;w.PH[r.v]=p0}})}
-function pdfLav(r){say("Preparo il PDF…");conApp(r,function(w){var bl=w.V[r.v].blocks(w.S),mt=w.pdfMeta(bl,r.d);mt.fn=(r.n||"rapportino")+".pdf";return w.buildPdf(mt,w.pdfRows(bl))})
- .then(function(u){say("");scarica(new Blob([u],{type:"application/pdf"}),(r.n||"rapportino")+".pdf")},function(){say("PDF non riuscito: apri il programma con internet almeno una volta.",1)})}
+/* telefono: niente download, si condivide (WhatsApp, lettore PDF, Glory 2.0…) */
+function tel(){return matchMedia("(pointer:coarse)").matches&&!!navigator.canShare}
+function condividi(blob,fn,ko){var f;try{f=new File([blob],fn,{type:blob.type})}catch(e){}if(f&&navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:fn}).catch(function(){});return}(ko||scarica)(blob,fn)}
+function pdfLav(r,pv){var fn=(r.n||"rapportino")+".pdf";say("Preparo il PDF…");var W;conApp(r,function(w){W=w;var bl=w.V[r.v].blocks(w.S),mt=w.pdfMeta(bl,r.d);mt.fn=fn;return w.buildPdf(mt,w.pdfRows(bl))})
+ .then(function(u){say("");var b=new Blob([u],{type:"application/pdf"});if(!tel()||!pv){scarica(b,fn);return}
+  pv.textContent="";pv.hidden=false;var bar=el("div","az");bar.append(btn("b ac sm","Condividi PDF",function(){condividi(b,fn)}),btn("b sm","Scarica",function(){scarica(b,fn)}),btn("b sm","Chiudi",function(){pv.hidden=true;pv.textContent=""}));pv.append(bar);
+  W.loadPdfJs().then(function(lib){return lib.getDocument({data:new W.Uint8Array(u)}).promise}).then(function(doc){var ch=Promise.resolve();for(var n=1;n<=doc.numPages;n++)(function(n){ch=ch.then(function(){return doc.getPage(n)}).then(function(pg){var vp=pg.getViewport({scale:2}),c=document.createElement("canvas");c.width=vp.width;c.height=vp.height;pv.append(c);return pg.render({canvasContext:c.getContext("2d"),viewport:vp}).promise})})(n);return ch}).catch(function(){pv.append(el("p","st","Anteprima non disponibile: usa Condividi PDF."))});
+  pv.scrollIntoView({behavior:"smooth"})},function(){say("PDF non riuscito: apri il programma con internet almeno una volta.",1)})}
+/* scheda da riprendere: file «Scheda Glory» che un tecnico apre con Glory 2.0 e continua (stesso lavoro, codice u) */
+function riprendi(r){var o=JSON.parse(JSON.stringify(r.s||{}));delete o._arc;o._u=r.u;var n=new Date(),t={glory:2,view:r.v,saved:n.getFullYear()+"-"+("0"+(n.getMonth()+1)).slice(-2)+"-"+("0"+n.getDate()).slice(-2),s:o,ph:r.ph||[]};
+ var fn="Scheda Glory - "+(r.n||TIT[r.v])+".txt",b=new Blob([JSON.stringify(t)],{type:"text/plain"});
+ if(tel())condividi(b,fn);else{scarica(b,fn);say("Mandalo al tecnico che continua: lo apre con Glory 2.0 (Condividi › Glory, oppure menù › Carica scheda).")}}
 function mailLav(r){conApp(r,function(w){return w.magMail(w.S)}).then(function(u){location.href=u},function(){say("Mail non riuscita: apri il programma con internet almeno una volta.",1)})}
 
 /* ---------- Excel (CSV con separatore ;) ---------- */

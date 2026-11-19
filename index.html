@@ -423,7 +423,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=86,svEl=null;
+var VER=87,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -916,14 +916,14 @@ function arcBox(){app.append(el("h2",0,"Archivio"));var m=el("div","cnt",arcMsg)
   bx.append(sg,el("div","cnt","«Lavoro concluso» e «Metti in pausa» svuotano la scheda. Il lavoro in pausa si riprende da Archivio › In corso › Riapri."));app.append(bx)}
  app.append(m)}
 function arcSave(clr,st){if(st==="fatto"&&!String(S.tec||"").trim()){ui.arc=0;arcMsg="";topMsg="Per chiudere il lavoro serve il nome del tecnico.";jump("tec");return}
- if(clr)tmHalt(S);var id=S._arc||Date.now(),s=JSON.parse(JSON.stringify(S)),nt="";delete s._arc;
+ if(clr)tmHalt(S);var id=S._arc||Date.now(),s=JSON.parse(JSON.stringify(S)),nt="",uu=s._u;delete s._arc;delete s._u;
  try{if(V[view].blocks(S).some(function(x){return x.t==="n"}))nt=noteText()}catch(e){}
- var r={id:id,v:view,d:Date.now(),n:fnBase(),s:s,ph:phOf(view),st:st,nt:nt};
+ var r={id:id,v:view,d:Date.now(),n:fnBase(),s:s,ph:phOf(view),st:st,nt:nt};if(uu)r.u=uu;
  arcPut(r,function(){ui.arc=0;
   if(clr){var tc=S.tec;S={};if(tc)S.tec=tc;PH[view]=[];phSave(view);siSet(view,0);arcMsg=st==="corso"?"Lavoro messo in pausa: lo ritrovi in Archivio › In corso.":"Lavoro concluso e archiviato. Scheda svuotata."}
   else{S._arc=id;arcMsg="Lavoro salvato nell'archivio (in corso)."}
   save();render()},function(){ui.arc=0;arcMsg="Archiviazione non riuscita: scarica un backup dal menù.";render()})}
-function arcApply(r){var s=JSON.parse(JSON.stringify(r.s));s._arc=r.id;lsSet("gla_"+r.v,JSON.stringify(s));siSet(r.v,0);PH[r.v]=bkPh(r.ph);phSave(r.v);topMsg="Lavoro riaperto dall'archivio. Quando hai finito usa «Aggiorna nell'archivio» in fondo alla scheda.";location.hash="#"+r.v}
+function arcApply(r){var s=JSON.parse(JSON.stringify(r.s));s._arc=r.id;s._u=r.u||devId()+"-"+r.id;lsSet("gla_"+r.v,JSON.stringify(s));siSet(r.v,0);PH[r.v]=bkPh(r.ph);phSave(r.v);topMsg="Lavoro riaperto dall'archivio. Quando hai finito usa «Aggiorna nell'archivio» in fondo alla scheda.";location.hash="#"+r.v}
 function arcNote(r){if(r.nt)return r.nt;var v0=view,s0=S,t="";view=r.v;S=mig(r.v,JSON.parse(JSON.stringify(r.s)));try{if(V[r.v].blocks(S).some(function(x){return x.t==="n"}))t=noteText()}catch(e){}view=v0;S=s0;return t}
 function arcPdf(r,m){var v0=view,s0=S,p0=PH[r.v],out=null;view=r.v;S=mig(r.v,JSON.parse(JSON.stringify(r.s)));PH[r.v]=bkPh(r.ph);
  try{var bl=V[r.v].blocks(S),mt=pdfMeta(bl,r.d);mt.fn=r.n+".pdf";out={u:buildPdf(mt,pdfRows(bl)),fn:r.n+".pdf"}}catch(e){out=null}
@@ -974,9 +974,9 @@ function arcView(){view="";ttl.textContent="Archivio lavori";back.hidden=false;g
  if(!IDB)app.append(el("p","cnt","Archivio non disponibile in questo browser."))}
 
 /* ---------- backup della scheda (file) ---------- */
-function bkFile(){var F=phOf(view);
- return {t:JSON.stringify({glory:2,view:view,saved:day(),s:S,ph:F}),fn:"Scheda Glory - "+fnBase()+".txt"}}
-function hasData(s){return Object.keys(s).some(function(k){return k!=="tec"&&k!=="_arc"&&k!=="dt"})}
+function bkFile(){var F=phOf(view),o=JSON.parse(JSON.stringify(S));if(!o._u&&o._arc)o._u=devId()+"-"+o._arc;
+ return {t:JSON.stringify({glory:2,view:view,saved:day(),s:o,ph:F}),fn:"Scheda Glory - "+fnBase()+".txt"}}
+function hasData(s){return Object.keys(s).some(function(k){return k!=="tec"&&k!=="_arc"&&k!=="_u"&&k!=="_tp"&&k!=="dt"})}
 function phOf(v){return (PH[v]||[]).map(function(f){return {n:f.n,w:f.w,h:f.h,d:f.th}})}
 function bkPh(a){var ph=[];(Array.isArray(a)?a:[]).forEach(function(f){try{if(f&&typeof f.d==="string"&&f.d.indexOf("data:image/jpeg;base64,")===0)ph.push({n:String(f.n||"foto.jpg"),w:+f.w||1,h:+f.h||1,b:atob(f.d.split(",")[1]),th:f.d})}catch(e){}});return ph}
 function bkOk(s){return s&&typeof s==="object"&&!Array.isArray(s)}
@@ -991,7 +991,11 @@ function bkAll(){var sc={},n=0;NEWS.forEach(function(r){var s=load(r[0]);if(hasD
  n+=ARC.length;
  return {n:n,t:JSON.stringify({glory:2,all:1,saved:day(),sc:sc,arc:ARC}),fn:"Backup completo - "+fdate()+".json"}}
 function bkMark(){lsSet("gla_lastbk",String(Date.now()))}
-function bkApply(r){r.it.forEach(function(x){lsSet("gla_"+x.v,JSON.stringify(x.s));siSet(x.v,0);PH[x.v]=x.ph;phSave(x.v)});ui.bkPend=null;
+function bkApply(r){var da="";
+ /* scheda passata da un collega: resta lo stesso lavoro (codice _u), il tecnico diventa chi la riceve */
+ if(!r.all)r.it.forEach(function(x){var s=x.s,me=tecRm()?String(lsGet("gla_tec")||"").trim():"",t=String(s.tec||"").trim();delete s._arc;
+  if(me&&t&&t!==me){s._tp=(Array.isArray(s._tp)?s._tp:[]).filter(function(y){return y!==t&&y!==me}).concat(t);s.tec=me;da=t}});
+ r.it.forEach(function(x){lsSet("gla_"+x.v,JSON.stringify(x.s));siSet(x.v,0);PH[x.v]=x.ph;phSave(x.v)});ui.bkPend=null;
  if(r.all){var na=(r.arc||[]).length,parts=[];
   if(r.it.length)parts.push("schede "+r.it.map(function(x){return V[x.v].title}).join(", "));
   if(na)parts.push(na+(na===1?" lavoro":" lavori")+" in archivio");
@@ -1000,7 +1004,7 @@ function bkApply(r){r.it.forEach(function(x){lsSet("gla_"+x.v,JSON.stringify(x.s
   var left=na,fail=0;(r.arc||[]).forEach(function(x){arcPut(x,fin,function(){fail++;fin()})});
   function fin(){if(--left)return;if(fail)bkMsg+=" "+fail+" lavori non importati.";home()}
   return}
- var x=r.it[0];topMsg="Scheda caricata: riprendi da dove era rimasta.";
+ var x=r.it[0];topMsg=(da?"Scheda di "+da+" caricata":"Scheda caricata")+": riprendi da dove era rimasta.";
  if(view===x.v){S=x.s;rui();render()}else{location.hash="#"+x.v}}
 function pendBox(refresh){var r=ui.bkPend,x=r.it[0],t=r.it.map(function(y){return V[y.v].title}).join(", "),msg;
  if(r.all)msg=(r.it.length?"Il backup completo sostituisce le schede: "+t+". Le altre non vengono toccate. ":"")+((r.arc&&r.arc.length)?"I "+r.arc.length+" lavori del backup vengono aggiunti all'archivio (quelli già presenti vengono aggiornati). ":"")+"Sei sicuro?";
