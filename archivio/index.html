@@ -72,6 +72,9 @@ h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mu);
 .tg i{width:10px;height:10px;border-radius:50%;display:inline-block}
 .tg.on{font-weight:700;border-width:2px}
 .tgs{display:flex;flex-wrap:wrap;gap:6px}
+.cms{display:flex;flex-direction:column;gap:6px}.cm{background:var(--bg);border:1px solid var(--ln);border-radius:9px;padding:7px 10px}
+.cmh{display:flex;gap:8px;align-items:baseline;font-size:12.5px;color:var(--mu)}.cmh b{color:var(--tx)}.cmt{white-space:pre-wrap;font-size:14px;margin-top:2px}
+.cmx{margin-left:auto;border:0;background:none;color:var(--dg);font-size:12px;cursor:pointer}
 .mynote{width:100%;min-height:70px;border:1px solid var(--ln);border-radius:9px;padding:8px 10px;background:var(--bg);resize:vertical;font:inherit}
 .mac{border:2px solid var(--ac);border-radius:12px;padding:12px 14px;margin-bottom:14px}
 .mac h2{margin:0 0 4px;font-size:21px}
@@ -94,6 +97,7 @@ a.b{display:inline-flex;align-items:center;text-decoration:none;color:var(--tx)}
  <label class="b ac" style="display:inline-flex;align-items:center;position:relative">Importa file<input id="fi" type="file" multiple accept=".txt,.json,text/plain,application/json" style="position:absolute;inset:0;opacity:0;cursor:pointer" aria-label="Importa file dall'app"></label>
  <button class="b" id="dirb" type="button"></button>
  <button class="b" id="sync" type="button" hidden title="Rileggi la cartella">Aggiorna</button>
+ <button class="b" id="nomeb" type="button">Il tuo nome</button>
  <button class="b" id="tagb" type="button">Etichette</button>
  <button class="b" id="csv" type="button">Esporta Excel</button>
  <button class="b" id="bak" type="button" title="Salva archivio, etichette e note in un file (per ripristinarlo usa Importa file)">Salva tutto</button>
@@ -160,14 +164,15 @@ function dirPick(){if(DIR&&!DIR.ok){DIR.h.requestPermission({mode:"readwrite"}).
 function dirInit(){if(!FSA)return Promise.resolve();return cfg("seen").then(function(x){SEEN=x||{}}).then(function(){return cfg("dir")}).then(function(h){if(!h)return;DIR={h:h,ok:0};return h.queryPermission({mode:"readwrite"}).then(function(p){if(p==="granted"){DIR.ok=1;return dirSync()}})}).catch(function(){})}
 /* nella cartella (anche una cartella condivisa di Google Drive):
    - i file "Archivio Glory …" che arrivano dai tecnici vengono importati da soli
-   - la copia dell'archivio va nella sottocartella _archivio (un file .json per lavoro) */
+   - in _archivio ogni PC scrive solo il suo file _team-<codice>.json (etichette e commenti di squadra)
+   - le copie dei lavori in _archivio (versione precedente) vengono ancora lette, non più scritte */
 var SUB="_archivio",SEEN={};
 function subDir(){return DIR.h.getDirectoryHandle(SUB,{create:true})}
 function dirWrite(arr){if(!DIR||!DIR.ok||!arr.length)return Promise.resolve();
  return subDir().then(function(sd){return arr.reduce(function(pr,r){return pr.then(function(){return sd.getFileHandle(fnSafe(r.u)+".json",{create:true}).then(function(fh){return fh.createWritable()}).then(function(w){return w.write(JSON.stringify(r)).then(function(){return w.close()})})})},Promise.resolve())}).catch(function(){say("Non riesco a scrivere nella cartella: ricollegala.",1)})}
 function fnSafe(t){return String(t).replace(/[^A-Za-z0-9_-]/g,"_")}
 var syncing=0;
-function dirSync(){if(!DIR||!DIR.ok||syncing)return Promise.resolve();syncing=1;var got={},inc=[],nf=0;
+function dirSync(){if(!DIR||!DIR.ok||syncing)return Promise.resolve();syncing=1;var got={},inc=[],nf=0,tms=[],mtOld=null;
  return (async function(){
   for await (var e of DIR.h.values()){if(e.kind!=="file"||!/\.(txt|json)$/i.test(e.name))continue;
    var f=await e.getFile(),key=e.name+"|"+f.size+"|"+f.lastModified;if(SEEN[key])continue;
@@ -175,56 +180,76 @@ function dirSync(){if(!DIR||!DIR.ok||syncing)return Promise.resolve();syncing=1;
    if(o&&o.u&&o.s&&o.v){got[o.u]=o;continue}            /* copia di un lavoro lasciata nella cartella principale (versione precedente) */
    var A=o?norm(o):[];if(A.length){nf++;inc=inc.concat(A)}}
   var sd=await subDir();
-  for await (var e2 of sd.values()){if(e2.kind!=="file"||!/\.json$/.test(e2.name))continue;var f2=await e2.getFile(),k2=SUB+"/"+e2.name+"|"+f2.size+"|"+f2.lastModified;if(SEEN[k2])continue;SEEN[k2]=1;try{var r=JSON.parse(await f2.text());if(e2.name==="_meta.json"){if(r&&+r.ts>(+META.ts||0)){META=metaFix(r);cfg("meta",META)}else if(r&&metaMerge(r))metaSave()}else if(r&&r.u)got[r.u]=r}catch(x){}}
+  for await (var e2 of sd.values()){if(e2.kind!=="file"||!/\.json$/.test(e2.name))continue;var f2=await e2.getFile(),k2=SUB+"/"+e2.name+"|"+f2.size+"|"+f2.lastModified;if(SEEN[k2])continue;SEEN[k2]=1;try{var r=JSON.parse(await f2.text());if(e2.name==="_meta.json"){mtOld=r}else if(/^_team-/.test(e2.name)){tms.push(r)}else if(r&&r.u)got[r.u]=r}catch(x){}}
  })().then(function(){
   var M={},toDb=[],nu=0,ag=0;L.forEach(function(r){M[r.u]=r});
   Object.keys(got).forEach(function(u){var r=got[u];if(!M[u]||r.d>M[u].d){toDb.push(r);M[u]=r}});
-  var toDir=[];inc.forEach(function(r){var e=M[r.u];if(!e){nu++;M[r.u]=r;toDb.push(r);toDir.push(r)}else if(r.d>e.d){ag++;M[r.u]=r;toDb.push(r);toDir.push(r)}});
-  L.forEach(function(r){if(!got[r.u]&&toDir.indexOf(r)<0&&!SEEN["w|"+r.u+"|"+r.d])toDir.push(r)});
+  inc.forEach(function(r){var e=M[r.u];if(!e){nu++;M[r.u]=r;toDb.push(r)}else if(r.d>e.d){ag++;M[r.u]=r;toDb.push(r)}});
   L=Object.keys(M).map(function(u){return M[u]});
-  return dbPut(toDb).then(function(){return dirWrite(toDir)}).then(metaDir).then(function(){toDir.forEach(function(r){SEEN["w|"+r.u+"|"+r.d]=1});cfg("seen",SEEN);
+  var tch=0;tms.forEach(function(t){if(teamMerge(t))tch=1});if(mtOld&&metaToTeam(mtOld))tch=1;if(tch)cfg("team",TEAM);
+  return dbPut(toDb).then(teamDir).then(function(){cfg("seen",SEEN);
    if(nu||ag)say("Dalla cartella: "+nu+(nu===1?" nuovo":" nuovi")+(ag?", "+ag+(ag===1?" aggiornato":" aggiornati"):"")+".");draw()})})
  .catch(function(){say("Lettura della cartella non riuscita: ricollegala.",1)}).then(function(){syncing=0})}
 /* torna sulla finestra o tocca Aggiorna: rilegge la cartella */
 window.addEventListener("focus",function(){if(DIR&&DIR.ok)dirSync()});
 
-/* ---------- etichette e note personali (solo su questo PC e nella cartella collegata) ---------- */
+/* ---------- etichette e commenti di squadra ----------
+   Ogni PC scrive solo il suo file _archivio/_team-<codice PC>.json e legge quelli degli altri:
+   nessuno sovrascrive il lavoro di un collega. Per ogni voce vince la modifica più recente. */
 var COL=["#c23b22","#d97706","#ca8a04","#1f7a4d","#0f766e","#1f5f99","#6d28d9","#be185d","#5b6770"];
-var META={tags:[],L:{},M:{},ts:0};
-function metaFix(m){m=m&&typeof m==="object"?m:{};return {tags:Array.isArray(m.tags)?m.tags:[],L:m.L&&typeof m.L==="object"?m.L:{},M:m.M&&typeof m.M==="object"?m.M:{},ts:+m.ts||0}}
-function metaDef(){var n=["Da fatturare","Garanzia","Cliente critico","Da richiamare","Ricambio in ordine","Macchina problematica"],c=[1,5,0,2,6,7];
- return {tags:n.map(function(x,i){return {id:"t"+(i+1),n:x,c:COL[c[i]]}}),L:{},M:{},ts:0}}
-/* unisce etichette e note di un altro archivio: aggiunge quelle che mancano, non cancella niente */
-function metaMerge(m){m=metaFix(m);var ch=0;m.tags.forEach(function(t){var e=tagOf(t.id);if(!e){META.tags.push(t);ch=1}});
- ["L","M"].forEach(function(k){Object.keys(m[k]).forEach(function(x){var a=META[k][x],b=m[k][x];if(!a){META[k][x]=b;ch=1;return}
-  (b.t||[]).forEach(function(id){if(a.t.indexOf(id)<0){a.t.push(id);ch=1}});if(b.n&&!a.n){a.n=b.n;ch=1}})});return ch}
-var mdT=null;
-function metaSave(){META.ts=Date.now();cfg("meta",META);clearTimeout(mdT);mdT=setTimeout(metaDir,800)}
-function metaDir(){if(!DIR||!DIR.ok)return Promise.resolve();return subDir().then(function(sd){return sd.getFileHandle("_meta.json",{create:true})}).then(function(fh){return fh.createWritable()}).then(function(w){return w.write(JSON.stringify(META)).then(function(){return w.close()})}).catch(function(){})}
+var TEAM={defs:{},tg:{},cm:{}},PCID="",NOME="";
+function teamFix(t){t=t&&typeof t==="object"?t:{};return {defs:t.defs&&typeof t.defs==="object"?t.defs:{},tg:t.tg&&typeof t.tg==="object"?t.tg:{},cm:t.cm&&typeof t.cm==="object"?t.cm:{}}}
+function teamDef(){var n=["Da fatturare","Garanzia","Cliente critico","Da richiamare","Ricambio in ordine","Macchina problematica"],c=[1,5,0,2,6,7],d={};
+ n.forEach(function(x,i){d["t"+(i+1)]={n:x,c:COL[c[i]],o:i,ts:0}});return {defs:d,tg:{},cm:{}}}
+/* unisce due stati: per ogni voce tiene quella con ts più recente; restituisce 1 se è cambiato qualcosa */
+function teamMerge(o){o=teamFix(o);var ch=0;["defs","tg","cm"].forEach(function(k){Object.keys(o[k]).forEach(function(id){var a=TEAM[k][id],b=o[k][id];if(b&&(!a||(+b.ts||0)>(+a.ts||0))){TEAM[k][id]=b;ch=1}})});return ch}
+/* versione precedente: etichette e note personali (_meta.json / cfg "meta") diventano etichette e commenti di squadra */
+function metaToTeam(m){if(!m||typeof m!=="object")return 0;var t={defs:{},tg:{},cm:{}},ts=+m.ts||1,i=0;
+ (m.tags||[]).forEach(function(x){t.defs[x.id]={n:x.n,c:x.c,o:i++,ts:ts}});
+ ["L","M"].forEach(function(K){Object.keys(m[K]||{}).forEach(function(k){var o=m[K][k]||{};(o.t||[]).forEach(function(id){t.tg[K+"|"+k+"|"+id]={on:1,ts:ts}});
+  if(String(o.n||"").trim())t.cm["old-"+K+"-"+k]={k:K+"|"+k,a:NOME||"(nota precedente)",t:String(o.n).trim(),ts:ts}})});
+ return teamMerge(t)}
+var tmT=null;
+function teamSave(){cfg("team",TEAM);clearTimeout(tmT);tmT=setTimeout(teamDir,800)}
+function teamDir(){if(!DIR||!DIR.ok||!PCID)return Promise.resolve();return subDir().then(function(sd){return sd.getFileHandle("_team-"+PCID+".json",{create:true})}).then(function(fh){return fh.createWritable()}).then(function(w){return w.write(JSON.stringify(TEAM)).then(function(){return w.close()})}).catch(function(){})}
 function mk(v){return String(v||"").toUpperCase().replace(/\s+/g,"")}
-function slot(kind,k){var o=META[kind][k];if(!o){o={t:[],n:""};META[kind][k]=o}return o}
-function clean(kind,k){var o=META[kind][k];if(o&&!o.t.length&&!String(o.n||"").trim())delete META[kind][k]}
-function tagOf(id){return META.tags.filter(function(t){return t.id===id})[0]}
-function tagsL(r){var o=(META.L[r.u]||{}).t||[],M=mats(r);M.forEach(function(m){((META.M[mk(m.v)]||{}).t||[]).forEach(function(t){if(o.indexOf(t)<0)o=o.concat(t)})});return o.filter(tagOf)}
-function tagRow(kind,k){var w=el("div","tgs"),o=META[kind][k]||{t:[]};
- if(!META.tags.length){w.append(el("span","st","Nessuna etichetta: creale con il tasto Etichette."));return w}
- META.tags.forEach(function(t){var on=o.t.indexOf(t.id)>=0,b=btn("tg"+(on?" on":""),null,function(){var x=slot(kind,k),i=x.t.indexOf(t.id);if(i<0)x.t.push(t.id);else x.t.splice(i,1);clean(kind,k);metaSave();draw()});
+function tags(){return Object.keys(TEAM.defs).filter(function(id){return !TEAM.defs[id].del}).map(function(id){var d=TEAM.defs[id];return {id:id,n:d.n,c:d.c,o:+d.o||0}}).sort(function(a,b){return a.o-b.o||a.n.localeCompare(b.n)})}
+function tagOf(id){var d=TEAM.defs[id];return d&&!d.del?{id:id,n:d.n,c:d.c}:null}
+function hasTag(kind,k,id){var x=TEAM.tg[kind+"|"+k+"|"+id];return !!(x&&x.on)}
+function tagsK(kind,k){return tags().filter(function(t){return hasTag(kind,k,t.id)}).map(function(t){return t.id})}
+function tagsL(r){var o=tagsK("L",r.u);mats(r).forEach(function(m){tagsK("M",mk(m.v)).forEach(function(t){if(o.indexOf(t)<0)o.push(t)})});return o}
+function comms(kind,k){var key=kind+"|"+k;return Object.keys(TEAM.cm).map(function(id){var c=TEAM.cm[id];return {id:id,k:c.k,a:c.a,t:c.t,ts:+c.ts||0,del:c.del,f:c.f}}).filter(function(c){return c.k===key&&!c.del}).sort(function(a,b){return (a.f||a.ts)-(b.f||b.ts)})}
+function commTxt(r){return comms("L",r.u).map(function(c){return c.a+": "+c.t}).join(" · ")}
+function tagRow(kind,k){var w=el("div","tgs"),T=tags();
+ if(!T.length){w.append(el("span","st","Nessuna etichetta: creale con il tasto Etichette."));return w}
+ T.forEach(function(t){var on=hasTag(kind,k,t.id),b=btn("tg"+(on?" on":""),null,function(){TEAM.tg[kind+"|"+k+"|"+t.id]={on:on?0:1,ts:Date.now(),a:NOME};teamSave();draw()});
   var d=el("i");d.style.background=t.c;b.append(d,document.createTextNode(t.n));if(on)b.style.borderColor=t.c;b.setAttribute("aria-pressed",on?"true":"false");w.append(b)});return w}
-function noteBox(kind,k,ph){var ta=el("textarea","mynote");ta.placeholder=ph;ta.value=(META[kind][k]||{}).n||"";
- ta.oninput=function(){slot(kind,k).n=ta.value;clean(kind,k);metaSave()};ta.onblur=function(){draw()};return ta}
+function chiediNome(ok){var n=prompt("Il tuo nome (compare sui commenti che scrivi):",NOME||"");if(n==null)return;n=n.trim();if(!n){alert("Il nome è obbligatorio per commentare.");return}NOME=n;cfg("nome",NOME);nomeLab();if(ok)ok()}
+function nomeLab(){var b=$("nomeb");if(b)b.textContent=NOME?"Tu: "+NOME:"Il tuo nome"}
+function dataOra(t){var d=new Date(t);return dIt(t)+" "+p2(d.getHours())+":"+p2(d.getMinutes())}
+function commBox(kind,k){var w=el("div","cms"),C=comms(kind,k);
+ C.forEach(function(c){var it=el("div","cm"),h=el("div","cmh");h.append(el("b",0,c.a),el("span",0,dataOra(c.f||c.ts)));
+  if(c.a===NOME){var x=btn("cmx","Elimina",function(){if(!confirm("Eliminare questo commento?"))return;var o=TEAM.cm[c.id];o.del=1;o.ts=Date.now();teamSave();draw()});h.append(x)}
+  it.append(h,el("div","cmt",c.t));w.append(it)});
+ var ta=el("textarea","mynote");ta.placeholder="Scrivi un commento…";ta.setAttribute("aria-label","Nuovo commento");
+ var add=btn("b sm ac","Aggiungi commento",function(){var t=ta.value.trim();if(!t){ta.focus();return}
+  function go(){var now=Date.now(),id=(PCID||"pc")+"-"+now.toString(36);TEAM.cm[id]={k:kind+"|"+k,a:NOME,t:t,ts:now,f:now};teamSave();draw()}
+  if(!NOME)chiediNome(go);else go()});
+ w.append(ta,add,el("span","st",NOME?" come "+NOME:" ti chiederà il nome"));return w}
 
-/* ---------- editor delle etichette ---------- */
+/* ---------- editor delle etichette (di squadra) ---------- */
 function tagEditor(){var ov=el("div","ov"),d=el("div","dlg");ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");
  function close(){ov.remove();draw()}
  ov.onclick=function(e){if(e.target===ov)close()};
- function body(){d.textContent="";d.append(el("h2",0,"Etichette"));
-  META.tags.forEach(function(t,i){var r=el("div","er"),inp=document.createElement("input"),sel=document.createElement("select"),dot=el("span","dot");
-   inp.type="text";inp.value=t.n;inp.setAttribute("aria-label","Nome etichetta");inp.oninput=function(){t.n=inp.value;metaSave()};
+ function upd(id,ch){var o=TEAM.defs[id];Object.keys(ch).forEach(function(k){o[k]=ch[k]});o.ts=Date.now();teamSave()}
+ function body(){d.textContent="";d.append(el("h2",0,"Etichette"),el("p","st","Valgono per tutta la squadra: le vedono tutti i PC collegati alla cartella."));
+  tags().forEach(function(t){var r=el("div","er"),inp=document.createElement("input"),sel=document.createElement("select"),dot=el("span","dot");
+   inp.type="text";inp.value=t.n;inp.setAttribute("aria-label","Nome etichetta");inp.onchange=function(){if(inp.value.trim())upd(t.id,{n:inp.value.trim()})};
    dot.style.background=t.c;COL.forEach(function(c,j){var op=new Option("Colore "+(j+1),c);op.style.background=c;op.style.color="#fff";if(c===t.c)op.selected=true;sel.append(op)});sel.style.background=t.c;sel.style.color="#fff";sel.setAttribute("aria-label","Colore");
-   sel.onchange=function(){t.c=sel.value;sel.style.background=t.c;dot.style.background=t.c;metaSave()};
-   var x=btn("x","✕",function(){if(!confirm("Eliminare l'etichetta «"+t.n+"»? Viene tolta da tutti i lavori e le matricole."))return;META.tags.splice(i,1);["L","M"].forEach(function(kd){Object.keys(META[kd]).forEach(function(k){var o=META[kd][k];o.t=o.t.filter(function(z){return z!==t.id});clean(kd,k)})});metaSave();body()});x.setAttribute("aria-label","Elimina "+t.n);
+   sel.onchange=function(){upd(t.id,{c:sel.value});sel.style.background=sel.value;dot.style.background=sel.value};
+   var x=btn("x","✕",function(){if(!confirm("Eliminare l'etichetta «"+t.n+"» per tutta la squadra?"))return;upd(t.id,{del:1});body()});x.setAttribute("aria-label","Elimina "+t.n);
    r.append(dot,inp,sel,x);d.append(r)});
-  var row=el("div","er");row.style.marginTop="12px";row.append(btn("b ac","+ Nuova etichetta",function(){var id="t"+Date.now().toString(36);META.tags.push({id:id,n:"Nuova etichetta",c:COL[META.tags.length%COL.length]});metaSave();body();var ii=d.querySelectorAll("input[type=text]");if(ii.length){ii[ii.length-1].focus();ii[ii.length-1].select()}}),btn("b","Chiudi",close));d.append(row)}
+  var row=el("div","er");row.style.marginTop="12px";row.append(btn("b ac","+ Nuova etichetta",function(){var id="t"+(PCID||"")+Date.now().toString(36);TEAM.defs[id]={n:"Nuova etichetta",c:COL[tags().length%COL.length],o:tags().length,ts:Date.now()};teamSave();body();var ii=d.querySelectorAll("input[type=text]");if(ii.length){ii[ii.length-1].focus();ii[ii.length-1].select()}}),btn("b","Chiudi",close));d.append(row)}
  body();ov.append(d);document.body.append(ov)}
 
 /* ---------- importazione: solo lavori nuovi o aggiornati ---------- */
@@ -236,12 +261,12 @@ function norm(o){var arr=[],dev=o.dev||"bk";
 function importa(files){var M={},nu=0,ag=0,ug=0,bad=0,ch=[],mt=0;L.forEach(function(r){M[r.u]=r});
  Promise.all(Array.prototype.map.call(files,readFile)).then(function(T){
   T.forEach(function(t){var o=null;try{o=JSON.parse(t)}catch(e){}var A=o?norm(o):[];
-   if(o&&o.gloryPc===1&&o.meta&&metaMerge(o.meta))mt=1
+   if(o&&o.gloryPc===1&&((o.team&&teamMerge(o.team))|(o.meta&&metaToTeam(o.meta))))mt=1
    if(!A.length&&!mt){bad++;return}
    A.forEach(function(r){var e=M[r.u];if(!e){nu++;M[r.u]=r;ch.push(r)}else if(r.d>e.d){ag++;M[r.u]=r;ch.push(r)}else ug++})});
-  if(mt)metaSave()
-  return dbPut(ch).then(function(){return dirWrite(ch)}).then(function(){L=Object.keys(M).map(function(u){return M[u]});
-   say(bad&&!nu&&!ag&&!ug&&!mt?"File non riconosciuto: usa il file inviato dall'app (Invia al PC) o un «Salva tutto».":nu+(nu===1?" nuovo, ":" nuovi, ")+ag+(ag===1?" aggiornato, ":" aggiornati, ")+ug+" già present"+(ug===1?"e":"i")+(mt?", etichette e note ripristinate":"")+(bad?", "+bad+" file non validi":"")+".",bad&&!nu&&!ag&&!ug&&!mt);
+  if(mt)teamSave();
+  return dbPut(ch).then(function(){L=Object.keys(M).map(function(u){return M[u]});
+   say(bad&&!nu&&!ag&&!ug&&!mt?"File non riconosciuto: usa il file inviato dall'app (Invia al PC) o un «Salva tutto».":nu+(nu===1?" nuovo, ":" nuovi, ")+ag+(ag===1?" aggiornato, ":" aggiornati, ")+ug+" già present"+(ug===1?"e":"i")+(mt?", etichette e commenti uniti":"")+(bad?", "+bad+" file non validi":"")+".",bad&&!nu&&!ag&&!ug&&!mt);
    if(ch.length&&!F.sel)F.sel=ch[0].u;draw()})}).catch(function(){say("Importazione non riuscita.",1)})}
 
 /* ---------- stato della vista e freccia Indietro ---------- */
@@ -262,7 +287,7 @@ function filtrati(){var q=F.q.toLowerCase().trim(),W=q.split(/\s+/).filter(Boole
  return L.filter(function(r){if(F.v&&r.v!==F.v)return false;if(F.t&&r.tec!==F.t)return false;if(F.st&&stato(r)!==F.st)return false;
   if(R){var t=tLav(r);if(t<R[0]||t>=R[1])return false}
   if(F.tag&&tagsL(r).indexOf(F.tag)<0)return false;
-  if(!W.length)return true;var t2=testo(r)+" "+String((META.L[r.u]||{}).n||"").toLowerCase();return W.every(function(w){return t2.indexOf(w)>=0})}).sort(function(a,b){return tLav(b)-tLav(a)||b.d-a.d})}
+  if(!W.length)return true;var t2=testo(r)+" "+commTxt(r).toLowerCase();return W.every(function(w){return t2.indexOf(w)>=0})}).sort(function(a,b){return tLav(b)-tLav(a)||b.d-a.d})}
 function matStoria(){var q=mk(F.q);if(q.length<3)return null;var hit=null;
  L.some(function(r){return mats(r).some(function(m){if(mk(m.v)===q||mk(m.n)===q){hit=m;return true}})});return hit}
 
@@ -280,7 +305,7 @@ function macchina(h){var K=mk(h.v),Rs=L.filter(function(r){return mats(r).some(f
  var st=el("div","stats");function S(l,v){var d=el("div");d.append(el("b",0,v),document.createTextNode(l));st.append(d)}
  S("installazione",ins?dLav(ins):"—");S("interventi",String(int.length));S("ultimo intervento",int.length?dLav(int[int.length-1]):"—");if(rit)S("ritiro"+(rit.s&&rit.s.mo?" · "+rit.s.mo.toLowerCase():""),dLav(rit));bx.append(st);
  var P=Object.keys(part);if(P.length){bx.append(el("h3",0,"Stessa macchina"));var w=el("div","mats");P.forEach(function(x){w.append(btn("mat",x,function(){apri(x)}))});bx.append(w)}
- bx.append(el("h3",0,"Etichette della macchina"),tagRow("M",K),el("h3",0,"Nota sulla macchina"),noteBox("M",K,"Es. sensore lega sostituito due volte, valutare il modulo"));
+ bx.append(el("h3",0,"Etichette della macchina"),tagRow("M",K),el("h3",0,"Commenti sulla macchina"),commBox("M",K));
  return bx}
 
 /* ---------- macchine con più interventi (ultimi 6 mesi) ---------- */
@@ -298,7 +323,7 @@ function draw(){
  sel("Periodo",PER,F.per,function(v){go({per:v})});
  if(F.per==="x"){[["da","Dal"],["a","Al"]].forEach(function(x){var i=document.createElement("input");i.type="date";i.value=F[x[0]];i.setAttribute("aria-label",x[1]);i.onchange=function(){F[x[0]]=i.value;draw()};fr.append(i)})}
  sel("Stato",[["","Tutti gli stati"],["fatto","Conclusi"],["corso","In corso"],["attesa","In attesa"]],F.st,function(v){go({st:v})});
- if(META.tags.length)sel("Etichetta",[["","Tutte le etichette"]].concat(META.tags.map(function(t){return [t.id,t.n]})),F.tag,function(v){go({tag:v})});
+ if(tags().length)sel("Etichetta",[["","Tutte le etichette"]].concat(tags().map(function(t){return [t.id,t.n]})),F.tag,function(v){go({tag:v})});
  var tecs={};L.forEach(function(r){if(r.tec)tecs[r.tec]=1});var tk=Object.keys(tecs).sort();
  if(tk.length>1)sel("Tecnico",[["","Tutti i tecnici"]].concat(tk.map(function(t){return [t,t]})),F.t,function(v){go({t:v})});
  var it=$("its");it.textContent="";var mh=$("mh");mh.textContent="";var rie=$("rie");
@@ -318,7 +343,7 @@ function draw(){
  else if(!R.length)it.append(el("p","empty","Nessun risultato."));
  R.slice(0,400).forEach(function(r){var st=stato(r),c=btn("it"+(st==="fatto"?" fat":st==="corso"?" cor":"")+(F.sel===r.u?" on":""),null,function(){if(h&&!F.sel)go({sel:r.u});else{F.sel=r.u;draw()}if(innerWidth<860)$("det").scrollIntoView()});
   var tl=el("b",0,r.n||"Senza nome"),T=tagsL(r);if(T.length){var dd=el("span","dots");T.forEach(function(id){var t=tagOf(id),d=el("i","dot");d.style.background=t.c;d.title=t.n;dd.append(d)});tl.append(dd)}
-  var nn=(META.L[r.u]||{}).n;c.append(tl,el("span",0,TIT[r.v]+" · "+dLav(r)+(r.tec?" · "+r.tec:"")+(st==="corso"?" · in corso":st==="attesa"?" · in attesa":"")+(nn?" · 📝":"")));it.append(c)});
+  var nn=comms("L",r.u).length;c.append(tl,el("span",0,TIT[r.v]+" · "+dLav(r)+(r.tec?" · "+r.tec:"")+(st==="corso"?" · in corso":st==="attesa"?" · in attesa":"")+(nn?" · 💬 "+nn:"")));it.append(c)});
  if(R.length>400)it.append(el("p","cnt","Mostrati i primi 400: affina la ricerca."));
  dett(h);status(tecs)}
 function status(tecs){$("st").textContent=L.length+" lavori · "+Object.keys(tecs).length+(Object.keys(tecs).length===1?" tecnico":" tecnici");dirLabel()}
@@ -328,8 +353,8 @@ function dett(h){var d=$("det");d.textContent="";var r=L.filter(function(x){retu
  var s=r.s||{};d.append(el("h2",0,r.n||"Senza nome"),el("div","sub",TIT[r.v]+" · "+(stato(r)==="fatto"?"concluso":stato(r)==="corso"?"in corso":"in attesa")+" · archiviato il "+dIt(r.d)));
  var kv=el("dl","kv");function row(k,v){if(!v)return;kv.append(el("dt",0,k),el("dd",0,v))}
  row("Tecnico",r.tec);row("Data intervento",dLav(r));row("Cliente",g(s,"cl"));if(s.rv)row("Rivenditore",g(s,"rvn"));row("Sede",g(s,"se"));row("Riferimento",rif(r));row("Manodopera",g(s,"ore")?g(s,"ore")+(g(s,"ore")==="1"?" ora":" ore"):"");d.append(kv);
- d.append(el("h3",0,"Etichette"),tagRow("L",r.u),el("h3",0,"Mia nota"),noteBox("L",r.u,"Nota personale su questo lavoro (non modifica il rapportino)"));
- var M=mats(r);if(M.length){d.append(el("h3",0,"Matricole · scheda macchina"));var w=el("div","mats");M.forEach(function(m){var b=btn("mat",null,function(){apri(m.v)});b.append(el("i",0,m.k),document.createTextNode(m.v));var mt=(META.M[mk(m.v)]||{}).t||[];mt.forEach(function(id){var t=tagOf(id);if(t){var dd=el("i","dot");dd.style.background=t.c;dd.style.marginLeft="6px";dd.title=t.n;b.append(dd)}});w.append(b)});d.append(w)}
+ d.append(el("h3",0,"Etichette"),tagRow("L",r.u),el("h3",0,"Commenti"),commBox("L",r.u));
+ var M=mats(r);if(M.length){d.append(el("h3",0,"Matricole · scheda macchina"));var w=el("div","mats");M.forEach(function(m){var b=btn("mat",null,function(){apri(m.v)});b.append(el("i",0,m.k),document.createTextNode(m.v));var mt=tagsK("M",mk(m.v));mt.forEach(function(id){var t=tagOf(id);if(t){var dd=el("i","dot");dd.style.background=t.c;dd.style.marginLeft="6px";dd.title=t.n;b.append(dd)}});w.append(b)});d.append(w)}
  if(r.nt){d.append(el("h3",0,"Note rapportino"));var p=el("pre","note",r.nt);d.append(p,btn("b sm","Copia note",function(e){var b=e.target;navigator.clipboard.writeText(r.nt).then(function(){b.textContent="Copiato";setTimeout(function(){b.textContent="Copia note"},1500)})}))}
  var nte=g(s,"nte");if(nte){d.append(el("h3",0,"Note tecniche"),el("pre","note",nte))}
  var P=(r.ph||[]).filter(function(f){return f&&typeof f.d==="string"&&f.d.indexOf("data:image/")===0});
@@ -341,16 +366,16 @@ function oggi(){var n=new Date();return p2(n.getDate())+"-"+p2(n.getMonth()+1)+"
 function scarica(blob,fn){var a=document.createElement("a"),u=URL.createObjectURL(blob);a.href=u;a.download=fn;document.body.append(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000)}
 function csv(){var R=filtrati();if(!R.length){say("Niente da esportare.",1);return}
  function q(v){v=String(v==null?"":v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
- var H=["Data","Tipo","Stato","Tecnico","Cliente","Rivenditore","Sede","Riferimento","Matricole","Ore","Etichette","Mia nota","Nome lavoro","Note rapportino"],rows=[H.join(";")];
- R.forEach(function(r){var s=r.s||{};rows.push([dLav(r),TIT[r.v],stato(r)==="fatto"?"Concluso":stato(r)==="corso"?"In corso":"In attesa",r.tec,g(s,"cl"),s.rv?g(s,"rvn"):"",g(s,"se"),rif(r),mats(r).map(function(m){return m.v}).join(", "),g(s,"ore"),tagsL(r).map(function(id){return tagOf(id).n}).join(", "),(META.L[r.u]||{}).n||"",r.n,r.nt||""].map(q).join(";"))});
+ var H=["Data","Tipo","Stato","Tecnico","Cliente","Rivenditore","Sede","Riferimento","Matricole","Ore","Etichette","Commenti","Nome lavoro","Note rapportino"],rows=[H.join(";")];
+ R.forEach(function(r){var s=r.s||{};rows.push([dLav(r),TIT[r.v],stato(r)==="fatto"?"Concluso":stato(r)==="corso"?"In corso":"In attesa",r.tec,g(s,"cl"),s.rv?g(s,"rvn"):"",g(s,"se"),rif(r),mats(r).map(function(m){return m.v}).join(", "),g(s,"ore"),tagsL(r).map(function(id){return tagOf(id).n}).join(", "),commTxt(r),r.n,r.nt||""].map(q).join(";"))});
  scarica(new Blob(["﻿"+rows.join("\r\n")],{type:"text/csv"}),"Glory archivio - "+oggi()+".csv")}
-function salvaTutto(){if(!L.length&&!META.tags.length){say("Archivio vuoto.",1);return}
- scarica(new Blob([JSON.stringify({gloryPc:1,saved:Date.now(),lav:L,meta:META})],{type:"application/json"}),"Glory archivio completo - "+oggi()+".json");say("Archivio salvato. Per ripristinarlo su questo o un altro PC usa Importa file.")}
+function salvaTutto(){if(!L.length){say("Archivio vuoto.",1);return}
+ scarica(new Blob([JSON.stringify({gloryPc:1,saved:Date.now(),lav:L,team:TEAM})],{type:"application/json"}),"Glory archivio completo - "+oggi()+".json");say("Archivio, etichette e commenti salvati. Per ripristinarlo su questo o un altro PC usa Importa file.")}
 
 /* ---------- avvio ---------- */
 $("fi").onchange=function(){if(this.files.length)importa(this.files);this.value=""};
 $("q").oninput=function(){F.q=this.value;F.sel=null;F.frq=0;draw()};
-$("dirb").onclick=dirPick;$("sync").onclick=function(){dirSync()};$("csv").onclick=csv;$("tagb").onclick=tagEditor;$("bak").onclick=salvaTutto;
+$("dirb").onclick=dirPick;$("sync").onclick=function(){dirSync()};$("csv").onclick=csv;$("tagb").onclick=tagEditor;$("nomeb").onclick=function(){chiediNome()};$("bak").onclick=salvaTutto;
 if(location.protocol==="chrome-extension:")$("extl").hidden=true;
 document.addEventListener("keydown",function(e){if(e.key==="Escape"){var o=document.querySelector(".ov");if(o){o.remove();draw()}else if(HIST.length&&document.activeElement.tagName!=="INPUT"&&document.activeElement.tagName!=="TEXTAREA")back()}});
 var dc=0;document.addEventListener("dragenter",function(e){e.preventDefault();dc++;$("drop").hidden=false});
@@ -358,7 +383,9 @@ document.addEventListener("dragleave",function(){if(--dc<=0){dc=0;$("drop").hidd
 document.addEventListener("dragover",function(e){e.preventDefault()});
 document.addEventListener("drop",function(e){e.preventDefault();dc=0;$("drop").hidden=true;if(e.dataTransfer.files.length)importa(e.dataTransfer.files)});
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
-dbOpen().then(function(){return cfg("meta")}).then(function(m){META=m?metaFix(m):metaDef();if(!m)cfg("meta",META)}).then(dbAll).then(function(a){L=a;draw();return dirInit()}).then(draw).catch(function(){say("Questo browser non può salvare l'archivio: usa Chrome o Edge.",1)});
+dbOpen().then(function(){return Promise.all([cfg("pcid"),cfg("nome"),cfg("team"),cfg("meta")])}).then(function(a){
+ PCID=a[0]||Math.random().toString(36).slice(2,8);if(!a[0])cfg("pcid",PCID);NOME=a[1]||"";nomeLab();
+ TEAM=a[2]?teamFix(a[2]):teamDef();if(!a[2]){if(a[3])metaToTeam(a[3]);cfg("team",TEAM)}}).then(dbAll).then(function(a){L=a;draw();return dirInit()}).then(draw).catch(function(){say("Questo browser non può salvare l'archivio: usa Chrome o Edge.",1)});
 if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
 </body>
