@@ -60,6 +60,32 @@ h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mu);
 .raw{font-size:12.5px;color:var(--mu)}
 .raw summary{cursor:pointer}
 .raw table{border-collapse:collapse;width:100%;margin-top:6px}.raw td{border-top:1px solid var(--ln);padding:3px 6px;vertical-align:top;overflow-wrap:anywhere}
+.back{min-height:34px;padding:0 12px;border:1px solid var(--ac);color:var(--ac);background:var(--sf);border-radius:9px;font-weight:600;margin-bottom:8px}
+.fr{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.fr input[type=date]{min-height:30px;border:1px solid var(--ln);border-radius:8px;background:var(--sf);padding:0 6px;font-size:13px}
+.ch.frq{border-color:var(--wn);color:var(--wn)}.ch.frq.on{background:var(--wn);color:#fff}
+.rie{font-size:12.5px;color:var(--mu);background:var(--bg);border-radius:8px;padding:6px 8px;margin:0 0 8px}
+.rie b{color:var(--tx)}
+.dots{display:inline-flex;gap:3px;margin-left:6px;vertical-align:middle}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.tg{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0 11px;border:1px solid var(--ln);border-radius:15px;background:var(--sf);font-size:13px}
+.tg i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.tg.on{font-weight:700;border-width:2px}
+.tgs{display:flex;flex-wrap:wrap;gap:6px}
+.mynote{width:100%;min-height:70px;border:1px solid var(--ln);border-radius:9px;padding:8px 10px;background:var(--bg);resize:vertical;font:inherit}
+.mac{border:2px solid var(--ac);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.mac h2{margin:0 0 4px;font-size:21px}
+.big{font-size:22px;font-weight:700}
+.stats{display:flex;flex-wrap:wrap;gap:16px;margin:8px 0 4px}.stats div{font-size:12.5px;color:var(--mu)}.stats b{display:block;font-size:18px;color:var(--tx)}
+.fq{display:flex;justify-content:space-between;gap:8px}
+.ov{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.4);display:grid;place-items:center;padding:16px}
+.dlg{background:var(--sf);border-radius:14px;padding:16px 18px;width:min(520px,100%);max-height:90vh;overflow:auto}
+.dlg h2{margin:0 0 10px;font-size:19px}
+.er{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.er input[type=text]{flex:1;min-height:36px;border:1px solid var(--ln);border-radius:8px;padding:0 10px;background:var(--bg)}
+.er select{min-height:36px;border:1px solid var(--ln);border-radius:8px;background:var(--bg)}
+.er .x{min-height:36px;min-width:36px;border:1px solid var(--dg);color:var(--dg);background:var(--sf);border-radius:8px}
+a.b{display:inline-flex;align-items:center;text-decoration:none;color:var(--tx)}
 </style>
 </head>
 <body>
@@ -68,14 +94,20 @@ h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mu);
  <label class="b ac" style="display:inline-flex;align-items:center;position:relative">Importa file<input id="fi" type="file" multiple accept=".txt,.json,text/plain,application/json" style="position:absolute;inset:0;opacity:0;cursor:pointer" aria-label="Importa file dall'app"></label>
  <button class="b" id="dirb" type="button"></button>
  <button class="b" id="sync" type="button" hidden title="Rileggi la cartella">Aggiorna</button>
+ <button class="b" id="tagb" type="button">Etichette</button>
  <button class="b" id="csv" type="button">Esporta Excel</button>
+ <button class="b" id="bak" type="button" title="Salva archivio, etichette e note in un file (per ripristinarlo usa Importa file)">Salva tutto</button>
+ <a class="b" id="extl" href="Glory-Archivio-estensione.zip" download>Estensione Chrome</a>
  <span class="st" id="st"></span>
 </header>
 <div id="msg" class="msg" role="status" hidden></div>
 <main>
  <section class="pane list" aria-label="Elenco rapportini">
+  <div id="bk"></div>
   <input class="q" id="q" type="search" placeholder="Cerca matricola, cliente, CV, RMA, tecnico…" aria-label="Cerca">
   <div class="fl" id="fl"></div>
+  <div class="fr" id="fr"></div>
+  <div class="rie" id="rie" hidden></div>
   <div id="mh"></div>
   <div class="cnt" id="cn"></div>
   <div class="items" id="its"></div>
@@ -143,57 +175,161 @@ function dirSync(){if(!DIR||!DIR.ok||syncing)return Promise.resolve();syncing=1;
    if(o&&o.u&&o.s&&o.v){got[o.u]=o;continue}            /* copia di un lavoro lasciata nella cartella principale (versione precedente) */
    var A=o?norm(o):[];if(A.length){nf++;inc=inc.concat(A)}}
   var sd=await subDir();
-  for await (var e2 of sd.values()){if(e2.kind!=="file"||!/\.json$/.test(e2.name))continue;var f2=await e2.getFile(),k2=SUB+"/"+e2.name+"|"+f2.size+"|"+f2.lastModified;if(SEEN[k2])continue;SEEN[k2]=1;try{var r=JSON.parse(await f2.text());if(r&&r.u)got[r.u]=r}catch(x){}}
+  for await (var e2 of sd.values()){if(e2.kind!=="file"||!/\.json$/.test(e2.name))continue;var f2=await e2.getFile(),k2=SUB+"/"+e2.name+"|"+f2.size+"|"+f2.lastModified;if(SEEN[k2])continue;SEEN[k2]=1;try{var r=JSON.parse(await f2.text());if(e2.name==="_meta.json"){if(r&&+r.ts>(+META.ts||0)){META=metaFix(r);cfg("meta",META)}else if(r&&metaMerge(r))metaSave()}else if(r&&r.u)got[r.u]=r}catch(x){}}
  })().then(function(){
   var M={},toDb=[],nu=0,ag=0;L.forEach(function(r){M[r.u]=r});
   Object.keys(got).forEach(function(u){var r=got[u];if(!M[u]||r.d>M[u].d){toDb.push(r);M[u]=r}});
   var toDir=[];inc.forEach(function(r){var e=M[r.u];if(!e){nu++;M[r.u]=r;toDb.push(r);toDir.push(r)}else if(r.d>e.d){ag++;M[r.u]=r;toDb.push(r);toDir.push(r)}});
   L.forEach(function(r){if(!got[r.u]&&toDir.indexOf(r)<0&&!SEEN["w|"+r.u+"|"+r.d])toDir.push(r)});
   L=Object.keys(M).map(function(u){return M[u]});
-  return dbPut(toDb).then(function(){return dirWrite(toDir)}).then(function(){toDir.forEach(function(r){SEEN["w|"+r.u+"|"+r.d]=1});cfg("seen",SEEN);
+  return dbPut(toDb).then(function(){return dirWrite(toDir)}).then(metaDir).then(function(){toDir.forEach(function(r){SEEN["w|"+r.u+"|"+r.d]=1});cfg("seen",SEEN);
    if(nu||ag)say("Dalla cartella: "+nu+(nu===1?" nuovo":" nuovi")+(ag?", "+ag+(ag===1?" aggiornato":" aggiornati"):"")+".");draw()})})
  .catch(function(){say("Lettura della cartella non riuscita: ricollegala.",1)}).then(function(){syncing=0})}
 /* torna sulla finestra o tocca Aggiorna: rilegge la cartella */
 window.addEventListener("focus",function(){if(DIR&&DIR.ok)dirSync()});
 
+/* ---------- etichette e note personali (solo su questo PC e nella cartella collegata) ---------- */
+var COL=["#c23b22","#d97706","#ca8a04","#1f7a4d","#0f766e","#1f5f99","#6d28d9","#be185d","#5b6770"];
+var META={tags:[],L:{},M:{},ts:0};
+function metaFix(m){m=m&&typeof m==="object"?m:{};return {tags:Array.isArray(m.tags)?m.tags:[],L:m.L&&typeof m.L==="object"?m.L:{},M:m.M&&typeof m.M==="object"?m.M:{},ts:+m.ts||0}}
+function metaDef(){var n=["Da fatturare","Garanzia","Cliente critico","Da richiamare","Ricambio in ordine","Macchina problematica"],c=[1,5,0,2,6,7];
+ return {tags:n.map(function(x,i){return {id:"t"+(i+1),n:x,c:COL[c[i]]}}),L:{},M:{},ts:0}}
+/* unisce etichette e note di un altro archivio: aggiunge quelle che mancano, non cancella niente */
+function metaMerge(m){m=metaFix(m);var ch=0;m.tags.forEach(function(t){var e=tagOf(t.id);if(!e){META.tags.push(t);ch=1}});
+ ["L","M"].forEach(function(k){Object.keys(m[k]).forEach(function(x){var a=META[k][x],b=m[k][x];if(!a){META[k][x]=b;ch=1;return}
+  (b.t||[]).forEach(function(id){if(a.t.indexOf(id)<0){a.t.push(id);ch=1}});if(b.n&&!a.n){a.n=b.n;ch=1}})});return ch}
+var mdT=null;
+function metaSave(){META.ts=Date.now();cfg("meta",META);clearTimeout(mdT);mdT=setTimeout(metaDir,800)}
+function metaDir(){if(!DIR||!DIR.ok)return Promise.resolve();return subDir().then(function(sd){return sd.getFileHandle("_meta.json",{create:true})}).then(function(fh){return fh.createWritable()}).then(function(w){return w.write(JSON.stringify(META)).then(function(){return w.close()})}).catch(function(){})}
+function mk(v){return String(v||"").toUpperCase().replace(/\s+/g,"")}
+function slot(kind,k){var o=META[kind][k];if(!o){o={t:[],n:""};META[kind][k]=o}return o}
+function clean(kind,k){var o=META[kind][k];if(o&&!o.t.length&&!String(o.n||"").trim())delete META[kind][k]}
+function tagOf(id){return META.tags.filter(function(t){return t.id===id})[0]}
+function tagsL(r){var o=(META.L[r.u]||{}).t||[],M=mats(r);M.forEach(function(m){((META.M[mk(m.v)]||{}).t||[]).forEach(function(t){if(o.indexOf(t)<0)o=o.concat(t)})});return o.filter(tagOf)}
+function tagRow(kind,k){var w=el("div","tgs"),o=META[kind][k]||{t:[]};
+ if(!META.tags.length){w.append(el("span","st","Nessuna etichetta: creale con il tasto Etichette."));return w}
+ META.tags.forEach(function(t){var on=o.t.indexOf(t.id)>=0,b=btn("tg"+(on?" on":""),null,function(){var x=slot(kind,k),i=x.t.indexOf(t.id);if(i<0)x.t.push(t.id);else x.t.splice(i,1);clean(kind,k);metaSave();draw()});
+  var d=el("i");d.style.background=t.c;b.append(d,document.createTextNode(t.n));if(on)b.style.borderColor=t.c;b.setAttribute("aria-pressed",on?"true":"false");w.append(b)});return w}
+function noteBox(kind,k,ph){var ta=el("textarea","mynote");ta.placeholder=ph;ta.value=(META[kind][k]||{}).n||"";
+ ta.oninput=function(){slot(kind,k).n=ta.value;clean(kind,k);metaSave()};ta.onblur=function(){draw()};return ta}
+
+/* ---------- editor delle etichette ---------- */
+function tagEditor(){var ov=el("div","ov"),d=el("div","dlg");ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");
+ function close(){ov.remove();draw()}
+ ov.onclick=function(e){if(e.target===ov)close()};
+ function body(){d.textContent="";d.append(el("h2",0,"Etichette"));
+  META.tags.forEach(function(t,i){var r=el("div","er"),inp=document.createElement("input"),sel=document.createElement("select"),dot=el("span","dot");
+   inp.type="text";inp.value=t.n;inp.setAttribute("aria-label","Nome etichetta");inp.oninput=function(){t.n=inp.value;metaSave()};
+   dot.style.background=t.c;COL.forEach(function(c,j){var op=new Option("Colore "+(j+1),c);op.style.background=c;op.style.color="#fff";if(c===t.c)op.selected=true;sel.append(op)});sel.style.background=t.c;sel.style.color="#fff";sel.setAttribute("aria-label","Colore");
+   sel.onchange=function(){t.c=sel.value;sel.style.background=t.c;dot.style.background=t.c;metaSave()};
+   var x=btn("x","✕",function(){if(!confirm("Eliminare l'etichetta «"+t.n+"»? Viene tolta da tutti i lavori e le matricole."))return;META.tags.splice(i,1);["L","M"].forEach(function(kd){Object.keys(META[kd]).forEach(function(k){var o=META[kd][k];o.t=o.t.filter(function(z){return z!==t.id});clean(kd,k)})});metaSave();body()});x.setAttribute("aria-label","Elimina "+t.n);
+   r.append(dot,inp,sel,x);d.append(r)});
+  var row=el("div","er");row.style.marginTop="12px";row.append(btn("b ac","+ Nuova etichetta",function(){var id="t"+Date.now().toString(36);META.tags.push({id:id,n:"Nuova etichetta",c:COL[META.tags.length%COL.length]});metaSave();body();var ii=d.querySelectorAll("input[type=text]");if(ii.length){ii[ii.length-1].focus();ii[ii.length-1].select()}}),btn("b","Chiudi",close));d.append(row)}
+ body();ov.append(d);document.body.append(ov)}
+
 /* ---------- importazione: solo lavori nuovi o aggiornati ---------- */
 function readFile(f){return new Promise(function(ok){var rd=new FileReader();rd.onload=function(){ok(String(rd.result||""))};rd.onerror=function(){ok("")};rd.readAsText(f)})}
 function norm(o){var arr=[],dev=o.dev||"bk";
  if(o&&o.glory===2&&Array.isArray(o.arc))o.arc.forEach(function(r){if(!r||!r.v||!r.s)return;var x=JSON.parse(JSON.stringify(r));x.u=x.u||dev+"-"+(g(x.s,"tec")||"x")+"-"+x.id;x.tec=x.tec||g(x.s,"tec")||o.tec||"";x.d=+x.d||Date.now();delete x.xd;arr.push(x)});
+ if(o&&o.gloryPc===1&&Array.isArray(o.lav))o.lav.forEach(function(r){if(r&&r.u&&r.v&&r.s)arr.push(r)});
  return arr}
-function importa(files){var M={},nu=0,ag=0,ug=0,bad=0,ch=[];L.forEach(function(r){M[r.u]=r});
+function importa(files){var M={},nu=0,ag=0,ug=0,bad=0,ch=[],mt=0;L.forEach(function(r){M[r.u]=r});
  Promise.all(Array.prototype.map.call(files,readFile)).then(function(T){
-  T.forEach(function(t){var o=null;try{o=JSON.parse(t)}catch(e){}var A=o?norm(o):[];if(!A.length){bad++;return}
+  T.forEach(function(t){var o=null;try{o=JSON.parse(t)}catch(e){}var A=o?norm(o):[];
+   if(o&&o.gloryPc===1&&o.meta&&metaMerge(o.meta))mt=1
+   if(!A.length&&!mt){bad++;return}
    A.forEach(function(r){var e=M[r.u];if(!e){nu++;M[r.u]=r;ch.push(r)}else if(r.d>e.d){ag++;M[r.u]=r;ch.push(r)}else ug++})});
+  if(mt)metaSave()
   return dbPut(ch).then(function(){return dirWrite(ch)}).then(function(){L=Object.keys(M).map(function(u){return M[u]});
-   say(bad&&!nu&&!ag&&!ug?"File non riconosciuto: usa il file creato dall'app con «Archivio per il PC».":nu+(nu===1?" nuovo, ":" nuovi, ")+ag+(ag===1?" aggiornato, ":" aggiornati, ")+ug+" già present"+(ug===1?"e":"i")+(bad?", "+bad+" file non validi":"")+".",bad&&!nu&&!ag&&!ug);
-   if(ch.length&&!SEL)SEL=ch[0].u;draw()})}).catch(function(){say("Importazione non riuscita.",1)})}
+   say(bad&&!nu&&!ag&&!ug&&!mt?"File non riconosciuto: usa il file inviato dall'app (Invia al PC) o un «Salva tutto».":nu+(nu===1?" nuovo, ":" nuovi, ")+ag+(ag===1?" aggiornato, ":" aggiornati, ")+ug+" già present"+(ug===1?"e":"i")+(mt?", etichette e note ripristinate":"")+(bad?", "+bad+" file non validi":"")+".",bad&&!nu&&!ag&&!ug&&!mt);
+   if(ch.length&&!F.sel)F.sel=ch[0].u;draw()})}).catch(function(){say("Importazione non riuscita.",1)})}
 
-/* ---------- elenco e ricerca ---------- */
-function filtrati(){var q=F.q.toLowerCase().trim(),W=q.split(/\s+/).filter(Boolean);
- return L.filter(function(r){if(F.v&&r.v!==F.v)return false;if(F.t&&r.tec!==F.t)return false;if(!W.length)return true;var t=testo(r);return W.every(function(w){return t.indexOf(w)>=0})}).sort(function(a,b){return tLav(b)-tLav(a)||b.d-a.d})}
-function matStoria(){var q=F.q.trim().toUpperCase().replace(/\s+/g,"");if(q.length<3)return null;var hit=null;
- L.some(function(r){return mats(r).some(function(m){if(m.v.toUpperCase()===q||m.n.toUpperCase()===q){hit=m;return true}})});return hit}
+/* ---------- stato della vista e freccia Indietro ---------- */
+var F={q:"",v:"",t:"",per:"",da:"",a:"",st:"",tag:"",sel:null,frq:0},HIST=[];
+function snap(){return JSON.parse(JSON.stringify(F))}
+function go(ch){HIST.push(snap());if(HIST.length>40)HIST.shift();Object.keys(ch).forEach(function(k){F[k]=ch[k]});$("q").value=F.q;draw();window.scrollTo(0,0)}
+function back(){if(!HIST.length)return;F=HIST.pop();$("q").value=F.q;draw()}
+function apri(m){go({q:m,v:"",frq:0,sel:null})}
+
+/* ---------- filtri ---------- */
+var PER=[["","Sempre"],["m0","Questo mese"],["m1","Mese scorso"],["m3","Ultimi 3 mesi"],["y0","Quest'anno"],["x","Da… a…"]];
+function range(){var n=new Date(),y=n.getFullYear(),m=n.getMonth();
+ if(F.per==="m0")return [new Date(y,m,1).getTime(),Infinity];if(F.per==="m1")return [new Date(y,m-1,1).getTime(),new Date(y,m,1).getTime()];
+ if(F.per==="m3")return [new Date(y,m-2,1).getTime(),Infinity];if(F.per==="y0")return [new Date(y,0,1).getTime(),Infinity];
+ if(F.per==="x"){var a=F.da?new Date(F.da+"T00:00").getTime():-Infinity,b=F.a?new Date(F.a+"T00:00").getTime()+864e5:Infinity;return [a,b]}return null}
+function stato(r){return (!r.st||r.st==="fatto")?"fatto":r.st}
+function filtrati(){var q=F.q.toLowerCase().trim(),W=q.split(/\s+/).filter(Boolean),R=range();
+ return L.filter(function(r){if(F.v&&r.v!==F.v)return false;if(F.t&&r.tec!==F.t)return false;if(F.st&&stato(r)!==F.st)return false;
+  if(R){var t=tLav(r);if(t<R[0]||t>=R[1])return false}
+  if(F.tag&&tagsL(r).indexOf(F.tag)<0)return false;
+  if(!W.length)return true;var t2=testo(r)+" "+String((META.L[r.u]||{}).n||"").toLowerCase();return W.every(function(w){return t2.indexOf(w)>=0})}).sort(function(a,b){return tLav(b)-tLav(a)||b.d-a.d})}
+function matStoria(){var q=mk(F.q);if(q.length<3)return null;var hit=null;
+ L.some(function(r){return mats(r).some(function(m){if(mk(m.v)===q||mk(m.n)===q){hit=m;return true}})});return hit}
+
+/* ---------- scheda macchina ---------- */
+function macchina(h){var K=mk(h.v),Rs=L.filter(function(r){return mats(r).some(function(m){return mk(m.v)===K})}).sort(function(a,b){return tLav(a)-tLav(b)}),
+ part={},mod="",cli="",se="",ins=null,rit=null,int=[];
+ Rs.forEach(function(r){var s=r.s||{},i,n;
+  if(r.v==="inst"||r.v==="rit"){n=+s.n||1;for(i=1;i<=n;i++){var px=PX[s["m"+i]]||"",S=["RBW"+px+"-"+g(s,"a"+i),"RCW"+px+"-"+g(s,"c"+i),g(s,"mt"+i)];if(S.some(function(x){return mk(x)===K})){mod=s["m"+i]||mod;S.forEach(function(x){if(x&&!/-$/.test(x)&&mk(x)!==K)part[x]=1})}}}
+  if(r.v==="loc"){mod=s.md||mod;mats(r).forEach(function(m){if(mk(m.v)!==K)part[m.v]=1})}
+  if(r.v==="rip"){mod=s.r1_md||mod;if(s.rva)mats(r).forEach(function(m){if(mk(m.v)!==K)part[m.v]=1})}
+  if(r.v==="inst")ins=r;if(r.v==="rit")rit=r;if(r.v==="loc"||r.v==="rip")int.push(r);
+  if(cliente(r))cli=cliente(r);if(g(s,"se"))se=g(s,"se")});
+ if(!mod){var m=/^R[BC]W(50|100|200)-/.exec(h.v);if(m)mod={"50":"CI-5","100":"CI-10","200":"CI-10X"}[m[1]]}
+ var bx=el("div","mac");bx.append(el("div","st",h.k==="Impianto"?"Codice impianto":"Matricola "+h.k.toLowerCase()),el("h2",0,h.v),el("div",0,[mod?"Glory "+mod:"",cli,se].filter(Boolean).join(" · ")));
+ var st=el("div","stats");function S(l,v){var d=el("div");d.append(el("b",0,v),document.createTextNode(l));st.append(d)}
+ S("installazione",ins?dLav(ins):"—");S("interventi",String(int.length));S("ultimo intervento",int.length?dLav(int[int.length-1]):"—");if(rit)S("ritiro"+(rit.s&&rit.s.mo?" · "+rit.s.mo.toLowerCase():""),dLav(rit));bx.append(st);
+ var P=Object.keys(part);if(P.length){bx.append(el("h3",0,"Stessa macchina"));var w=el("div","mats");P.forEach(function(x){w.append(btn("mat",x,function(){apri(x)}))});bx.append(w)}
+ bx.append(el("h3",0,"Etichette della macchina"),tagRow("M",K),el("h3",0,"Nota sulla macchina"),noteBox("M",K,"Es. sensore lega sostituito due volte, valutare il modulo"));
+ return bx}
+
+/* ---------- macchine con più interventi (ultimi 6 mesi) ---------- */
+function frequenti(){var lim=Date.now()-183*864e5,C={};
+ L.forEach(function(r){if((r.v!=="loc"&&r.v!=="rip")||tLav(r)<lim)return;var seen={};mats(r).forEach(function(m){if(m.k==="Impianto")return;var k=mk(m.v);if(seen[k])return;seen[k]=1;var c=C[k]||(C[k]={v:m.v,n:0,cl:"",last:0});c.n++;if(tLav(r)>c.last){c.last=tLav(r);c.cl=cliente(r)}})});
+ return Object.keys(C).map(function(k){return C[k]}).filter(function(c){return c.n>=2}).sort(function(a,b){return b.n-a.n||b.last-a.last})}
+
+/* ---------- disegno ---------- */
 function draw(){
- var fl=$("fl");fl.textContent="";[["","Tutti"]].concat(Object.keys(TIT).map(function(k){return [k,TIT[k]]})).forEach(function(o){var n=o[0]?L.filter(function(r){return r.v===o[0]}).length:L.length;if(o[0]&&!n)return;fl.append(btn("ch"+(F.v===o[0]?" on":""),o[1]+" "+n,function(){F.v=o[0];draw()}))});
+ var bk=$("bk");bk.textContent="";if(HIST.length)bk.append(btn("back","‹ Indietro",back));
+ var fl=$("fl");fl.textContent="";[["","Tutti"]].concat(Object.keys(TIT).map(function(k){return [k,TIT[k]]})).forEach(function(o){var n=o[0]?L.filter(function(r){return r.v===o[0]}).length:L.length;if(o[0]&&!n)return;fl.append(btn("ch"+(F.v===o[0]&&!F.frq?" on":""),o[1]+" "+n,function(){go({v:o[0],frq:0})}))});
+ fl.append(btn("ch frq"+(F.frq?" on":""),"Macchine con più interventi",function(){go({frq:F.frq?0:1,sel:null})}));
+ var fr=$("fr");fr.textContent="";
+ function sel(lab,opts,val,fn){var se=el("select","sel");se.setAttribute("aria-label",lab);opts.forEach(function(o){var op=new Option(o[1],o[0]);if(o[0]===val)op.selected=true;se.append(op)});se.onchange=function(){fn(se.value)};fr.append(se)}
+ sel("Periodo",PER,F.per,function(v){go({per:v})});
+ if(F.per==="x"){[["da","Dal"],["a","Al"]].forEach(function(x){var i=document.createElement("input");i.type="date";i.value=F[x[0]];i.setAttribute("aria-label",x[1]);i.onchange=function(){F[x[0]]=i.value;draw()};fr.append(i)})}
+ sel("Stato",[["","Tutti gli stati"],["fatto","Conclusi"],["corso","In corso"],["attesa","In attesa"]],F.st,function(v){go({st:v})});
+ if(META.tags.length)sel("Etichetta",[["","Tutte le etichette"]].concat(META.tags.map(function(t){return [t.id,t.n]})),F.tag,function(v){go({tag:v})});
  var tecs={};L.forEach(function(r){if(r.tec)tecs[r.tec]=1});var tk=Object.keys(tecs).sort();
- if(tk.length>1){var se=el("select","sel");se.setAttribute("aria-label","Tecnico");se.append(new Option("Tutti i tecnici",""));tk.forEach(function(t){var op=new Option(t,t);if(F.t===t)op.selected=true;se.append(op)});se.onchange=function(){F.t=se.value;draw()};fl.append(se)}
- var R=filtrati(),h=matStoria(),mh=$("mh");mh.textContent="";
+ if(tk.length>1)sel("Tecnico",[["","Tutti i tecnici"]].concat(tk.map(function(t){return [t,t]})),F.t,function(v){go({t:v})});
+ var it=$("its");it.textContent="";var mh=$("mh");mh.textContent="";var rie=$("rie");
+ if(F.frq){var Q=frequenti();rie.hidden=true;$("cn").textContent=Q.length?Q.length+(Q.length===1?" matricola":" matricole")+" con 2 o più interventi negli ultimi 6 mesi":"";
+  if(!Q.length)it.append(el("p","empty","Nessuna macchina con 2 o più interventi negli ultimi 6 mesi."));
+  Q.forEach(function(c){var b=btn("it cor",null,function(){apri(c.v)}),l=el("b","fq");l.append(el("span",0,c.v),el("span",0,c.n+" interventi"));b.append(l,el("span",0,(c.cl?c.cl+" · ":"")+"ultimo "+dIt(c.last)));it.append(b)});
+  dett(null);status(tecs);return}
+ var R=filtrati(),h=matStoria();
  if(h){var b=el("div","mh");b.append(document.createTextNode("Storia di "),el("b",0,h.v),document.createTextNode(" · "+R.length+(R.length===1?" rapportino":" rapportini")+", dal più recente"));mh.append(b)}
  $("cn").textContent=L.length?R.length+" di "+L.length+" lavori":"";
- var it=$("its");it.textContent="";
- if(!L.length){it.append(el("p","empty","Archivio vuoto. Importa i file che arrivano dall'app (Archivio › Archivio per il PC) oppure trascinali in questa finestra."))}
+ /* riepilogo del periodo */
+ if(R.length){var cnt={},ore=0,ot={};R.forEach(function(r){cnt[r.v]=(cnt[r.v]||0)+1;var o=+g(r.s||{},"ore")||0;ore+=o;if(r.tec&&o)ot[r.tec]=(ot[r.tec]||0)+o});
+  rie.textContent="";rie.hidden=false;rie.append(el("b",0,R.length+(R.length===1?" lavoro":" lavori")),document.createTextNode(": "+Object.keys(TIT).filter(function(k){return cnt[k]}).map(function(k){return cnt[k]+" "+TIT[k].toLowerCase()}).join(", ")));
+  if(ore){rie.append(document.createTextNode(" · "),el("b",0,ore+(ore===1?" ora":" ore")),document.createTextNode(" di manodopera"));var tt=Object.keys(ot);if(tt.length>1)rie.append(document.createTextNode(" ("+tt.map(function(t){return t+" "+ot[t]}).join(", ")+")"))}}
+ else rie.hidden=true;
+ if(!L.length){it.append(el("p","empty","Archivio vuoto. Importa i file inviati dall'app o collega la cartella dove arrivano."))}
  else if(!R.length)it.append(el("p","empty","Nessun risultato."));
- R.slice(0,400).forEach(function(r){var c=btn("it"+((!r.st||r.st==="fatto")?" fat":r.st==="corso"?" cor":"")+(SEL===r.u?" on":""),null,function(){SEL=r.u;draw();if(innerWidth<860)$("det").scrollIntoView()});
-  c.append(el("b",0,r.n||"Senza nome"),el("span",0,TIT[r.v]+" · "+dLav(r)+(r.tec?" · "+r.tec:"")+(r.st==="corso"?" · in corso":r.st==="attesa"?" · in attesa":"")));it.append(c)});
+ R.slice(0,400).forEach(function(r){var st=stato(r),c=btn("it"+(st==="fatto"?" fat":st==="corso"?" cor":"")+(F.sel===r.u?" on":""),null,function(){if(h&&!F.sel)go({sel:r.u});else{F.sel=r.u;draw()}if(innerWidth<860)$("det").scrollIntoView()});
+  var tl=el("b",0,r.n||"Senza nome"),T=tagsL(r);if(T.length){var dd=el("span","dots");T.forEach(function(id){var t=tagOf(id),d=el("i","dot");d.style.background=t.c;d.title=t.n;dd.append(d)});tl.append(dd)}
+  var nn=(META.L[r.u]||{}).n;c.append(tl,el("span",0,TIT[r.v]+" · "+dLav(r)+(r.tec?" · "+r.tec:"")+(st==="corso"?" · in corso":st==="attesa"?" · in attesa":"")+(nn?" · 📝":"")));it.append(c)});
  if(R.length>400)it.append(el("p","cnt","Mostrati i primi 400: affina la ricerca."));
- dett();$("st").textContent=L.length+" lavori · "+Object.keys(tecs).length+(Object.keys(tecs).length===1?" tecnico":" tecnici");dirLabel()}
-function dett(){var d=$("det");d.textContent="";var r=L.filter(function(x){return x.u===SEL})[0];
- if(!r){d.append(el("p","empty",L.length?"Scegli un lavoro dall'elenco. Cerca una matricola per vedere tutta la sua storia.":"Qui vedrai il rapportino, le matricole e le foto."));return}
- var s=r.s||{};d.append(el("h2",0,r.n||"Senza nome"),el("div","sub",TIT[r.v]+" · "+((!r.st||r.st==="fatto")?"concluso":r.st==="corso"?"in corso":"in attesa")+" · archiviato il "+dIt(r.d)));
+ dett(h);status(tecs)}
+function status(tecs){$("st").textContent=L.length+" lavori · "+Object.keys(tecs).length+(Object.keys(tecs).length===1?" tecnico":" tecnici");dirLabel()}
+function dett(h){var d=$("det");d.textContent="";var r=L.filter(function(x){return x.u===F.sel})[0];
+ if(!r&&h){d.append(macchina(h),el("p","st","Scegli un rapportino dall'elenco per aprirlo."));return}
+ if(!r){d.append(el("p","empty",L.length?"Scegli un lavoro dall'elenco, oppure cerca una matricola o un codice impianto per vedere la scheda della macchina.":"Qui vedrai il rapportino, le matricole e le foto."));return}
+ var s=r.s||{};d.append(el("h2",0,r.n||"Senza nome"),el("div","sub",TIT[r.v]+" · "+(stato(r)==="fatto"?"concluso":stato(r)==="corso"?"in corso":"in attesa")+" · archiviato il "+dIt(r.d)));
  var kv=el("dl","kv");function row(k,v){if(!v)return;kv.append(el("dt",0,k),el("dd",0,v))}
  row("Tecnico",r.tec);row("Data intervento",dLav(r));row("Cliente",g(s,"cl"));if(s.rv)row("Rivenditore",g(s,"rvn"));row("Sede",g(s,"se"));row("Riferimento",rif(r));row("Manodopera",g(s,"ore")?g(s,"ore")+(g(s,"ore")==="1"?" ora":" ore"):"");d.append(kv);
- var M=mats(r);if(M.length){d.append(el("h3",0,"Matricole · tocca per la storia"));var w=el("div","mats");M.forEach(function(m){var b=btn("mat",null,function(){F.q=m.v;F.v="";$("q").value=m.v;draw()});b.append(el("i",0,m.k),document.createTextNode(m.v));b.title="Tutti i rapportini di "+m.v;w.append(b)});d.append(w)}
+ d.append(el("h3",0,"Etichette"),tagRow("L",r.u),el("h3",0,"Mia nota"),noteBox("L",r.u,"Nota personale su questo lavoro (non modifica il rapportino)"));
+ var M=mats(r);if(M.length){d.append(el("h3",0,"Matricole · scheda macchina"));var w=el("div","mats");M.forEach(function(m){var b=btn("mat",null,function(){apri(m.v)});b.append(el("i",0,m.k),document.createTextNode(m.v));var mt=(META.M[mk(m.v)]||{}).t||[];mt.forEach(function(id){var t=tagOf(id);if(t){var dd=el("i","dot");dd.style.background=t.c;dd.style.marginLeft="6px";dd.title=t.n;b.append(dd)}});w.append(b)});d.append(w)}
  if(r.nt){d.append(el("h3",0,"Note rapportino"));var p=el("pre","note",r.nt);d.append(p,btn("b sm","Copia note",function(e){var b=e.target;navigator.clipboard.writeText(r.nt).then(function(){b.textContent="Copiato";setTimeout(function(){b.textContent="Copia note"},1500)})}))}
  var nte=g(s,"nte");if(nte){d.append(el("h3",0,"Note tecniche"),el("pre","note",nte))}
  var P=(r.ph||[]).filter(function(f){return f&&typeof f.d==="string"&&f.d.indexOf("data:image/")===0});
@@ -201,22 +337,28 @@ function dett(){var d=$("det");d.textContent="";var r=L.filter(function(x){retur
  var det=el("details","raw");det.append(el("summary",0,"Tutti i dati della scheda"));var tb=el("table");Object.keys(s).sort().forEach(function(k){if(/^_/.test(k)||s[k]===""||s[k]===0||s[k]==null)return;var tr=el("tr");tr.append(el("td",0,k),el("td",0,typeof s[k]==="object"?JSON.stringify(s[k]):String(s[k])));tb.append(tr)});det.append(tb);d.append(el("h3",0,"Dettagli"),det)}
 
 /* ---------- Excel (CSV con separatore ;) ---------- */
+function oggi(){var n=new Date();return p2(n.getDate())+"-"+p2(n.getMonth()+1)+"-"+n.getFullYear()}
+function scarica(blob,fn){var a=document.createElement("a"),u=URL.createObjectURL(blob);a.href=u;a.download=fn;document.body.append(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000)}
 function csv(){var R=filtrati();if(!R.length){say("Niente da esportare.",1);return}
  function q(v){v=String(v==null?"":v);return /[;"\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}
- var H=["Data","Tipo","Stato","Tecnico","Cliente","Rivenditore","Sede","Riferimento","Matricole","Ore","Nome lavoro","Note rapportino"],rows=[H.join(";")];
- R.forEach(function(r){var s=r.s||{};rows.push([dLav(r),TIT[r.v],(!r.st||r.st==="fatto")?"Concluso":r.st==="corso"?"In corso":"In attesa",r.tec,g(s,"cl"),s.rv?g(s,"rvn"):"",g(s,"se"),rif(r),mats(r).map(function(m){return m.v}).join(", "),g(s,"ore"),r.n,r.nt||""].map(q).join(";"))});
- var a=document.createElement("a"),u=URL.createObjectURL(new Blob(["﻿"+rows.join("\r\n")],{type:"text/csv"}));a.href=u;a.download="Glory archivio - "+p2(new Date().getDate())+"-"+p2(new Date().getMonth()+1)+"-"+new Date().getFullYear()+".csv";document.body.append(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000)}
+ var H=["Data","Tipo","Stato","Tecnico","Cliente","Rivenditore","Sede","Riferimento","Matricole","Ore","Etichette","Mia nota","Nome lavoro","Note rapportino"],rows=[H.join(";")];
+ R.forEach(function(r){var s=r.s||{};rows.push([dLav(r),TIT[r.v],stato(r)==="fatto"?"Concluso":stato(r)==="corso"?"In corso":"In attesa",r.tec,g(s,"cl"),s.rv?g(s,"rvn"):"",g(s,"se"),rif(r),mats(r).map(function(m){return m.v}).join(", "),g(s,"ore"),tagsL(r).map(function(id){return tagOf(id).n}).join(", "),(META.L[r.u]||{}).n||"",r.n,r.nt||""].map(q).join(";"))});
+ scarica(new Blob(["﻿"+rows.join("\r\n")],{type:"text/csv"}),"Glory archivio - "+oggi()+".csv")}
+function salvaTutto(){if(!L.length&&!META.tags.length){say("Archivio vuoto.",1);return}
+ scarica(new Blob([JSON.stringify({gloryPc:1,saved:Date.now(),lav:L,meta:META})],{type:"application/json"}),"Glory archivio completo - "+oggi()+".json");say("Archivio salvato. Per ripristinarlo su questo o un altro PC usa Importa file.")}
 
 /* ---------- avvio ---------- */
 $("fi").onchange=function(){if(this.files.length)importa(this.files);this.value=""};
-$("q").oninput=function(){F.q=this.value;draw()};
-$("dirb").onclick=dirPick;$("sync").onclick=function(){dirSync()};$("csv").onclick=csv;
+$("q").oninput=function(){F.q=this.value;F.sel=null;F.frq=0;draw()};
+$("dirb").onclick=dirPick;$("sync").onclick=function(){dirSync()};$("csv").onclick=csv;$("tagb").onclick=tagEditor;$("bak").onclick=salvaTutto;
+if(location.protocol==="chrome-extension:")$("extl").hidden=true;
+document.addEventListener("keydown",function(e){if(e.key==="Escape"){var o=document.querySelector(".ov");if(o){o.remove();draw()}else if(HIST.length&&document.activeElement.tagName!=="INPUT"&&document.activeElement.tagName!=="TEXTAREA")back()}});
 var dc=0;document.addEventListener("dragenter",function(e){e.preventDefault();dc++;$("drop").hidden=false});
 document.addEventListener("dragleave",function(){if(--dc<=0){dc=0;$("drop").hidden=true}});
 document.addEventListener("dragover",function(e){e.preventDefault()});
 document.addEventListener("drop",function(e){e.preventDefault();dc=0;$("drop").hidden=true;if(e.dataTransfer.files.length)importa(e.dataTransfer.files)});
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
-dbOpen().then(dbAll).then(function(a){L=a;draw();return dirInit()}).then(draw).catch(function(){say("Questo browser non può salvare l'archivio: usa Chrome o Edge.",1)});
+dbOpen().then(function(){return cfg("meta")}).then(function(m){META=m?metaFix(m):metaDef();if(!m)cfg("meta",META)}).then(dbAll).then(function(a){L=a;draw();return dirInit()}).then(draw).catch(function(){say("Questo browser non può salvare l'archivio: usa Chrome o Edge.",1)});
 if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
 </body>
