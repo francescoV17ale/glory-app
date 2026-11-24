@@ -76,6 +76,8 @@ h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mu);
 .cmh{display:flex;gap:8px;align-items:baseline;font-size:12.5px;color:var(--mu)}.cmh b{color:var(--tx)}.cmt{white-space:pre-wrap;font-size:14px;margin-top:2px}
 .cmx{margin-left:auto;border:0;background:none;color:var(--dg);font-size:12px;cursor:pointer}
 .pdfv{margin:0 0 12px}.pdfv canvas{width:100%;height:auto;display:block;border:1px solid var(--ln);border-radius:6px;margin-top:8px;background:#fff}
+.spr{margin:0 0 12px}.spr>b{display:block;margin-bottom:6px}.b.spon{color:#fff;font-weight:700}
+.spb{font-style:normal;font-size:11px;font-weight:700;color:#fff;border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
 .az{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.b.dgb{color:var(--dg);border-color:var(--dg)}
 .inv{font-size:12.5px;color:var(--mu);margin:0 0 8px}.inv .old{color:var(--wn);font-weight:600}
 .it.nw{box-shadow:inset 0 0 0 2px var(--ac)}.nwb{font-style:normal;font-size:11px;font-weight:700;background:var(--ac);color:var(--on);border-radius:6px;padding:1px 6px;margin-right:6px;vertical-align:middle}
@@ -277,15 +279,20 @@ window.addEventListener("focus",function(){if(GDON&&!gTokC()&&navigator.onLine&&
    Ogni PC scrive solo il suo file _archivio/_team-<codice PC>.json e legge quelli degli altri:
    nessuno sovrascrive il lavoro di un collega. Per ogni voce vince la modifica più recente. */
 var COL=["#c23b22","#d97706","#ca8a04","#1f7a4d","#0f766e","#1f5f99","#6d28d9","#be185d","#5b6770"];
-var TEAM={defs:{},tg:{},cm:{},hid:{}},PCID="",NOME="";
-function teamFix(t){t=t&&typeof t==="object"?t:{};function o(k){return t[k]&&typeof t[k]==="object"?t[k]:{}}return {defs:o("defs"),tg:o("tg"),cm:o("cm"),hid:o("hid")}}
+var TEAM={defs:{},tg:{},cm:{},hid:{},sp:{}},PCID="",NOME="";
+function teamFix(t){t=t&&typeof t==="object"?t:{};function o(k){return t[k]&&typeof t[k]==="object"?t[k]:{}}return {defs:o("defs"),tg:o("tg"),cm:o("cm"),hid:o("hid"),sp:o("sp")}}
 function teamDef(){var n=["Da fatturare","Garanzia","Cliente critico","Da richiamare","Ricambio in ordine","Macchina problematica"],c=[1,5,0,2,6,7],d={};
- n.forEach(function(x,i){d["t"+(i+1)]={n:x,c:COL[c[i]],o:i,ts:0}});return {defs:d,tg:{},cm:{},hid:{}}}
+ n.forEach(function(x,i){d["t"+(i+1)]={n:x,c:COL[c[i]],o:i,ts:0}});return {defs:d,tg:{},cm:{},hid:{},sp:{}}}
 /* unisce due stati: per ogni voce tiene quella con ts più recente; restituisce 1 se è cambiato qualcosa */
-function teamMerge(o){o=teamFix(o);var ch=0;["defs","tg","cm","hid"].forEach(function(k){Object.keys(o[k]).forEach(function(id){var a=TEAM[k][id],b=o[k][id];if(b&&(!a||(+b.ts||0)>(+a.ts||0))){TEAM[k][id]=b;ch=1}})});return ch}
+function teamMerge(o){o=teamFix(o);var ch=0;["defs","tg","cm","hid","sp"].forEach(function(k){Object.keys(o[k]).forEach(function(id){var a=TEAM[k][id],b=o[k][id];if(b&&(!a||(+b.ts||0)>(+a.ts||0))){TEAM[k][id]=b;ch=1}})});return ch}
 var tmT=null;
 function teamSave(){cfg("team",TEAM);clearTimeout(tmT);tmT=setTimeout(teamDir,800)}
 function teamDir(){gTeam();if(!DIR||!DIR.ok||!PCID)return Promise.resolve();return subDir().then(function(sd){return sd.getFileHandle("_team-"+PCID+".json",{create:true})}).then(function(fh){return fh.createWritable()}).then(function(w){return w.write(JSON.stringify(TEAM)).then(function(){return w.close()})}).catch(function(){})}
+/* stato della spedizione (magazzino), solo Riparazioni e Preparazioni: TEAM.sp[u]={s,ts,a} */
+var SPD=[["lav","In lavorazione","#d97706"],["pronta","Pronta alla spedizione","#1f5f99"],["sped","Spedita","#1f7a4d"]];
+function spOk(r){return r.v==="rip"||r.v==="prep"}
+function spOf(r){var x=TEAM.sp[r.u];if(!x||!x.s)return null;for(var i=0;i<SPD.length;i++)if(SPD[i][0]===x.s)return {s:x.s,n:SPD[i][1],c:SPD[i][2],a:x.a,ts:x.ts};return null}
+function spSet(r,v){function go(){TEAM.sp[r.u]={s:v,ts:Date.now(),a:NOME};teamSave();draw()}if(!NOME)chiediNome(go);else go()}
 var PREV=0;function nuovo(r){return (+r.imp||0)>PREV}
 function hid(r){var x=TEAM.hid[r.u];return !!(x&&x.on)}
 function vis(){return L.filter(function(r){return !hid(r)})}
@@ -357,7 +364,7 @@ function importa(files){var M={},nu=0,ag=0,ug=0,bad=0,ch=[],mt=0;L.forEach(funct
    if(ch.length&&!F.sel)F.sel=ch[0].u;draw()})}).catch(function(){say("Importazione non riuscita.",1)})}
 
 /* ---------- stato della vista e freccia Indietro ---------- */
-var F={q:"",v:"",t:"",per:"",da:"",a:"",st:"",tag:"",sel:null,frq:0,nw:0},HIST=[];
+var F={q:"",v:"",t:"",per:"",da:"",a:"",st:"corso",tag:"",sel:null,frq:0,nw:0,sp:""},HIST=[];
 function snap(){return JSON.parse(JSON.stringify(F))}
 function go(ch){HIST.push(snap());if(HIST.length>40)HIST.shift();Object.keys(ch).forEach(function(k){F[k]=ch[k]});$("q").value=F.q;draw();window.scrollTo(0,0)}
 function back(){if(!HIST.length)return;F=HIST.pop();$("q").value=F.q;draw()}
@@ -374,6 +381,7 @@ function filtrati(){var q=F.q.toLowerCase().trim(),W=q.split(/\s+/).filter(Boole
  return (F.st==="del"?L.filter(hid):vis()).filter(function(r){if(F.nw&&!nuovo(r))return false;if(F.v&&r.v!==F.v)return false;if(F.t&&r.tec!==F.t)return false;if(F.st&&F.st!=="del"&&stato(r)!==F.st)return false;
   if(R){var t=tLav(r);if(t<R[0]||t>=R[1])return false}
   if(F.tag&&tagsL(r).indexOf(F.tag)<0)return false;
+  if(F.sp){if(!spOk(r))return false;var sx=spOf(r);if(F.sp==="no"?sx:(!sx||sx.s!==F.sp))return false}
   if(!W.length)return true;var t2=testo(r)+" "+commTxt(r).toLowerCase();return W.every(function(w){return t2.indexOf(w)>=0})}).sort(function(a,b){return tLav(b)-tLav(a)||b.d-a.d})}
 function matStoria(){var q=mk(F.q);if(q.length<3)return null;var hit=null;
  vis().some(function(r){return mats(r).some(function(m){if(mk(m.v)===q||mk(m.n)===q){hit=m;return true}})});return hit}
@@ -412,6 +420,7 @@ function draw(){
  sel("Periodo",PER,F.per,function(v){go({per:v})});
  if(F.per==="x"){[["da","Dal"],["a","Al"]].forEach(function(x){var i=document.createElement("input");i.type="date";i.value=F[x[0]];i.setAttribute("aria-label",x[1]);i.onchange=function(){F[x[0]]=i.value;draw()};fr.append(i)})}
  sel("Stato",[["","Tutti gli stati"],["fatto","Conclusi"],["corso","In corso"],["attesa","In attesa"]].concat(L.some(hid)?[["del","Eliminati"]]:[]),F.st,function(v){go({st:v})});
+ if(L.some(spOk))sel("Spedizione",[["","Tutte le spedizioni"]].concat(SPD.map(function(x){return [x[0],x[1]]}),[["no","Senza stato di spedizione"]]),F.sp,function(v){go({sp:v})});
  if(tags().length)sel("Etichetta",[["","Tutte le etichette"]].concat(tags().map(function(t){return [t.id,t.n]})),F.tag,function(v){go({tag:v})});
  var tecs={};L.forEach(function(r){if(r.tec)tecs[r.tec]=1});var tk=Object.keys(tecs).sort();
  if(tk.length>1)sel("Tecnico",[["","Tutti i tecnici"]].concat(tk.map(function(t){return [t,t]})),F.t,function(v){go({t:v})});
@@ -434,7 +443,7 @@ function draw(){
  if(!L.length){it.append(el("p","empty","Archivio vuoto. Importa i file inviati dall'app o collega la cartella dove arrivano."))}
  else if(!R.length)it.append(el("p","empty","Nessun risultato."));
  R.slice(0,400).forEach(function(r){var st=stato(r),c=btn("it"+(st==="fatto"?" fat":st==="corso"?" cor":"")+(nuovo(r)?" nw":"")+(F.sel===r.u?" on":""),null,function(){if(h&&!F.sel)go({sel:r.u});else{F.sel=r.u;draw()}if(innerWidth<860)$("det").scrollIntoView()});
-  var tl=el("b",0,r.n||"Senza nome"),T=tagsL(r);if(nuovo(r))tl.prepend(el("em","nwb","Nuovo"));if(T.length){var dd=el("span","dots");T.forEach(function(id){var t=tagOf(id),d=el("i","dot");d.style.background=t.c;d.title=t.n;dd.append(d)});tl.append(dd)}
+  var tl=el("b",0,r.n||"Senza nome"),T=tagsL(r);if(nuovo(r))tl.prepend(el("em","nwb","Nuovo"));var sx=spOk(r)&&spOf(r);if(sx){var sb=el("em","spb",sx.n);sb.style.background=sx.c;tl.append(sb)}if(T.length){var dd=el("span","dots");T.forEach(function(id){var t=tagOf(id),d=el("i","dot");d.style.background=t.c;d.title=t.n;dd.append(d)});tl.append(dd)}
   var nn=comms("L",r.u).length;c.append(tl,el("span",0,TIT[r.v]+" · "+dLav(r)+(r.tec?" · "+r.tec:"")+(st==="corso"?" · in corso":st==="attesa"?" · in attesa":"")+(nn?" · 💬 "+nn:"")));it.append(c)});
  if(R.length>400)it.append(el("p","cnt","Mostrati i primi 400: affina la ricerca."));
  dett(h);status(tecs)}
@@ -447,6 +456,9 @@ function dett(h){var d=$("det");d.textContent="";var r=L.filter(function(x){retu
  if(stato(r)!=="fatto")az.append(btn("b sm","Scheda da riprendere",function(){riprendi(r)}));
  az.append(
   hid(r)?btn("b sm","Ripristina",function(){TEAM.hid[r.u]={on:0,ts:Date.now(),a:NOME};teamSave();draw()}):btn("b sm dgb","Elimina",function(){if(!confirm("Eliminare «"+(r.n||"lavoro")+"» per tutta la squadra?\nSi può ripristinare da Stato › Eliminati."))return;TEAM.hid[r.u]={on:1,ts:Date.now(),a:NOME};teamSave();F.sel=null;draw()}));d.append(az,pv);
+ if(spOk(r)){var sx=spOf(r),sr=el("div","spr");sr.append(el("b",0,"Spedizione"));var sg=el("div","az");
+  SPD.forEach(function(x){var on=sx&&sx.s===x[0],b=btn("b sm"+(on?" spon":""),x[1],function(){spSet(r,on?"":x[0])});b.setAttribute("aria-pressed",on?"true":"false");if(on){b.style.background=x[2];b.style.borderColor=x[2]}sg.append(b)});
+  sr.append(sg);if(sx)sr.append(el("p","st",sx.n+" · segnata da "+(sx.a||"?")+" il "+dIt(sx.ts)+". Tocca di nuovo per togliere."));d.append(sr)}
  var kv=el("dl","kv");function row(k,v){if(!v)return;kv.append(el("dt",0,k),el("dd",0,v))}
  var TL=tecL(r);row(TL.length>1?"Tecnici":"Tecnico",TL.join(" → "));row("Data intervento",dLav(r));row("Cliente",g(s,"cl"));if(s.rv)row("Rivenditore",g(s,"rvn"));row("Sede",g(s,"se"));row("Riferimento",rif(r));row("Manodopera",g(s,"ore")?g(s,"ore")+(g(s,"ore")==="1"?" ora":" ore"):"");d.append(kv);
  d.append(el("h3",0,"Etichette"),tagRow("L",r.u),el("h3",0,"Commenti"),commBox("L",r.u));
