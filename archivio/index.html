@@ -76,6 +76,9 @@ h3{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--mu);
 .cmh{display:flex;gap:8px;align-items:baseline;font-size:12.5px;color:var(--mu)}.cmh b{color:var(--tx)}.cmt{white-space:pre-wrap;font-size:14px;margin-top:2px}
 .cmx{margin-left:auto;border:0;background:none;color:var(--dg);font-size:12px;cursor:pointer}
 .pdfv{margin:0 0 12px}.pdfv canvas{width:100%;height:auto;display:block;border:1px solid var(--ln);border-radius:6px;margin-top:8px;background:#fff}
+.edov{padding:0;place-items:stretch}.edw{background:var(--sf);width:100%;height:100%;display:flex;flex-direction:column}.edb{display:flex;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--ln)}.edb b{flex:1}.edw iframe{flex:1;border:0;width:100%}
+.mods{font-size:13px;color:var(--ac);margin:0 0 10px}.mods details{color:var(--mu);margin-top:4px}.edm{font-style:normal;color:var(--ac)}
+.als{display:flex;flex-direction:column;gap:6px;align-items:flex-start}.al a{font-weight:600}.lnk{background:none;border:0;padding:0;color:var(--dg);text-decoration:underline;cursor:pointer;font:inherit}
 .spr{margin:0 0 12px}.spr>b{display:block;margin-bottom:6px}.b.spon{color:#fff;font-weight:700}
 .spb{font-style:normal;font-size:11px;font-weight:700;color:#fff;border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
 .az{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.b.dgb{color:var(--dg);border-color:var(--dg)}
@@ -186,6 +189,7 @@ function dirSync(){if(!DIR||!DIR.ok||syncing)return Promise.resolve();syncing=1;
    var o=null;try{o=JSON.parse(await f.text())}catch(x){}SEEN[key]=1;
    if(o&&o.u&&o.s&&o.v){got[o.u]=o;continue}            /* copia di un lavoro lasciata nella cartella principale (versione precedente) */
    var A=o?norm(o):[];if(A.length){nf++;inc=inc.concat(A)}}
+  try{var mdd=await DIR.h.getDirectoryHandle("_modifiche",{create:false});for await (var e4 of mdd.values()){if(e4.kind!=="file"||!/\.json$/i.test(e4.name))continue;var f4=await e4.getFile(),k4="_modifiche/"+e4.name+"|"+f4.size+"|"+f4.lastModified;if(SEEN[k4])continue;SEEN[k4]=1;try{var o4=JSON.parse(await f4.text());inc=inc.concat(norm(o4))}catch(x){}}}catch(x){}
   try{var imd=await DIR.h.getDirectoryHandle("_importati",{create:false});for await (var e3 of imd.values()){if(e3.kind!=="file"||!/\.(txt|json)$/i.test(e3.name))continue;var f3=await e3.getFile(),k3="_importati/"+e3.name+"|"+f3.size;if(SEEN[k3])continue;SEEN[k3]=1;try{var o3=JSON.parse(await f3.text());var A3=norm(o3);if(A3.length)inc=inc.concat(A3)}catch(x){}}}catch(x){}
   var sd=await subDir();
   for await (var e2 of sd.values()){if(e2.kind!=="file"||!/\.json$/.test(e2.name))continue;var f2=await e2.getFile(),k2=SUB+"/"+e2.name+"|"+f2.size+"|"+f2.lastModified;if(SEEN[k2])continue;SEEN[k2]=1;try{var r=JSON.parse(await f2.text());if(/^_team-/.test(e2.name)){tms.push(r)}else if(r&&r.u)got[r.u]=r}catch(x){}}
@@ -244,11 +248,11 @@ function gSync(inter){if(!GDON||syncing)return Promise.resolve();
   for(var i=0;i<R.length;i++){var f=R[i];if(f.mimeType===GD.FOLD||!/\.(txt|json)$/i.test(f.name)||/^_/.test(f.name))continue;
    var k="g|"+f.id+"|"+f.modifiedTime;if(SEEN[k])continue;var o=null;try{o=JSON.parse(await gText(f.id))}catch(x){if(x&&x.message==="login")throw x}SEEN[k]=1;
    if(o&&o.u&&o.s&&o.v){got[o.u]=o;continue}var A=o?norm(o):[];if(A.length)inc=inc.concat(A)}
-  for(var j=0;j<fo.length;j++){var d=fo[j];if(d.name!=="_importati"&&d.name!==SUB)continue;if(d.name==="_importati"){if(!GDF.i)GDF.i=d.id}else if(!GDF.a)GDF.a=d.id;
+  for(var j=0;j<fo.length;j++){var d=fo[j];if(d.name==="_allegati"){if(!GDF.at)GDF.at=d.id;continue}if(d.name!=="_importati"&&d.name!==SUB&&d.name!=="_modifiche")continue;if(d.name==="_importati"){if(!GDF.i)GDF.i=d.id}else if(d.name==="_modifiche"){if(!GDF.mo)GDF.mo=d.id}else if(!GDF.a)GDF.a=d.id;
    var C=await gIn(d.id);for(var c=0;c<C.length;c++){var e=C[c];if(!/\.(txt|json)$/i.test(e.name))continue;
-    if(d.name===SUB&&e.name==="_team-"+PCID+".json"&&!GDF.m)GDF.m=e.id;
+    if(d.name===SUB&&e.name==="_team-"+PCID+".json"&&!GDF.m)GDF.m=e.id;if(d.name==="_modifiche"){GDF.mf=GDF.mf||{};GDF.mf[e.name]=e.id}
     var k2="g|"+e.id+"|"+e.modifiedTime;if(SEEN[k2])continue;var r=null;try{r=JSON.parse(await gText(e.id))}catch(x){if(x&&x.message==="login")throw x}SEEN[k2]=1;if(!r)continue;
-    if(d.name==="_importati"){inc=inc.concat(norm(r))}else if(/^_team-/.test(e.name))tms.push(r);else if(r.u)got[r.u]=r}}
+    if(d.name==="_importati"||d.name==="_modifiche"){inc=inc.concat(norm(r))}else if(/^_team-/.test(e.name))tms.push(r);else if(r.u)got[r.u]=r}}
  })().then(function(){return unisci(got,inc,tms,mtOld,"Da Google Drive")})
  .catch(function(x){if(x&&x.message==="login")say("Accesso a Google scaduto: tocca Aggiorna.",1);else say("Lettura di Google Drive non riuscita.",1)}).then(function(){syncing=0;dirLabel();status2()})}
 var GTM=0;function gTeam(){if(!GDON||!PCID||!gTokC())return;clearTimeout(GTM);GTM=setTimeout(function(){var t=JSON.stringify(TEAM);
@@ -279,12 +283,12 @@ window.addEventListener("focus",function(){if(GDON&&!gTokC()&&navigator.onLine&&
    Ogni PC scrive solo il suo file _archivio/_team-<codice PC>.json e legge quelli degli altri:
    nessuno sovrascrive il lavoro di un collega. Per ogni voce vince la modifica più recente. */
 var COL=["#c23b22","#d97706","#ca8a04","#1f7a4d","#0f766e","#1f5f99","#6d28d9","#be185d","#5b6770"];
-var TEAM={defs:{},tg:{},cm:{},hid:{},sp:{}},PCID="",NOME="";
-function teamFix(t){t=t&&typeof t==="object"?t:{};function o(k){return t[k]&&typeof t[k]==="object"?t[k]:{}}return {defs:o("defs"),tg:o("tg"),cm:o("cm"),hid:o("hid"),sp:o("sp")}}
+var TEAM={defs:{},tg:{},cm:{},hid:{},sp:{},al:{}},PCID="",NOME="";
+function teamFix(t){t=t&&typeof t==="object"?t:{};function o(k){return t[k]&&typeof t[k]==="object"?t[k]:{}}return {defs:o("defs"),tg:o("tg"),cm:o("cm"),hid:o("hid"),sp:o("sp"),al:o("al")}}
 function teamDef(){var n=["Da fatturare","Garanzia","Cliente critico","Da richiamare","Ricambio in ordine","Macchina problematica"],c=[1,5,0,2,6,7],d={};
- n.forEach(function(x,i){d["t"+(i+1)]={n:x,c:COL[c[i]],o:i,ts:0}});return {defs:d,tg:{},cm:{},hid:{},sp:{}}}
+ n.forEach(function(x,i){d["t"+(i+1)]={n:x,c:COL[c[i]],o:i,ts:0}});return {defs:d,tg:{},cm:{},hid:{},sp:{},al:{}}}
 /* unisce due stati: per ogni voce tiene quella con ts più recente; restituisce 1 se è cambiato qualcosa */
-function teamMerge(o){o=teamFix(o);var ch=0;["defs","tg","cm","hid","sp"].forEach(function(k){Object.keys(o[k]).forEach(function(id){var a=TEAM[k][id],b=o[k][id];if(b&&(!a||(+b.ts||0)>(+a.ts||0))){TEAM[k][id]=b;ch=1}})});return ch}
+function teamMerge(o){o=teamFix(o);var ch=0;["defs","tg","cm","hid","sp","al"].forEach(function(k){Object.keys(o[k]).forEach(function(id){var a=TEAM[k][id],b=o[k][id];if(b&&(!a||(+b.ts||0)>(+a.ts||0))){TEAM[k][id]=b;ch=1}})});return ch}
 var tmT=null;
 function teamSave(){cfg("team",TEAM);clearTimeout(tmT);tmT=setTimeout(teamDir,800)}
 function teamDir(){gTeam();if(!DIR||!DIR.ok||!PCID)return Promise.resolve();return subDir().then(function(sd){return sd.getFileHandle("_team-"+PCID+".json",{create:true})}).then(function(fh){return fh.createWritable()}).then(function(w){return w.write(JSON.stringify(TEAM)).then(function(){return w.close()})}).catch(function(){})}
@@ -293,6 +297,9 @@ var SPD=[["lav","In lavorazione","#d97706"],["pronta","Pronta alla spedizione","
 function spOk(r){return r.v==="rip"||r.v==="prep"}
 function spOf(r){var x=TEAM.sp[r.u];if(!x||!x.s)return null;for(var i=0;i<SPD.length;i++)if(SPD[i][0]===x.s)return {s:x.s,n:SPD[i][1],c:SPD[i][2],a:x.a,ts:x.ts};return null}
 function spSet(r,v){function go(){TEAM.sp[r.u]={s:v,ts:Date.now(),a:NOME};teamSave();draw()}if(!NOME)chiediNome(go);else go()}
+var MOD=["CI-5","CI-10","CI-10X"];
+function modelli(r){var s=r.s||{},o=[];Object.keys(s).forEach(function(k){var v=s[k];if(typeof v==="string"&&MOD.indexOf(v)>=0&&o.indexOf(v)<0)o.push(v)});return o}
+function rivend(r){var s=r.s||{};return s.rv?String(s.rvn||"").trim():""}
 var PREV=0;function nuovo(r){return (+r.imp||0)>PREV}
 function hid(r){var x=TEAM.hid[r.u];return !!(x&&x.on)}
 function vis(){return L.filter(function(r){return !hid(r)})}
@@ -364,7 +371,7 @@ function importa(files){var M={},nu=0,ag=0,ug=0,bad=0,ch=[],mt=0;L.forEach(funct
    if(ch.length&&!F.sel)F.sel=ch[0].u;draw()})}).catch(function(){say("Importazione non riuscita.",1)})}
 
 /* ---------- stato della vista e freccia Indietro ---------- */
-var F={q:"",v:"",t:"",per:"",da:"",a:"",st:"corso",tag:"",sel:null,frq:0,nw:0,sp:""},HIST=[];
+var F={q:"",v:"",t:"",per:"",da:"",a:"",st:"corso",tag:"",sel:null,frq:0,nw:0,sp:"",mo:"",rv:"",cm:0},HIST=[];
 function snap(){return JSON.parse(JSON.stringify(F))}
 function go(ch){HIST.push(snap());if(HIST.length>40)HIST.shift();Object.keys(ch).forEach(function(k){F[k]=ch[k]});$("q").value=F.q;draw();window.scrollTo(0,0)}
 function back(){if(!HIST.length)return;F=HIST.pop();$("q").value=F.q;draw()}
@@ -378,7 +385,7 @@ function range(){var n=new Date(),y=n.getFullYear(),m=n.getMonth();
  if(F.per==="x"){var a=F.da?new Date(F.da+"T00:00").getTime():-Infinity,b=F.a?new Date(F.a+"T00:00").getTime()+864e5:Infinity;return [a,b]}return null}
 function stato(r){return (!r.st||r.st==="fatto")?"fatto":r.st}
 function filtrati(){var q=F.q.toLowerCase().trim(),W=q.split(/\s+/).filter(Boolean),R=range();
- return (F.st==="del"?L.filter(hid):vis()).filter(function(r){if(F.nw&&!nuovo(r))return false;if(F.v&&r.v!==F.v)return false;if(F.t&&r.tec!==F.t)return false;if(F.st&&F.st!=="del"&&stato(r)!==F.st)return false;
+ return (F.st==="del"?L.filter(hid):vis()).filter(function(r){if(F.nw&&!nuovo(r))return false;if(F.v&&r.v!==F.v)return false;if(F.t&&tecL(r).indexOf(F.t)<0)return false;if(F.mo&&modelli(r).indexOf(F.mo)<0)return false;if(F.rv&&rivend(r)!==F.rv)return false;if(F.cm&&!comms("L",r.u).length)return false;if(F.st&&F.st!=="del"&&stato(r)!==F.st)return false;
   if(R){var t=tLav(r);if(t<R[0]||t>=R[1])return false}
   if(F.tag&&tagsL(r).indexOf(F.tag)<0)return false;
   if(F.sp){if(!spOk(r))return false;var sx=spOf(r);if(F.sp==="no"?sx:(!sx||sx.s!==F.sp))return false}
@@ -415,6 +422,7 @@ function draw(){
  var fl=$("fl");fl.textContent="";if(NW||F.nw)fl.append(btn("ch nwc"+(F.nw?" on":""),"Nuovi "+NW,function(){go({nw:F.nw?0:1,frq:0})}));
  [["","Tutti"]].concat(Object.keys(TIT).map(function(k){return [k,TIT[k]]})).forEach(function(o){var n=o[0]?LV.filter(function(r){return r.v===o[0]}).length:LV.length;if(o[0]&&!n)return;fl.append(btn("ch"+(F.v===o[0]&&!F.frq?" on":""),o[1]+" "+n,function(){go({v:o[0],frq:0})}))});
  fl.append(btn("ch frq"+(F.frq?" on":""),"Macchine con più interventi",function(){go({frq:F.frq?0:1,sel:null})}));
+ if(Object.keys(TEAM.cm).length)fl.append(btn("ch"+(F.cm?" on":""),"💬 Con commenti",function(){go({cm:F.cm?0:1,frq:0})}));
  var fr=$("fr");fr.textContent="";
  function sel(lab,opts,val,fn){var se=el("select","sel");se.setAttribute("aria-label",lab);opts.forEach(function(o){var op=new Option(o[1],o[0]);if(o[0]===val)op.selected=true;se.append(op)});se.onchange=function(){fn(se.value)};fr.append(se)}
  sel("Periodo",PER,F.per,function(v){go({per:v})});
@@ -422,8 +430,10 @@ function draw(){
  sel("Stato",[["","Tutti gli stati"],["fatto","Conclusi"],["corso","In corso"],["attesa","In attesa"]].concat(L.some(hid)?[["del","Eliminati"]]:[]),F.st,function(v){go({st:v})});
  if(L.some(spOk))sel("Spedizione",[["","Tutte le spedizioni"]].concat(SPD.map(function(x){return [x[0],x[1]]}),[["no","Senza stato di spedizione"]]),F.sp,function(v){go({sp:v})});
  if(tags().length)sel("Etichetta",[["","Tutte le etichette"]].concat(tags().map(function(t){return [t.id,t.n]})),F.tag,function(v){go({tag:v})});
- var tecs={};L.forEach(function(r){if(r.tec)tecs[r.tec]=1});var tk=Object.keys(tecs).sort();
- if(tk.length>1)sel("Tecnico",[["","Tutti i tecnici"]].concat(tk.map(function(t){return [t,t]})),F.t,function(v){go({t:v})});
+ var tecs={};vis().forEach(function(r){tecL(r).forEach(function(t){tecs[t]=1})});var tk=Object.keys(tecs).sort(function(a,b){return a.localeCompare(b)});
+ var mos={};vis().forEach(function(r){modelli(r).forEach(function(m){mos[m]=1})});if(Object.keys(mos).length)sel("Modello",[["","Tutti i modelli"]].concat(MOD.filter(function(m){return mos[m]}).map(function(m){return [m,m]})),F.mo,function(v){go({mo:v})});
+ var rvs={};vis().forEach(function(r){var x=rivend(r);if(x)rvs[x]=1});var rk=Object.keys(rvs).sort(function(a,b){return a.localeCompare(b)});if(rk.length)sel("Rivenditore",[["","Tutti i rivenditori"]].concat(rk.map(function(x){return [x,x]})),F.rv,function(v){go({rv:v})});
+ if(tk.length)sel("Tecnico",[["","Tutti i tecnici"]].concat(tk.map(function(t){return [t,t]})),F.t,function(v){go({t:v})});
  var it=$("its");it.textContent="";var mh=$("mh");mh.textContent="";var rie=$("rie");
  if(F.frq){var Q=frequenti();rie.hidden=true;$("cn").textContent=Q.length?Q.length+(Q.length===1?" matricola":" matricole")+" con 2 o più interventi negli ultimi 6 mesi":"";
   if(!Q.length)it.append(el("p","empty","Nessuna macchina con 2 o più interventi negli ultimi 6 mesi."));
@@ -443,7 +453,7 @@ function draw(){
  if(!L.length){it.append(el("p","empty","Archivio vuoto. Importa i file inviati dall'app o collega la cartella dove arrivano."))}
  else if(!R.length)it.append(el("p","empty","Nessun risultato."));
  R.slice(0,400).forEach(function(r){var st=stato(r),c=btn("it"+(st==="fatto"?" fat":st==="corso"?" cor":"")+(nuovo(r)?" nw":"")+(F.sel===r.u?" on":""),null,function(){if(h&&!F.sel)go({sel:r.u});else{F.sel=r.u;draw()}if(innerWidth<860)$("det").scrollIntoView()});
-  var tl=el("b",0,r.n||"Senza nome"),T=tagsL(r);if(nuovo(r))tl.prepend(el("em","nwb","Nuovo"));var sx=spOk(r)&&spOf(r);if(sx){var sb=el("em","spb",sx.n);sb.style.background=sx.c;tl.append(sb)}if(T.length){var dd=el("span","dots");T.forEach(function(id){var t=tagOf(id),d=el("i","dot");d.style.background=t.c;d.title=t.n;dd.append(d)});tl.append(dd)}
+  var tl=el("b",0,r.n||"Senza nome"),T=tagsL(r);if(nuovo(r))tl.prepend(el("em","nwb","Nuovo"));if(r.mod&&r.mod.length)tl.append(el("em","edm"," ✎"));var sx=spOk(r)&&spOf(r);if(sx){var sb=el("em","spb",sx.n);sb.style.background=sx.c;tl.append(sb)}if(T.length){var dd=el("span","dots");T.forEach(function(id){var t=tagOf(id),d=el("i","dot");d.style.background=t.c;d.title=t.n;dd.append(d)});tl.append(dd)}
   var nn=comms("L",r.u).length;c.append(tl,el("span",0,TIT[r.v]+" · "+dLav(r)+(r.tec?" · "+r.tec:"")+(st==="corso"?" · in corso":st==="attesa"?" · in attesa":"")+(nn?" · 💬 "+nn:"")));it.append(c)});
  if(R.length>400)it.append(el("p","cnt","Mostrati i primi 400: affina la ricerca."));
  dett(h);status(tecs)}
@@ -452,7 +462,9 @@ function dett(h){var d=$("det");d.textContent="";var r=L.filter(function(x){retu
  if(!r&&h){d.append(macchina(h),el("p","st","Scegli un rapportino dall'elenco per aprirlo."));return}
  if(!r){d.append(el("p","empty",L.length?"Scegli un lavoro dall'elenco, oppure cerca una matricola o un codice impianto per vedere la scheda della macchina.":"Qui vedrai il rapportino, le matricole e le foto."));return}
  var s=r.s||{};d.append(el("h2",0,r.n||"Senza nome"),el("div","sub",TIT[r.v]+" · "+(stato(r)==="fatto"?"concluso":stato(r)==="corso"?"in corso":"in attesa")+" · archiviato il "+dIt(r.d)+(hid(r)?" · eliminato da "+(TEAM.hid[r.u].a||"?"):"")));
- var az=el("div","az"),pv=el("div","pdfv");pv.hidden=true;az.append(btn("b sm","PDF",function(){pdfLav(r,pv)}),btn("b sm","Mail al magazzino",function(){mailLav(r)}));
+ if(r.mod&&r.mod.length){var lm=r.mod[r.mod.length-1],md=el("div","mods");md.append(el("span",0,"✎ Modificato da "+(lm.a||"?")+" il "+dIt(lm.ts)+" alle "+new Date(lm.ts).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"})));
+  if(r.mod.length>1){var dm=el("details");dm.append(el("summary",0,"Tutte le modifiche ("+r.mod.length+")"));r.mod.slice().reverse().forEach(function(x){dm.append(el("div",0,(x.a||"?")+" · "+dIt(x.ts)+" "+new Date(x.ts).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"})))});md.append(dm)}d.append(md)}
+ var az=el("div","az"),pv=el("div","pdfv");pv.hidden=true;az.append(btn("b sm","✎ Modifica",function(){modifica(r)}),btn("b sm","PDF",function(){pdfLav(r,pv)}),btn("b sm","Mail al magazzino",function(){mailLav(r)}));
  if(stato(r)!=="fatto")az.append(btn("b sm","Scheda da riprendere",function(){riprendi(r)}));
  az.append(
   hid(r)?btn("b sm","Ripristina",function(){TEAM.hid[r.u]={on:0,ts:Date.now(),a:NOME};teamSave();draw()}):btn("b sm dgb","Elimina",function(){if(!confirm("Eliminare «"+(r.n||"lavoro")+"» per tutta la squadra?\nSi può ripristinare da Stato › Eliminati."))return;TEAM.hid[r.u]={on:1,ts:Date.now(),a:NOME};teamSave();F.sel=null;draw()}));d.append(az,pv);
@@ -461,13 +473,47 @@ function dett(h){var d=$("det");d.textContent="";var r=L.filter(function(x){retu
   sr.append(sg);if(sx)sr.append(el("p","st",sx.n+" · segnata da "+(sx.a||"?")+" il "+dIt(sx.ts)+". Tocca di nuovo per togliere."));d.append(sr)}
  var kv=el("dl","kv");function row(k,v){if(!v)return;kv.append(el("dt",0,k),el("dd",0,v))}
  var TL=tecL(r);row(TL.length>1?"Tecnici":"Tecnico",TL.join(" → "));row("Data intervento",dLav(r));row("Cliente",g(s,"cl"));if(s.rv)row("Rivenditore",g(s,"rvn"));row("Sede",g(s,"se"));row("Riferimento",rif(r));row("Manodopera",g(s,"ore")?g(s,"ore")+(g(s,"ore")==="1"?" ora":" ore"):"");d.append(kv);
- d.append(el("h3",0,"Etichette"),tagRow("L",r.u),el("h3",0,"Commenti"),commBox("L",r.u));
+ d.append(el("h3",0,"Etichette"),tagRow("L",r.u),el("h3",0,"Commenti"),commBox("L",r.u),el("h3",0,"Allegati"),alBox(r));
  var M=mats(r);if(M.length){d.append(el("h3",0,"Matricole · scheda macchina"));var w=el("div","mats");M.forEach(function(m){var b=btn("mat",null,function(){apri(m.v)});b.append(el("i",0,m.k),document.createTextNode(m.v));var mt=tagsK("M",mk(m.v));mt.forEach(function(id){var t=tagOf(id);if(t){var dd=el("i","dot");dd.style.background=t.c;dd.style.marginLeft="6px";dd.title=t.n;b.append(dd)}});w.append(b)});d.append(w)}
  if(r.nt){d.append(el("h3",0,"Note rapportino"));var p=el("pre","note",r.nt);d.append(p,btn("b sm","Copia note",function(e){var b=e.target;navigator.clipboard.writeText(r.nt).then(function(){b.textContent="Copiato";setTimeout(function(){b.textContent="Copia note"},1500)})}))}
  var nte=g(s,"nte");if(nte){d.append(el("h3",0,"Note tecniche"),el("pre","note",nte))}
  var P=(r.ph||[]).filter(function(f){return f&&typeof f.d==="string"&&f.d.indexOf("data:image/")===0});
  if(P.length){d.append(el("h3",0,"Foto · "+P.length));var ph=el("div","ph");P.forEach(function(f){var a=el("a");a.href="#";a.onclick=function(e){e.preventDefault();var wn=window.open();if(wn){wn.document.title=f.n||"foto";var im=wn.document.createElement("img");im.src=f.d;im.style.maxWidth="100%";wn.document.body.append(im)}};var im=document.createElement("img");im.src=f.d;im.alt=f.n||"";a.append(im,el("span",0,f.n||""));ph.append(a)});d.append(ph)}
  var det=el("details","raw");det.append(el("summary",0,"Tutti i dati della scheda"));var tb=el("table");Object.keys(s).sort().forEach(function(k){if(/^_/.test(k)||s[k]===""||s[k]===0||s[k]==null)return;var tr=el("tr");tr.append(el("td",0,k),el("td",0,typeof s[k]==="object"?JSON.stringify(s[k]):String(s[k])));tb.append(tr)});det.append(tb);d.append(el("h3",0,"Dettagli"),det)}
+
+/* ---------- allegati (su Drive, cartella _allegati; elenco di squadra in TEAM.al) ---------- */
+function alList(u){return Object.keys(TEAM.al).map(function(id){var a=TEAM.al[id];return {id:id,u:a.u,n:a.n,f:a.f,sz:a.sz,a:a.a,ts:+a.ts||0,del:a.del}}).filter(function(a){return a.u===u&&!a.del&&a.f}).sort(function(a,b){return a.ts-b.ts})}
+function alDir(){if(GDF.at)return Promise.resolve(GDF.at);return gDir("_allegati").then(function(id){GDF.at=id;return id})}
+function alBox(r){var w=el("div","als"),A=alList(r.u);
+ A.forEach(function(a){var row=el("div","al"),lk=el("a",0,"📎 "+a.n);lk.href="https://drive.google.com/file/d/"+a.f+"/view";lk.target="_blank";lk.rel="noopener";
+  row.append(lk,el("span","st"," "+(a.a||"?")+" · "+dIt(a.ts)+(a.sz?" · "+(a.sz>1048576?(a.sz/1048576).toFixed(1)+" MB":Math.max(1,Math.round(a.sz/1024))+" kB"):"")));
+  if(a.a===NOME){var x=btn("lnk","Togli",function(){if(!confirm("Togliere «"+a.n+"» dagli allegati?"))return;var o=TEAM.al[a.id];o.del=1;o.ts=Date.now();teamSave();draw()});row.append(document.createTextNode(" "),x)}w.append(row)});
+ if(!GDON){w.append(el("p","st","Per allegare file collega Google Drive (tasto in alto)."));return w}
+ var fi=document.createElement("input");fi.type="file";fi.multiple=true;fi.hidden=true;
+ fi.onchange=function(){var fs=Array.prototype.slice.call(fi.files||[]);fi.value="";if(!fs.length)return;
+  function go(){if(!gTokC()){say("Accesso a Google scaduto: clicca Aggiorna e riprova.",1);return}say("Carico "+fs.length+(fs.length===1?" file…":" file…"));
+   alDir().then(function(dir){return fs.reduce(function(p,f){return p.then(function(){return gUp(f,f.name,dir,f.type||"application/octet-stream")}).then(function(j){var now=Date.now(),id=(PCID||"pc")+"-"+now.toString(36)+Math.random().toString(36).slice(2,5);TEAM.al[id]={u:r.u,n:f.name,f:j.id,sz:f.size,a:NOME,ts:now}})},Promise.resolve())})
+   .then(function(){teamSave();say(fs.length===1?"Allegato aggiunto.":fs.length+" allegati aggiunti.");draw()},function(){teamSave();say("Caricamento non riuscito.",1);draw()})}
+  if(!NOME)chiediNome(go);else go()};
+ w.append(fi,btn("b sm","+ Allega file",function(){fi.click()}));return w}
+
+/* ---------- modifica del rapportino dal PC: si usa la scheda dell'app, la correzione va a tutti (anche al telefono del tecnico) ---------- */
+function modifica(r){var ov=el("div","ov edov"),d=el("div","edw"),bar=el("div","edb"),f=document.createElement("iframe");ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");
+ bar.append(el("b",0,"Modifica · "+(r.n||"lavoro")));var ok=btn("b ac","Salva modifiche",salva),no=btn("b","Annulla",function(){if(confirm("Chiudere senza salvare?"))ov.remove()});bar.append(no,ok);
+ f.src="../index.html?edit=1";f.title="Rapportino da modificare";d.append(bar,f);ov.append(d);document.body.append(ov);
+ f.onload=function(){var n=0;(function t(){var w=f.contentWindow;if(w&&w.edReady&&w.edOpen){w.edOpen(r)}else if(++n>80){say("Modifica non disponibile: apri il programma con internet almeno una volta.",1);ov.remove()}else setTimeout(t,100)})()};
+ function salva(){function go(){var w=f.contentWindow,x;try{x=w.edGet()}catch(e){say("Modifica non riuscita.",1);return}
+   if(JSON.stringify(x.s)===JSON.stringify(r.s)&&JSON.stringify(x.ph)===JSON.stringify(r.ph||[])){ov.remove();say("Nessuna modifica.");return}
+   var now=Date.now(),nr=JSON.parse(JSON.stringify(r));nr.s=x.s;nr.ph=x.ph;nr.n=x.n||r.n;if(x.nt)nr.nt=x.nt;nr.d=now;nr.mod=(r.mod||[]).concat([{a:NOME,ts:now}]);delete nr.imp;
+   L=L.map(function(y){return y.u===r.u?nr:y});dbPut([nr]).then(function(){ov.remove();draw();return corrOut(nr)}).then(function(m){say(m||"Modifica salvata.")},function(){say("Modifica salvata su questo PC, ma non inviata: collega Google Drive.",1)})}
+  if(!NOME)chiediNome(go);else go()}}
+/* la correzione va in _modifiche/<codice>.json: la leggono gli altri PC e il telefono del tecnico */
+function corrOut(nr){var x=JSON.parse(JSON.stringify(nr));delete x.imp;delete x.sent;
+ var t=JSON.stringify({glory:2,pc:1,dev:"pc-"+PCID,saved:+nr.sent||nr.d,tec:nr.tec||"",arc:[x]}),fn=fnSafe(nr.u)+".json";
+ if(GDON&&gTokC())return (GDF.mo?Promise.resolve(GDF.mo):gDir("_modifiche").then(function(id){GDF.mo=id;return id})).then(function(dir){var ex=GDF.mf&&GDF.mf[fn];
+   return ex?gFetch("https://www.googleapis.com/upload/drive/v3/files/"+ex+"?uploadType=media&supportsAllDrives=true",{method:"PATCH",headers:{"Content-Type":"text/plain"},body:t}):gUp(t,fn,dir).then(function(j){GDF.mf=GDF.mf||{};GDF.mf[fn]=j.id})}).then(function(){return "Modifica salvata e inviata a tutti."});
+ if(DIR&&DIR.ok)return DIR.h.getDirectoryHandle("_modifiche",{create:true}).then(function(dh){return dh.getFileHandle(fn,{create:true})}).then(function(fh){return fh.createWritable()}).then(function(w){return w.write(t).then(function(){return w.close()})}).then(function(){return "Modifica salvata e messa nella cartella."});
+ return Promise.resolve("Modifica salvata su questo PC. Per mandarla agli altri collega Google Drive.")}
 
 /* ---------- PDF e Mail al magazzino: si usa l'app Glory 2.0 in una finestra nascosta ---------- */
 var APPW=null;

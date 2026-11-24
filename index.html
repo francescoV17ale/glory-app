@@ -218,9 +218,11 @@ body.pv .go b{font-size:20px}body.pv .go span{font-size:13px}
 body.pv .dock .mid{font-size:17px}
 body.pv .notev{font-size:17px}
 .lnk{background:none;border:0;padding:0;color:var(--ac);text-decoration:underline;font:inherit;cursor:pointer;min-height:0}
+.card .amod{display:block;font-size:12px;color:var(--ac);margin-top:4px}a.tgb{text-decoration:none}
 .card .atg{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.card .atg .chip.spc{color:#fff;border-color:transparent}.card .atg .chip{display:inline-flex;margin:0;min-height:0;line-height:1.5;font-size:12px;padding:1px 8px;color:var(--tx)}.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;border:1px solid var(--ln);border-radius:12px;padding:1px 8px;color:var(--tx)}
 .chip i,.tgb i{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
 .atgs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}.tgb{min-height:40px;border:1px solid var(--ln);border-radius:20px;padding:0 12px;background:var(--sf);color:var(--tx);font:inherit;font-size:14px;display:inline-flex;align-items:center;gap:6px}.tgb.on{border:2px solid var(--ac);font-weight:700}
+html.edit header{display:none}
 </style>
 </head>
 
@@ -230,6 +232,7 @@ body.pv .notev{font-size:17px}
 <script>
 "use strict";
 var app=document.getElementById("app"),ttl=document.getElementById("ttl"),back=document.getElementById("back");
+var EDIT=/[?&]edit=1(&|$)/.test(location.search);
 var S={},view="",ui={},noteTa=null,bkMsg="",bkNext="",arcMsg="",topMsg="";
 var CL=!!(window.claude&&typeof window.claude.use==="function"),SOLO=window.GLORY_SOLO||"",BASE=SOLO?"../":"";
 /* solo tipi "documento": così Android apre l'elenco dei file e non la fotocamera */
@@ -427,7 +430,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=91,svEl=null;
+var VER=92,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -437,7 +440,7 @@ function migLoc(s){if(s.sc!=="Modulo monete"||Object.keys(s).some(function(k){re
  Object.keys(s).forEach(function(k){var m=/^(nt_)?r1_(.+)$/.exec(k);if(m){s[(m[1]||"")+"r2_"+m[2]]=s[k];delete s[k]}})}
 function migRip(s){[1,2].forEach(function(i){var p="r"+i+"_";if(!s[p+"es"]){if(s[p+"ok"])s[p+"es"]="Riparato";else if(s[p+"nr"])s[p+"es"]="Non riparabile"}})}
 function mig(v,s){if(v==="inst")migInst(s);if(v==="loc")migLoc(s);if(v==="rip")migRip(s);return s}
-function save(){if(view){if(!S.dt&&hasData(S))S.dt=day();lsSet("gla_"+view,JSON.stringify(S));if(passi())chrome()}}
+function save(){if(EDIT){if(passi())chrome();return}if(view){if(!S.dt&&hasData(S))S.dt=day();lsSet("gla_"+view,JSON.stringify(S));if(passi())chrome()}}
 
 /* ---------- testi per il rapportino ---------- */
 var DLP=null;
@@ -807,7 +810,7 @@ function saveFile(blob,fn,ok,ko){
 /* ---------- foto e archivio (IndexedDB, su questo dispositivo) ---------- */
 var PH={},IDB=null,ARC=[];
 function phRec(f){var th=f.th||f.d;try{return {n:f.n,w:f.w,h:f.h,th:th,tn:f.tn||th,b:atob(th.split(",")[1])}}catch(e){return null}}
-function phSave(v){if(!IDB)return;try{var t=IDB.transaction("ph","readwrite"),F=(PH[v]||[]).map(function(f){return {n:f.n,w:f.w,h:f.h,th:f.th,tn:f.tn}});
+function phSave(v){if(!IDB||EDIT)return;try{var t=IDB.transaction("ph","readwrite"),F=(PH[v]||[]).map(function(f){return {n:f.n,w:f.w,h:f.h,th:f.th,tn:f.tn}});
  if(F.length)t.objectStore("ph").put(F,v);else t.objectStore("ph").delete(v);t.onerror=t.onabort=function(){svWarn(1)}}catch(e){svWarn(1)}}
 function arcSort(){ARC.sort(function(a,b){return b.d-a.d})}
 function phInit(done){var fin=0;function go(){if(!fin){fin=1;done()}}
@@ -975,6 +978,7 @@ function arcView(){if(GBK&&GBK.sil&&!GBK.ok&&GBK.st==="send"){GBK=null;gLogin("s
   F.forEach(function(r){var fat=!r.st||r.st==="fatto",c=btn("card "+(fat?"aok":r.st==="corso"?"acor":"aatt")+(ui.ao===r.id?" arcc":""),null,function(){ui.ao=ui.ao===r.id?0:r.id;ui.ad=0;ui.ap=0;draw()});
    var np=(r.ph&&r.ph.length)||0;
    c.append(el("b",0,(fat?"✓ ":"")+r.n),el("span",0,(r.st==="attesa"?"In attesa di riparazione":(r.st==="corso"?"In corso · ":"Concluso · ")+(V[r.v]?V[r.v].title:r.v))+" · "+fmtDate(new Date(r.d))+(np?" · "+np+" foto":"")));
+   if(r.mod&&r.mod.length){var lm=r.mod[r.mod.length-1];c.append(el("span","amod","✎ Corretto dal PC da "+(lm.a||"?")+" il "+fmtDate(new Date(lm.ts))))}
    if(gdo){var TO=tmOf(r),SX=tmSp(r);if(TO.length||SX){var tw=el("span","atg");if(SX){var sc=el("span","chip spc","📦 "+SX.n);sc.style.background=SX.c;tw.append(sc)}TO.forEach(function(x){var ch=el("span","chip",x.n);ch.prepend(tmDot(x.c));tw.append(ch)});c.append(tw)}}
    c.setAttribute("aria-expanded",ui.ao===r.id?"true":"false");L.append(c);
    if(ui.ao!==r.id)return;
@@ -984,6 +988,7 @@ function arcView(){if(GBK&&GBK.sil&&!GBK.ok&&GBK.st==="send"){GBK=null;gLogin("s
     btn("","PDF",function(){arcPdf(r,m)}),
     btn("","Elimina",function(){ui.ad=r.id;ui.ap=0;draw()}));
    L.append(sg);
+   if(gdo){var AL=tmAl(r);if(AL.length){var aw=el("div","atgs");aw.setAttribute("aria-label","Allegati");AL.forEach(function(a){var lk=el("a","tgb","📎 "+a.n);lk.href="https://drive.google.com/file/d/"+a.f+"/view";lk.target="_blank";lk.rel="noopener";aw.append(lk)});L.append(aw)}}
    if(gdo&&TG.length){var tr=el("div","atgs");tr.setAttribute("aria-label","Etichette");tmTags().forEach(function(x){var on=tmOn(r,x.id),b=btn("tgb"+(on?" on":""),x.n,function(){tmSet(r,x.id,!on);draw()});b.prepend(tmDot(x.c));b.setAttribute("aria-pressed",on?"true":"false");tr.append(b)});L.append(tr)}
    if(ui.ap===r.id)L.append(confirmBox("Nella scheda "+V[r.v].title+" c'è un lavoro in corso non archiviato: verrà sostituito. Continuare?","Sostituisci",function(){arcApply(r)},function(){ui.ap=0;draw()}));
    if(ui.ad===r.id)L.append(confirmBox("Eliminare definitivamente «"+r.n+"» dall'archivio?","Elimina",function(){arcDel(r.id,function(){ui.ad=0;ui.ao=0;arcMsg="Lavoro eliminato dall'archivio.";arcView()},function(){ui.ad=0;arcMsg="Eliminazione non riuscita.";arcView()})},function(){ui.ad=0;draw()}));
@@ -1136,7 +1141,7 @@ function render(){
  gear.hidden=false;closeOv();
  app.textContent="";noteTa=null;
  if(SOLO&&NEWV)app.append(btn("reset ac tight","È disponibile un aggiornamento: tocca per aggiornare",updApply));
- if(!PS)rstBox();
+ if(!PS&&!EDIT)rstBox();
  if(ui.bkPend)app.append(pendBox(render));
  if(topMsg){var bm=el("div","cnt",topMsg);bm.setAttribute("role","status");app.append(bm);topMsg=""}
 
@@ -1230,7 +1235,7 @@ function render(){
     rl.append(rc,document.createTextNode("Ricordami: usa questo nome in tutte le schede"));ft.append(rl)}app.append(ft);if(x.cmp){i.style.minHeight="56px";i.style.overflowY="auto";grow(i)}}
  });
  if(PS&&!last)markAll(list);
- if(!PS||last){if(view==="prep"){app.append(btn("reset tight","Mail al magazzino",function(){location.href=magMail(S)}));pdfBox()}if(!SOLO)arcBox();if(PS)rstBox()}
+ if(!PS||last){if(view==="prep"){app.append(btn("reset tight","Mail al magazzino",function(){location.href=magMail(S)}));pdfBox()}if(!SOLO&&!EDIT)arcBox();if(PS&&!EDIT)rstBox()}
  passiFrame();pendGo()}
 
 /* ---------- menu Condividi della scheda ---------- */
@@ -1457,10 +1462,10 @@ function gMulti(meta,text,type){var b="glory"+Date.now().toString(36);
 var GBK=gBack("#arc"),GSEND="";
 /* ---------- etichette di squadra (le stesse del programma PC, file _archivio/_team-*.json su Drive) ---------- */
 var TM=null,TMT=0,TSY=0,TLAST=0,ARCDRAW=null;
-function tmFix(t){t=t&&typeof t==="object"?t:{};function o(k){return t[k]&&typeof t[k]==="object"?t[k]:{}}return {defs:o("defs"),tg:o("tg"),cm:{},hid:o("hid"),sp:o("sp")}}
+function tmFix(t){t=t&&typeof t==="object"?t:{};function o(k){return t[k]&&typeof t[k]==="object"?t[k]:{}}return {defs:o("defs"),tg:o("tg"),cm:{},hid:o("hid"),sp:o("sp"),al:o("al")}}
 function tmLoad(){if(!TM){try{TM=JSON.parse(lsGet("gla_team")||"null")}catch(e){}TM=tmFix(TM)}return TM}
 function tmSave(){try{lsSet("gla_team",JSON.stringify(TM))}catch(e){}}
-function tmMerge(o){o=tmFix(o);var T=tmLoad(),ch=0;["defs","tg","hid","sp"].forEach(function(k){Object.keys(o[k]).forEach(function(id){var a=T[k][id],b=o[k][id];if(b&&(!a||(+b.ts||0)>(+a.ts||0))){T[k][id]=b;ch=1}})});return ch}
+function tmMerge(o){o=tmFix(o);var T=tmLoad(),ch=0;["defs","tg","hid","sp","al"].forEach(function(k){Object.keys(o[k]).forEach(function(id){var a=T[k][id],b=o[k][id];if(b&&(!a||(+b.ts||0)>(+a.ts||0))){T[k][id]=b;ch=1}})});return ch}
 function tmTags(){var d=tmLoad().defs;return Object.keys(d).filter(function(id){return d[id]&&!d[id].del}).map(function(id){return {id:id,n:String(d[id].n||""),c:d[id].c||"#5b6770",o:+d[id].o||0}}).sort(function(a,b){return a.o-b.o||a.n.localeCompare(b.n)})}
 function tmKey(r){return "L|"+(r.u||devId()+"-"+r.id)}
 function tmOn(r,id){var x=tmLoad().tg[tmKey(r)+"|"+id];return !!(x&&x.on)}
@@ -1470,16 +1475,29 @@ function tmSet(r,id,on){var k=tmKey(r)+"|"+id,v={on:on?1:0,ts:Date.now()},my=tmM
  clearTimeout(TMT);TMT=setTimeout(function(){tSync(1)},1200)}
 var SPD={lav:["In lavorazione","#d97706"],pronta:["Pronta alla spedizione","#1f5f99"],sped:["Spedita","#1f7a4d"]};
 function tmSp(r){if(r.v!=="rip"&&r.v!=="prep")return null;var x=tmLoad().sp[r.u||devId()+"-"+r.id];return x&&SPD[x.s]?{n:SPD[x.s][0],c:SPD[x.s][1]}:null}
+function tmAl(r){var u=r.u||devId()+"-"+r.id,A=tmLoad().al;return Object.keys(A).map(function(id){return A[id]}).filter(function(a){return a&&a.u===u&&!a.del&&a.f}).sort(function(a,b){return a.ts-b.ts})}
+/* applica al telefono le correzioni fatte dal PC sui suoi lavori */
+function corrIn(C,seen){var U={};ARC.forEach(function(r){U[r.u||devId()+"-"+r.id]=r});
+ return C.filter(function(x){var u=x.name.replace(/\.json$/i,"");return U[u]&&seen[x.id]!==x.modifiedTime}).reduce(function(p,x){var u=x.name.replace(/\.json$/i,""),r=U[u];
+  return p.then(function(){return gFetch("https://www.googleapis.com/drive/v3/files/"+x.id+"?alt=media&supportsAllDrives=true")}).then(function(q){return q.json()}).then(function(o){seen[x.id]=x.modifiedTime;var c=o&&o.arc&&o.arc[0];
+   if(!c||!c.s||!(+c.d>r.d))return;var old=JSON.stringify(r.s),y=JSON.parse(JSON.stringify(r));y.s=c.s;y.ph=c.ph||[];y.n=c.n||r.n;y.nt=c.nt||"";y.d=+c.d;y.xd=+c.d;y.u=u;y.mod=c.mod||[];if(c.st)y.st=c.st;
+   var last=y.mod.length?y.mod[y.mod.length-1]:null;
+   return new Promise(function(ok){arcPut(y,ok,ok)}).then(function(){var cur=load(r.v);
+    if(cur._arc===r.id){var cc=JSON.parse(JSON.stringify(cur));delete cc._arc;delete cc._u;
+     if(JSON.stringify(cc)===old){var ns=JSON.parse(JSON.stringify(c.s));ns._arc=r.id;ns._u=u;lsSet("gla_"+r.v,JSON.stringify(ns));PH[r.v]=bkPh(c.ph);phSave(r.v);if(view===r.v){S=ns;render()}}
+     else topMsg="«"+y.n+"» è stato corretto dal PC"+(last?" da "+last.a:"")+": nella scheda aperta hai modifiche non archiviate, riaprilo dall'archivio per vedere la correzione."}
+    arcMsg="«"+y.n+"» corretto dal PC"+(last?" da "+last.a:"")+"."})})},Promise.resolve())}
 function tmDot(c){var i=document.createElement("i");i.style.background=c;return i}
 function gIn(id){var out=[];function pg(pt){return gFetch("https://www.googleapis.com/drive/v3/files?q="+encodeURIComponent("'"+id+"' in parents and trashed=false")+"&fields="+encodeURIComponent("nextPageToken,files(id,name,mimeType,modifiedTime)")+"&pageSize=1000&orderBy=createdTime&supportsAllDrives=true&includeItemsFromAllDrives=true"+(pt?"&pageToken="+encodeURIComponent(pt):""))
  .then(function(r){return r.json()}).then(function(j){out=out.concat(j.files||[]);return j.nextPageToken?pg(j.nextPageToken):out})}return pg("")}
 /* legge le etichette della squadra e scrive le proprie; f=1 anche se l'ultima lettura è recente */
 function tSync(f){if(TSY||lsGet("gla_gd")!=="1"||!gTokC()||!navigator.onLine)return;if(!f&&lsGet("gla_tdirty")!=="1"&&Date.now()-TLAST<6e4)return;TSY=1;TLAST=Date.now();
  var seen={},ch=0,me="_team-app-"+devId()+".json";try{seen=JSON.parse(lsGet("gla_tseen")||"{}")||{}}catch(e){}
- gIn(GD.fid).then(function(R){var A=R.filter(function(x){return x.mimeType===GD.FOLD&&x.name==="_archivio"}),aid=A.length?A[0].id:"";
+ gIn(GD.fid).then(function(R){var A=R.filter(function(x){return x.mimeType===GD.FOLD&&x.name==="_archivio"}),aid=A.length?A[0].id:"",MO=R.filter(function(x){return x.mimeType===GD.FOLD&&x.name==="_modifiche"});
+  return MO.reduce(function(p,d){return p.then(function(){return gIn(d.id)}).then(function(C){return corrIn(C,seen)})},Promise.resolve()).then(function(){
   return A.reduce(function(p,d){return p.then(function(){return gIn(d.id)}).then(function(C){return C.filter(function(x){return /^_team-.*\.json$/i.test(x.name)}).reduce(function(p2,x){
     if(x.name===me&&!lsGet("gla_tmyid"))lsSet("gla_tmyid",x.id);var k=x.modifiedTime;if(seen[x.id]===k)return p2;
-    return p2.then(function(){return gFetch("https://www.googleapis.com/drive/v3/files/"+x.id+"?alt=media&supportsAllDrives=true")}).then(function(r){return r.text()}).then(function(t){try{if(tmMerge(JSON.parse(t)))ch=1}catch(e){}seen[x.id]=k})},Promise.resolve())})},Promise.resolve()).then(function(){return aid})})
+    return p2.then(function(){return gFetch("https://www.googleapis.com/drive/v3/files/"+x.id+"?alt=media&supportsAllDrives=true")}).then(function(r){return r.text()}).then(function(t){try{if(tmMerge(JSON.parse(t)))ch=1}catch(e){}seen[x.id]=k})},Promise.resolve())})},Promise.resolve()).then(function(){return aid})})})
  .then(function(aid){lsSet("gla_tseen",JSON.stringify(seen));if(ch)tmSave();if(lsGet("gla_tdirty")!=="1")return;var t=JSON.stringify(tmMy()),id=lsGet("gla_tmyid");
   var w=id?gFetch("https://www.googleapis.com/upload/drive/v3/files/"+id+"?uploadType=media&supportsAllDrives=true",{method:"PATCH",headers:{"Content-Type":"application/json"},body:t}).catch(function(e){lsSet("gla_tmyid","");throw e})
    :(aid?Promise.resolve(aid):gFetch("https://www.googleapis.com/drive/v3/files?supportsAllDrives=true&fields=id",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:"_archivio",mimeType:GD.FOLD,parents:[GD.fid]})}).then(function(r){return r.json()}).then(function(j){return j.id}))
@@ -1522,10 +1540,14 @@ function shareIn(){if(!window.caches)return;
    var v=r.it[0].v;
    if(hasData(load(v))){SHP=r;if(location.hash==="#"+v)route();else location.hash="#"+v}
    else bkApply(r)})})}).catch(function(){})}
-function startApp(){if(started)return;started=1;try{if(location.search)history.replaceState(null,"",location.pathname+location.hash)}catch(e){}route();shareIn();if(navigator.onLine)setTimeout(function(){updCheck(0)},1500)}
+function startApp(){if(started)return;started=1;setTimeout(function(){if(GD.ok&&lsGet("gla_gd")==="1"&&gTokC())tSync(1)},2500);try{if(location.search)history.replaceState(null,"",location.pathname+location.hash)}catch(e){}route();shareIn();if(navigator.onLine)setTimeout(function(){updCheck(0)},1500)}
 window.removeEventListener("hashchange",route);
 window.addEventListener("hashchange",function(){if(started)route()});
-phInit(function(){if(okGet())startApp();else lockScreen(startApp)});
+if(EDIT){document.documentElement.classList.add("edit");phInit(function(){window.edReady=1})}
+else phInit(function(){if(okGet())startApp();else lockScreen(startApp)});
+/* il programma PC apre qui un lavoro da correggere e poi ne legge la versione corretta */
+window.edOpen=function(r){view=r.v;S=mig(r.v,JSON.parse(JSON.stringify(r.s||{})));PH[r.v]=bkPh(r.ph);rui();ttl.textContent=V[r.v].title;render();window.scrollTo(0,0)};
+window.edGet=function(){var o=JSON.parse(JSON.stringify(S)),nt="";delete o._arc;delete o._u;try{if(V[view].blocks(S).some(function(x){return x.t==="n"}))nt=noteText()}catch(e){}return {s:o,ph:phOf(view),n:fnBase(),nt:nt}};
 
 /* ---------- funzionamento offline ---------- */
 if("serviceWorker" in navigator&&location.protocol==="https:"&&!CL){window.addEventListener("load",function(){navigator.serviceWorker.register(BASE+"sw.js",{scope:BASE||"./"}).catch(function(){})})}
