@@ -309,8 +309,9 @@ function impostazioni(){var ov=el("div","ov"),d=el("div","dlg");ov.setAttribute(
  d.append(el("h2",0,"Impostazioni"));var r1=el("div","er"),inp=document.createElement("input");inp.type="text";inp.value=NOME;inp.placeholder="Nome e cognome";inp.setAttribute("aria-label","Il tuo nome");
  inp.onchange=function(){var v=inp.value.trim();if(v){NOME=v;cfg("nome",NOME);nomeLab()}};r1.append(el("b",0,"Il tuo nome"),inp);d.append(r1,el("p","st","Compare sui commenti che scrivi. Obbligatorio per commentare."));
  var lb=el("label","er"),cb=document.createElement("input");cb.type="checkbox";cb.checked=!!MAIN;cb.onchange=function(){MAIN=cb.checked?1:0;cfg("main",MAIN);PULITO=0};lb.append(cb,document.createTextNode(" PC principale: sposta in «_importati» i file dei tecnici già importati da più di 30 giorni"));d.append(lb,el("p","st","Attivalo su un solo PC."));
- if(location.protocol!=="chrome-extension:"){var a=el("a","b sm","Scarica l'estensione Chrome");a.href="Glory-Archivio-estensione.zip";a.setAttribute("download","");d.append(a)}
- else d.append(el("p","st","Estensione versione "+chrome.runtime.getManifest().version));
+ if(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)d.append(el("p","st","Programma installato."));
+ else if(INST)d.append(btn("b sm","Installa sul PC",function(){var e=INST;INST=null;e.prompt();e.userChoice.then(function(){close()})}));
+ else d.append(el("p","st","Per installarlo: menù di Chrome ⋮ › Trasmetti, salva e condividi › Installa pagina come app."));
  var row=el("div","er");row.style.marginTop="12px";row.append(btn("b ac","Chiudi",close));d.append(row);ov.append(d);document.body.append(ov);inp.focus()}
 function dataOra(t){var d=new Date(t);return dIt(t)+" "+p2(d.getHours())+":"+p2(d.getMinutes())}
 function commBox(kind,k){var w=el("div","cms"),C=comms(kind,k);
@@ -493,7 +494,8 @@ function salvaTutto(){if(!L.length){say("Archivio vuoto.",1);return}
 $("fi").onchange=function(){if(this.files.length)importa(this.files);this.value=""};
 $("q").oninput=function(){F.q=this.value;F.sel=null;F.frq=0;draw()};
 $("dirb").onclick=collega;$("sync").onclick=function(){var g=gSync(1);g.then(function(){return dirSync()})};$("csv").onclick=csv;$("tagb").onclick=tagEditor;$("setb").onclick=impostazioni;$("bak").onclick=salvaTutto;
-/* estensione: avvisa se su GitHub c'è una versione più recente */
+var INST=null;window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();INST=e});
+/* estensione (non più usata): avvisa se su GitHub c'è una versione più recente */
 function verN(v){return String(v||"0").split(".").map(Number).reduce(function(a,b){return a*1000+(b||0)},0)}
 if(location.protocol==="chrome-extension:")fetch("https://francescov17ale.github.io/glory-app/archivio/version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){var me=chrome.runtime.getManifest().version;if(verN(j.ext)>verN(me)){var u=$("upd");u.hidden=false;u.textContent="";u.append(document.createTextNode("È disponibile l'estensione "+j.ext+" (hai la "+me+"). "));var a=el("a",0,"Scarica lo zip");a.href="https://francescov17ale.github.io/glory-app/archivio/Glory-Archivio-estensione.zip";u.append(a,document.createTextNode(", estrailo sopra la stessa cartella e in chrome://extensions tocca Ricarica."))}}).catch(function(){});
 document.addEventListener("keydown",function(e){if(e.key==="Escape"){var o=document.querySelector(".ov");if(o){o.remove();draw()}else if(HIST.length&&document.activeElement.tagName!=="INPUT"&&document.activeElement.tagName!=="TEXTAREA")back()}});
