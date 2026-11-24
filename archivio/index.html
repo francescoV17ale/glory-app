@@ -520,7 +520,7 @@ function corrOut(nr){var x=JSON.parse(JSON.stringify(nr));delete x.imp;delete x.
  return Promise.resolve("Modifica salvata su questo PC. Per mandarla agli altri collega Google Drive.")}
 
 /* ---------- Genera RMA: la macchina arrivata diventa una riparazione "in attesa" che il tecnico prende dall'app (Macchine in arrivo) ---------- */
-function crm(t){var m=/^\s*([A-Za-z]{0,4}\d[\w.\/]*)\s*[-–—:·,]?\s+(.+)$/.exec(String(t||""));return m?{c:m[1],n:m[2].trim()}:{c:"",n:String(t||"").trim()}}
+function crm(t){var m=/^\s*([A-Za-z]{1,4}\s?[-–]\s?\d[\w.\/]*|[A-Za-z]{0,4}\d[\w.\/]*)\s*[-–—:·,]?\s+(.+)$/.exec(String(t||""));return m?{c:m[1].replace(/\s+/g,"").replace("–","-"),n:m[2].trim()}:{c:"",n:String(t||"").trim()}}
 function rmaGen(s){var src=crm((s.rv&&String(s.rvn||"").trim())?s.rvn:s.cl).n,
  l3=String(src||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z]/g,"").slice(0,3).toUpperCase(),
  num=[PX[s.r1_md],String(s.r1_mat||"").trim()].filter(Boolean).join("-"),er=String(s.r1_er||"").replace(/\s+/g,"").toUpperCase();
