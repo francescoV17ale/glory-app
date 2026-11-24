@@ -19,7 +19,7 @@ open(os.path.join(out,"app.html"),"w",encoding="utf-8").write(ah)
 open(os.path.join(out,"app.js"),"w",encoding="utf-8").write(aj)
 open(os.path.join(out,"background.js"),"w").write('chrome.action.onClicked.addListener(function(){var u=chrome.runtime.getURL("archivio.html");chrome.tabs.query({url:u},function(t){if(t&&t.length){chrome.tabs.update(t[0].id,{active:true});chrome.windows.update(t[0].windowId,{focused:true})}else chrome.tabs.create({url:u})})});\n')
 for f in ["icon-192.png","icon-512.png"]:shutil.copy(os.path.join(R,f),out)
-json.dump({"manifest_version":3,"name":"Glory Archivio","version":"1.5","description":"Archivio dei rapportini Glory 2.0 sul PC: importa, cerca per matricola, foto ed Excel.",
+json.dump({"manifest_version":3,"name":"Glory Archivio","version":"1.6","description":"Archivio dei rapportini Glory 2.0 sul PC: importa, cerca per matricola, foto ed Excel.",
  "action":{"default_title":"Glory Archivio","default_icon":{"192":"icon-192.png"}},"background":{"service_worker":"background.js"},
  "icons":{"192":"icon-192.png","512":"icon-512.png"}},open(os.path.join(out,"manifest.json"),"w"),ensure_ascii=False,indent=1)
 z=os.path.join(os.path.dirname(out),"Glory-Archivio-estensione.zip")

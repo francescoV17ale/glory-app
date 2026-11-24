@@ -165,7 +165,8 @@ function cfg(k,v){return new Promise(function(ok){var t=DB.transaction("cfg",v==
 
 /* ---------- cartella sul PC (Chrome/Edge): un file .json per lavoro ---------- */
 var FSA=!!window.showDirectoryPicker;
-function dirLabel(){var b=$("dirb");if(!FSA){b.hidden=true;return}b.hidden=false;b.textContent=DIR?(DIR.ok?"Cartella: "+DIR.h.name:"Riapri la cartella "+DIR.h.name):"Collega una cartella";$("sync").hidden=!(DIR&&DIR.ok)}
+function dirLabel(){var b=$("dirb");if(!FSA&&!GD.ok){b.hidden=true;return}b.hidden=false;
+ b.textContent=GDON?(gTokC()?"Google Drive":"Google Drive · accedi")+(DIR&&DIR.ok?" + "+DIR.h.name:""):DIR?(DIR.ok?"Cartella: "+DIR.h.name:"Riapri la cartella "+DIR.h.name):FSA?"Collega una cartella":"Collega Google Drive";$("sync").hidden=!(DIR&&DIR.ok||GDON)}
 function dirPick(){if(DIR&&!DIR.ok){DIR.h.requestPermission({mode:"readwrite"}).then(function(p){if(p==="granted"){DIR.ok=1;dirSync()}dirLabel()});return}
  window.showDirectoryPicker({mode:"readwrite",id:"glory-archivio"}).then(function(h){DIR={h:h,ok:1};SEEN={};cfg("seen",SEEN);cfg("dir",h);dirSync();dirLabel()},function(){})}
 function dirInit(){if(!FSA)return Promise.resolve();return cfg("seen").then(function(x){SEEN=x||{}}).then(function(){return cfg("dir")}).then(function(h){if(!h)return;DIR={h:h,ok:0};return h.queryPermission({mode:"readwrite"}).then(function(p){if(p==="granted"){DIR.ok=1;return dirSync()}})}).catch(function(){})}
@@ -189,24 +190,84 @@ function dirSync(){if(!DIR||!DIR.ok||syncing)return Promise.resolve();syncing=1;
   try{var imd=await DIR.h.getDirectoryHandle("_importati",{create:false});for await (var e3 of imd.values()){if(e3.kind!=="file"||!/\.(txt|json)$/i.test(e3.name))continue;var f3=await e3.getFile(),k3="_importati/"+e3.name+"|"+f3.size;if(SEEN[k3])continue;SEEN[k3]=1;try{var o3=JSON.parse(await f3.text());var A3=norm(o3);if(A3.length)inc=inc.concat(A3)}catch(x){}}}catch(x){}
   var sd=await subDir();
   for await (var e2 of sd.values()){if(e2.kind!=="file"||!/\.json$/.test(e2.name))continue;var f2=await e2.getFile(),k2=SUB+"/"+e2.name+"|"+f2.size+"|"+f2.lastModified;if(SEEN[k2])continue;SEEN[k2]=1;try{var r=JSON.parse(await f2.text());if(e2.name==="_meta.json"){mtOld=r}else if(/^_team-/.test(e2.name)){tms.push(r)}else if(r&&r.u)got[r.u]=r}catch(x){}}
- })().then(function(){
+ })().then(function(){return unisci(got,inc,tms,mtOld,"Dalla cartella")})
+ .catch(function(){say("Lettura della cartella non riuscita: ricollegala.",1)}).then(function(){syncing=0})}
+function unisci(got,inc,tms,mtOld,da){
   var M={},toDb=[],nu=0,ag=0;L.forEach(function(r){M[r.u]=r});
   Object.keys(got).forEach(function(u){var r=got[u];if(!M[u]||r.d>M[u].d){toDb.push(r);M[u]=r}});
   inc.forEach(function(r){var e=M[r.u];if(!e){nu++;r.imp=Date.now();M[r.u]=r;toDb.push(r)}else if(r.d>e.d){ag++;r.imp=Date.now();M[r.u]=passa(r,e);toDb.push(r)}});
   L=Object.keys(M).map(function(u){return M[u]});
   var tch=0;tms.forEach(function(t){if(teamMerge(t))tch=1});if(mtOld&&metaToTeam(mtOld))tch=1;if(tch)cfg("team",TEAM);
   return dbPut(toDb).then(teamDir).then(pulisci).then(function(){cfg("seen",SEEN);
-   if(nu||ag)say("Dalla cartella: "+nu+(nu===1?" nuovo":" nuovi")+(ag?", "+ag+(ag===1?" aggiornato":" aggiornati"):"")+".");if(nu||ag||tch||toDb.length)draw();else dirLabel()})})
- .catch(function(){say("Lettura della cartella non riuscita: ricollegala.",1)}).then(function(){syncing=0})}
+   if(nu||ag)say(da+": "+nu+(nu===1?" nuovo":" nuovi")+(ag?", "+ag+(ag===1?" aggiornato":" aggiornati"):"")+".");if(nu||ag||tch||toDb.length)draw();else dirLabel()})}
+/* ---------- Google Drive online (cartella condivisa dei lavori) ---------- */
+var GD={cid:"734772581415-0qsblo2m724m9pjda994173bf36v6r3r.apps.googleusercontent.com",fid:"1Y-gv5GMlXuRe8jY2u8Gf7ZlSkPC3oRba",sc:"https://www.googleapis.com/auth/drive",
+ ok:location.protocol==="https:"||location.hostname==="localhost",FOLD:"application/vnd.google-apps.folder"};
+function gRedir(){return location.origin+location.pathname.replace(/index\.html$/,"")}
+function gTokC(){try{var o=JSON.parse(localStorage.getItem("gla_gtok")||"null");if(o&&o.t&&o.e>Date.now()+60000)return o.t}catch(e){}return ""}
+function gLogin(st){var q={client_id:GD.cid,redirect_uri:gRedir(),response_type:"token",scope:GD.sc,include_granted_scopes:"true",state:st||""};
+ location.href="https://accounts.google.com/o/oauth2/v2/auth?"+Object.keys(q).map(function(k){return k+"="+encodeURIComponent(q[k])}).join("&")}
+/* al ritorno da Google: il token è nell'indirizzo dopo # */
+function gBack(nh){var h=location.hash;if(!/(^|[#&])(access_token|error)=/.test(h))return null;var p={};
+ h.replace(/^#/,"").split("&").forEach(function(kv){var i=kv.indexOf("=");if(i>0)p[decodeURIComponent(kv.slice(0,i))]=decodeURIComponent(kv.slice(i+1).replace(/\+/g," "))});
+ if(p.access_token)try{localStorage.setItem("gla_gtok",JSON.stringify({t:p.access_token,e:Date.now()+(+p.expires_in||3600)*1000}))}catch(e){}
+ try{history.replaceState(null,"",location.pathname+location.search+(nh||""))}catch(e){}return {st:p.state||"",ok:!!p.access_token,err:p.error||""}}
+function gFetch(u,o){var t=gTokC();if(!t)return Promise.reject(new Error("login"));o=o||{};o.headers=o.headers||{};o.headers.Authorization="Bearer "+t;
+ return fetch(u,o).then(function(r){if(r.status===401){try{localStorage.removeItem("gla_gtok")}catch(e){}throw new Error("login")}if(!r.ok)throw new Error("http "+r.status);return r})}
+/* carica un file nella cartella (anche grande, con le foto) */
+function gUp(text,name,parent,type){type=type||"text/plain";var meta={name:name,parents:[parent||GD.fid],mimeType:type};
+ return gFetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true",{method:"POST",headers:{"Content-Type":"application/json; charset=UTF-8","X-Upload-Content-Type":type},body:JSON.stringify(meta)})
+ .then(function(r){var loc=r.headers.get("Location");if(!loc)return gMulti(meta,text,type);return fetch(loc,{method:"PUT",headers:{"Content-Type":type},body:new Blob([text],{type:type})}).then(function(r2){if(!r2.ok)throw new Error("http "+r2.status);return r2.json()})})}
+function gMulti(meta,text,type){var b="glory"+Date.now().toString(36);
+ return gFetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true",{method:"POST",headers:{"Content-Type":"multipart/related; boundary="+b},
+  body:new Blob(["--"+b+"\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n"+JSON.stringify(meta)+"\r\n--"+b+"\r\nContent-Type: "+type+"\r\n\r\n",text,"\r\n--"+b+"--"])}).then(function(r){return r.json()})}
+/* il programma legge la cartella su Drive come farebbe con la cartella del PC:
+   file dei tecnici nella cartella, _archivio con i file _team-<pc>.json, _importati */
+var GDON=0,GDR=null,GDF={};
+function gList(q){var out=[];function pg(pt){return gFetch("https://www.googleapis.com/drive/v3/files?q="+encodeURIComponent(q)+"&fields="+encodeURIComponent("nextPageToken,files(id,name,mimeType,modifiedTime)")+"&pageSize=1000&orderBy=createdTime&supportsAllDrives=true&includeItemsFromAllDrives=true"+(pt?"&pageToken="+encodeURIComponent(pt):""))
+ .then(function(r){return r.json()}).then(function(j){out=out.concat(j.files||[]);return j.nextPageToken?pg(j.nextPageToken):out})}return pg("")}
+function gIn(id){return gList("'"+id+"' in parents and trashed=false")}
+function gText(id){return gFetch("https://www.googleapis.com/drive/v3/files/"+id+"?alt=media&supportsAllDrives=true").then(function(r){return r.text()})}
+function gDir(n){return gFetch("https://www.googleapis.com/drive/v3/files?supportsAllDrives=true&fields=id",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:n,mimeType:GD.FOLD,parents:[GD.fid]})}).then(function(r){return r.json()}).then(function(j){return j.id})}
+function gSync(inter){if(!GDON||syncing)return Promise.resolve();
+ if(!gTokC()){if(inter)gLogin("sync");dirLabel();return Promise.resolve()}
+ syncing=1;var got={},inc=[],tms=[],mtOld=null;$("st").textContent="Lettura di Google Drive…";
+ return (async function(){
+  var R=await gIn(GD.fid);GDR=R;GDF={};
+  var fo=R.filter(function(f){return f.mimeType===GD.FOLD});
+  for(var i=0;i<R.length;i++){var f=R[i];if(f.mimeType===GD.FOLD||!/\.(txt|json)$/i.test(f.name)||/^_/.test(f.name))continue;
+   var k="g|"+f.id+"|"+f.modifiedTime;if(SEEN[k])continue;var o=null;try{o=JSON.parse(await gText(f.id))}catch(x){if(x&&x.message==="login")throw x}SEEN[k]=1;
+   if(o&&o.u&&o.s&&o.v){got[o.u]=o;continue}var A=o?norm(o):[];if(A.length)inc=inc.concat(A)}
+  for(var j=0;j<fo.length;j++){var d=fo[j];if(d.name!=="_importati"&&d.name!==SUB)continue;if(d.name==="_importati"){if(!GDF.i)GDF.i=d.id}else if(!GDF.a)GDF.a=d.id;
+   var C=await gIn(d.id);for(var c=0;c<C.length;c++){var e=C[c];if(!/\.(txt|json)$/i.test(e.name))continue;
+    if(d.name===SUB&&e.name==="_team-"+PCID+".json"&&!GDF.m)GDF.m=e.id;
+    var k2="g|"+e.id+"|"+e.modifiedTime;if(SEEN[k2])continue;var r=null;try{r=JSON.parse(await gText(e.id))}catch(x){if(x&&x.message==="login")throw x}SEEN[k2]=1;if(!r)continue;
+    if(d.name==="_importati"){inc=inc.concat(norm(r))}else if(e.name==="_meta.json")mtOld=r;else if(/^_team-/.test(e.name))tms.push(r);else if(r.u)got[r.u]=r}}
+ })().then(function(){return unisci(got,inc,tms,mtOld,"Da Google Drive")})
+ .catch(function(x){if(x&&x.message==="login")say("Accesso a Google scaduto: tocca Aggiorna.",1);else say("Lettura di Google Drive non riuscita.",1)}).then(function(){syncing=0;dirLabel();status2()})}
+var GTM=0;function gTeam(){if(!GDON||!PCID||!gTokC())return;clearTimeout(GTM);GTM=setTimeout(function(){var t=JSON.stringify(TEAM);
+ (GDF.m?gFetch("https://www.googleapis.com/upload/drive/v3/files/"+GDF.m+"?uploadType=media&supportsAllDrives=true",{method:"PATCH",headers:{"Content-Type":"application/json"},body:t}):
+  (GDF.a?Promise.resolve(GDF.a):gDir(SUB).then(function(id){GDF.a=id;return id})).then(function(a){return gUp(t,"_team-"+PCID+".json",a,"application/json")}).then(function(j){GDF.m=j.id})).catch(function(){})},300)}
+function gPulisci(){var lim=Date.now()-30*864e5,da=(GDR||[]).filter(function(f){return f.mimeType!==GD.FOLD&&/\.(txt|json)$/i.test(f.name)&&!/^_/.test(f.name)&&Date.parse(f.modifiedTime)<lim&&SEEN["g|"+f.id+"|"+f.modifiedTime]});if(!da.length)return Promise.resolve();
+ return (GDF.i?Promise.resolve(GDF.i):gDir("_importati").then(function(id){GDF.i=id;return id})).then(function(imd){var n=0;return da.reduce(function(p,f){return p.then(function(){return gFetch("https://www.googleapis.com/drive/v3/files/"+f.id+"?addParents="+imd+"&removeParents="+GD.fid+"&supportsAllDrives=true",{method:"PATCH",headers:{"Content-Type":"application/json"},body:"{}"}).then(function(){n++},function(){})})},Promise.resolve()).then(function(){if(n)say(n+(n===1?" file vecchio spostato":" file vecchi spostati")+" in _importati.")})}).catch(function(){})}
+function status2(){}
+/* scegli dove leggere i lavori: Google Drive online o una cartella del PC */
+function collega(){if(DIR&&!DIR.ok&&!GD.ok){dirPick();return}var ov=el("div","ov"),d=el("div","dlg");ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");function close(){ov.remove()}ov.onclick=function(e){if(e.target===ov)close()};
+ d.append(el("h2",0,"Cartella dei lavori"));var row=el("div","az");
+ if(GD.ok){if(GDON){d.append(el("p","st","Google Drive collegato"+(gTokC()?".":": accesso da rinnovare.")));if(!gTokC())row.append(btn("b ac","Accedi a Google",function(){gLogin("sync")}));row.append(btn("b","Scollega Google Drive",function(){GDON=0;cfg("gd",0);close();dirLabel()}))}
+  else row.append(btn("b ac","Google Drive (online)",function(){gLogin("link")}))}
+ else d.append(el("p","st","Google Drive online si usa dalla pagina web del programma, non dall'estensione."));
+ if(FSA)row.append(btn("b",DIR?(DIR.ok?"Cambia cartella del PC":"Riapri la cartella "+DIR.h.name):"Cartella del PC",function(){close();dirPick()}));
+ row.append(btn("b","Chiudi",close));d.append(row);ov.append(d);document.body.append(ov)}
 /* PC principale: i file dei tecnici già importati da più di 30 giorni vanno in _importati (una volta al giorno) */
 var MAIN=0,PULITO=0;
-function pulisci(){if(!MAIN||!DIR||!DIR.ok||Date.now()-PULITO<864e5)return Promise.resolve();PULITO=Date.now();cfg("pulito",PULITO);var lim=Date.now()-30*864e5,n=0;
+function pulisci(){if(MAIN&&GDON&&GDR&&Date.now()-PULITO>=864e5){PULITO=Date.now();cfg("pulito",PULITO);return gPulisci()}if(!MAIN||!DIR||!DIR.ok||Date.now()-PULITO<864e5)return Promise.resolve();PULITO=Date.now();cfg("pulito",PULITO);var lim=Date.now()-30*864e5,n=0;
  return (async function(){var imd=await DIR.h.getDirectoryHandle("_importati",{create:true}),da=[];
   for await (var e of DIR.h.values()){if(e.kind!=="file"||!/\.(txt|json)$/i.test(e.name)||/^_/.test(e.name))continue;var f=await e.getFile();if(f.lastModified<lim&&SEEN[e.name+"|"+f.size+"|"+f.lastModified])da.push([e,f])}
   for(var i=0;i<da.length;i++){var e=da[i][0],f=da[i][1],nn=e.name;try{try{await imd.getFileHandle(nn)}catch(x){nn=nn}var w=await (await imd.getFileHandle(nn,{create:true})).createWritable();await w.write(await f.arrayBuffer());await w.close();SEEN["_importati/"+nn+"|"+f.size]=1;await DIR.h.removeEntry(e.name);n++}catch(x){}}
  })().then(function(){if(n)say(n+(n===1?" file vecchio spostato":" file vecchi spostati")+" in _importati.")}).catch(function(){})}
 /* torna sulla finestra o tocca Aggiorna: rilegge la cartella */
-window.addEventListener("focus",function(){if(DIR&&DIR.ok)dirSync()});
+window.addEventListener("focus",function(){if(GDON&&gTokC())gSync(0).then(function(){return dirSync()});else if(DIR&&DIR.ok)dirSync()});
 
 /* ---------- etichette e commenti di squadra ----------
    Ogni PC scrive solo il suo file _archivio/_team-<codice PC>.json e legge quelli degli altri:
@@ -226,7 +287,7 @@ function metaToTeam(m){if(!m||typeof m!=="object")return 0;var t={defs:{},tg:{},
  return teamMerge(t)}
 var tmT=null;
 function teamSave(){cfg("team",TEAM);clearTimeout(tmT);tmT=setTimeout(teamDir,800)}
-function teamDir(){if(!DIR||!DIR.ok||!PCID)return Promise.resolve();return subDir().then(function(sd){return sd.getFileHandle("_team-"+PCID+".json",{create:true})}).then(function(fh){return fh.createWritable()}).then(function(w){return w.write(JSON.stringify(TEAM)).then(function(){return w.close()})}).catch(function(){})}
+function teamDir(){gTeam();if(!DIR||!DIR.ok||!PCID)return Promise.resolve();return subDir().then(function(sd){return sd.getFileHandle("_team-"+PCID+".json",{create:true})}).then(function(fh){return fh.createWritable()}).then(function(w){return w.write(JSON.stringify(TEAM)).then(function(){return w.close()})}).catch(function(){})}
 var PREV=0;function nuovo(r){return (+r.imp||0)>PREV}
 function hid(r){var x=TEAM.hid[r.u];return !!(x&&x.on)}
 function vis(){return L.filter(function(r){return !hid(r)})}
@@ -431,7 +492,7 @@ function salvaTutto(){if(!L.length){say("Archivio vuoto.",1);return}
 /* ---------- avvio ---------- */
 $("fi").onchange=function(){if(this.files.length)importa(this.files);this.value=""};
 $("q").oninput=function(){F.q=this.value;F.sel=null;F.frq=0;draw()};
-$("dirb").onclick=dirPick;$("sync").onclick=function(){dirSync()};$("csv").onclick=csv;$("tagb").onclick=tagEditor;$("setb").onclick=impostazioni;$("bak").onclick=salvaTutto;
+$("dirb").onclick=collega;$("sync").onclick=function(){var g=gSync(1);g.then(function(){return dirSync()})};$("csv").onclick=csv;$("tagb").onclick=tagEditor;$("setb").onclick=impostazioni;$("bak").onclick=salvaTutto;
 /* estensione: avvisa se su GitHub c'è una versione più recente */
 function verN(v){return String(v||"0").split(".").map(Number).reduce(function(a,b){return a*1000+(b||0)},0)}
 if(location.protocol==="chrome-extension:")fetch("https://francescov17ale.github.io/glory-app/archivio/version.json?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){var me=chrome.runtime.getManifest().version;if(verN(j.ext)>verN(me)){var u=$("upd");u.hidden=false;u.textContent="";u.append(document.createTextNode("È disponibile l'estensione "+j.ext+" (hai la "+me+"). "));var a=el("a",0,"Scarica lo zip");a.href="https://francescov17ale.github.io/glory-app/archivio/Glory-Archivio-estensione.zip";u.append(a,document.createTextNode(", estrailo sopra la stessa cartella e in chrome://extensions tocca Ricarica."))}}).catch(function(){});
@@ -441,10 +502,12 @@ document.addEventListener("dragleave",function(){if(--dc<=0){dc=0;$("drop").hidd
 document.addEventListener("dragover",function(e){e.preventDefault()});
 document.addEventListener("drop",function(e){e.preventDefault();dc=0;$("drop").hidden=true;if(e.dataTransfer.files.length)importa(e.dataTransfer.files)});
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
-dbOpen().then(function(){return Promise.all([cfg("pcid"),cfg("nome"),cfg("team"),cfg("meta"),cfg("aperto"),cfg("main"),cfg("pulito")])}).then(function(a){
+var GBK=GD.ok?gBack():null;
+dbOpen().then(function(){return Promise.all([cfg("pcid"),cfg("nome"),cfg("team"),cfg("meta"),cfg("aperto"),cfg("main"),cfg("pulito"),cfg("gd"),cfg("seen")])}).then(function(a){
+ GDON=GD.ok&&+a[7]?1:0;SEEN=a[8]||{};if(GBK){if(GBK.ok){GDON=1;cfg("gd",1)}else say("Accesso a Google "+(GBK.err==="access_denied"?"annullato.":"non riuscito."),1)}
  PREV=+a[4]||0;cfg("aperto",Date.now());MAIN=+a[5]||0;PULITO=+a[6]||0;
  PCID=a[0]||Math.random().toString(36).slice(2,8);if(!a[0])cfg("pcid",PCID);NOME=a[1]||"";nomeLab();
- TEAM=a[2]?teamFix(a[2]):teamDef();if(!a[2]){if(a[3])metaToTeam(a[3]);cfg("team",TEAM)}}).then(dbAll).then(function(a){L=a;draw();return dirInit()}).then(draw).catch(function(){say("Questo browser non può salvare l'archivio: usa Chrome o Edge.",1)});
+ TEAM=a[2]?teamFix(a[2]):teamDef();if(!a[2]){if(a[3])metaToTeam(a[3]);cfg("team",TEAM)}}).then(dbAll).then(function(a){L=a;draw();return dirInit()}).then(function(){return gSync(0)}).then(draw).catch(function(){say("Questo browser non può salvare l'archivio: usa Chrome o Edge.",1)});
 if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
 </body>
