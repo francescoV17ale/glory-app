@@ -316,6 +316,9 @@ prep:{title:"Preparazione macchine",blocks:function(s){
  var b=[TEC(),DT(),T("cvc","CV","Codice contratto"),G("m","Modello",["CI-5","CI-10","CI-10X"])];
  if(!s.m)return b;
  var c5=s.m==="CI-5";
+ /* CI-10X: solo basamenti (più insieme, nessuna matricola) oppure preparazione completa */
+ if(s.m==="CI-10X"){b.push(G("pt","Tipo di preparazione",["Basamenti CI-10X","Completa"]));
+  if(prepMode(s)==="Basamenti CI-10X"){b.push(H("1 · Basamenti"),{t:"num",id:"nb",x:"Basamenti preparati",max:50},C("bdg","Eseguito downgrade dei basamenti"),C("bbk","Caricato backup base"));return b}}
  if(!c5){b.push(G("bt","Tipo di basamento a contratto",["Standard","Altro"]));if(s.bt==="Altro")b.push(T("bto","Specifica il basamento","Descrizione"))}
  var pm=prepMode(s),full=!c5||pm==="Completa",k=1,pf=PX[s.m]?"R":"",t1;
  if(!c5)b.push(G("mon","Monitor presente nel contratto",["Sì","No"]));
@@ -333,12 +336,12 @@ prep:{title:"Preparazione macchine",blocks:function(s){
   else{[["b","banconote"],["m","monete"]].forEach(function(p){var k2=p[0],n=p[1];
    b.push(H3("Modulo "+n),C("bas"+k2,"Basamento collegato"),C("nas"+k2,"Rimossi i nastri di protezione"),G("val"+k2,"Valigetta "+n,["Standard","Motorizzata"]),C("cab"+k2,"Eseguito cablaggio: alimentazione e USB"),C("ad"+k2,"Adesivo "+n.toUpperCase()))});
    b.push(G("fw","Firmware modulo monete versione 47",["Sì","No"]));if(s.fw==="Sì")b.push(C("ds4","Dip switch 4 impostato"))}}
- if(c5&&pm==="Downgrade CI-5"){var nd=+s.dn||1,dd,c1;
+ if(c5&&pm==="Downgrade CI-5"){var nd=+s.dn||1,dd,c1;b.push(H(k++ +" · Downgrade"));
   for(dd=1;dd<=nd;dd++){t1=T(mrk(dd),(nd>1?"Dispositivo "+dd+" · matricola ":"Matricola modulo monete ")+"RCW50-","Numero di matricola");t1.opt=1;b.push(t1);
    c1=C(dgk(dd),"Eseguito downgrade FCC");c1.dv=dd;b.push(c1);c1=C(bkk(dd),"Caricato backup di configurazione base");c1.dv=dd;b.push(c1);c1=C(tsk(dd),"Eseguito test di configurazione");c1.dv=dd;b.push(c1)}
   b.push({t:"addm"},{t:"delm"})}
  else b.push(H(k++ +" · Configurazione software"),C("fcc","FCC alimentato a macchina assemblata"),C("dg",c5?"Eseguito downgrade FCC (modulo monete)":"Eseguito downgrade FCC (su basamento modulo banconote)"),C("bk","Caricato backup di configurazione base FCC"),C("tst","Eseguito test di configurazione"));
- if(!(c5&&!full))b.push(H(k++ +" · Chiusura"));
+ b.push(H(k++ +" · Imballo"));
  if(c5&&!full){t1=C("imb",(+s.dn||1)>1?"Moduli reimballati con nastro SNG":"Modulo monete reimballato con nastro SNG");t1.pl="Reimballo eseguito";b.push(t1);t1=C("ass","Associato a modulo banconote imballato");t1.opt=1;b.push(t1)}
  else{if(full){var kc=c5?"rosse e gialle":"rosse, gialle e blu",kt=C("chv","Chiavi macchina ("+kc+")"+(s.mon==="Sì"?" inserite nella scatola del monitor":""));b.push(kt);
    if(s.mon!=="Sì"){t1=T("chp","Dove sono state messe le chiavi","Es. nella valigetta banconote");t1.opt=1;b.push(t1)}}
@@ -430,7 +433,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=95,svEl=null;
+var VER=96,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -484,6 +487,8 @@ function magMail(s){var o=[],cl=crm(s.cl),rv=s.rv?crm(s.rvn):null,ss=[],i,t,v=vi
   o.push(dest==="Ritiro per riparazione in laboratorio"?"dispositivo da ritirare per riparazione in laboratorio.":dest==="Nuovo intervento"?"serve un nuovo intervento.":s.cfe==="Tutto OK"?"intervento concluso, dispositivo operativo.":"intervento in loco.","");
   cli();L("Riferimento",s.rf);L("Sede",s.se);o.push("Dispositivo: Glory "+(s.md||"…")+U.filter(function(u){return u.m}).map(function(u){return " · "+u.full}).join("")+(String(s.mt||"").trim()?" · impianto "+String(s.mt).trim():""));
   t=[];U.forEach(function(u){t=t.concat(pz(u.p))});if(t.length)L("Pezzi sostituiti",t.join(", "))}
+ else if(v==="prep"&&s.m==="CI-10X"&&prepMode(s)==="Basamenti CI-10X"){ss=["Basamenti CI-10X",s.cvc?"CV "+String(s.cvc).trim():""];
+  o.push((+s.nb||0)+((+s.nb||0)===1?" basamento CI-10X preparato":" basamenti CI-10X preparati")+(s.bdg&&s.bbk?" (downgrade e backup base eseguiti).":"."),"");if(s.cvc)L("CV",s.cvc)}
  else if(v==="prep"){var c5=s.m==="CI-5"&&prepMode(s)==="Downgrade CI-5";ss=["Preparazione "+(s.m||""),s.cvc?"CV "+String(s.cvc).trim():c5?"downgrade":""];
   o.push(s.imb?(c5?"moduli pronti e reimballati.":"macchina pronta e reimballata."):"preparazione in corso.","");L("CV",s.cvc||"da associare");L("Modello",s.m+(c5?" · downgrade FCC":""));
   if(c5){for(i=1;i<=(+s.dn||1);i++)if(String(s[mrk(i)]||"").trim())o.push("Modulo monete "+i+": RCW50-"+String(s[mrk(i)]).trim())}

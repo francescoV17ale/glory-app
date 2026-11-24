@@ -375,7 +375,8 @@ function importa(files){var M={},nu=0,ag=0,ug=0,bad=0,ch=[],mt=0;L.forEach(funct
    if(ch.length&&!F.sel)F.sel=ch[0].u;draw()})}).catch(function(){say("Importazione non riuscita.",1)})}
 
 /* ---------- stato della vista e freccia Indietro ---------- */
-var F={q:"",v:"",t:"",per:"",da:"",a:"",st:"corso",tag:"",sel:null,frq:0,nw:0,sp:"",mo:"",rv:"",cm:0},HIST=[];
+var F0={q:"",v:"",t:"",per:"",da:"",a:"",st:"corso",tag:"",sel:null,frq:0,nw:0,sp:"",mo:"",rv:"",cm:0},F=JSON.parse(JSON.stringify(F0)),HIST=[];
+function home(){HIST=[];F=JSON.parse(JSON.stringify(F0));$("q").value="";draw();window.scrollTo(0,0)}
 function snap(){return JSON.parse(JSON.stringify(F))}
 function go(ch){HIST.push(snap());if(HIST.length>40)HIST.shift();Object.keys(ch).forEach(function(k){F[k]=ch[k]});$("q").value=F.q;draw();window.scrollTo(0,0)}
 function back(){if(!HIST.length)return;F=HIST.pop();$("q").value=F.q;draw()}
@@ -421,7 +422,7 @@ function frequenti(){var lim=Date.now()-183*864e5,C={};
 
 /* ---------- disegno ---------- */
 function draw(){
- var bk=$("bk");bk.textContent="";if(HIST.length)bk.append(btn("back","‹ Indietro",back));
+ var bk=$("bk");bk.textContent="";if(HIST.length)bk.append(btn("back","‹ Indietro",back));if(HIST.length||JSON.stringify(F)!==JSON.stringify(F0))bk.append(btn("back","⌂ Home",home));
  var LV=vis(),NW=LV.filter(nuovo).length;
  var fl=$("fl");fl.textContent="";if(NW||F.nw)fl.append(btn("ch nwc"+(F.nw?" on":""),"Nuovi "+NW,function(){go({nw:F.nw?0:1,frq:0})}));
  [["","Tutti"]].concat(Object.keys(TIT).map(function(k){return [k,TIT[k]]})).forEach(function(o){var n=o[0]?LV.filter(function(r){return r.v===o[0]}).length:LV.length;if(o[0]&&!n)return;fl.append(btn("ch"+(F.v===o[0]&&!F.frq?" on":""),o[1]+" "+n,function(){go({v:o[0],frq:0})}))});
