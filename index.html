@@ -424,7 +424,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=88,svEl=null;
+var VER=89,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -942,8 +942,8 @@ function pcMark(L,done){var n=L.length,t=Date.now();if(!n){done();return}var D=d
 function pcBox(){var N=pcNew(),bx=el("div","pcx"),m=el("div","cnt","");m.setAttribute("role","status");var gd=GD.ok&&lsGet("gla_gd")==="1";
  function go(L,share,sh){if(!L.length){m.textContent="Niente da esportare.";return}var f=pcFile(L),bl=new Blob([f.t],{type:"text/plain"}),ok=function(){pcMark(L,function(){arcMsg=(L.length===1?"Inviato 1 lavoro":"Inviati "+L.length+" lavori")+(gd&&!sh?" su Google Drive.":" per il PC.");arcView()})};
   /* Google Drive collegato: il file va direttamente nella cartella condivisa */
-  if(gd&&!sh&&navigator.onLine){if(!gTokC()){lsSet("gla_gsend",L.length===ARC.length&&L.length!==pcNew().length?"all":"new");gLogin("send");return}
-   m.textContent="Invio su Google Drive…";gUp(f.t,f.fn).then(ok,function(e){if(e&&e.message==="login"){lsSet("gla_gsend","new");gLogin("send");return}
+  if(gd&&!sh&&navigator.onLine){if(!gTokC()){lsSet("gla_gsend",L.length===ARC.length&&L.length!==pcNew().length?"all":"new");if(!gAuto("send"))gLogin("send");return}
+   m.textContent="Invio su Google Drive…";gUp(f.t,f.fn).then(ok,function(e){if(e&&e.message==="login"){lsSet("gla_gsend","new");if(!gAuto("send"))gLogin("send");return}
     m.textContent="Invio su Google Drive non riuscito. ";m.append(btn("reset tight","Condividi il file",function(){go(L,1,1)}))});return}
   if(share&&CANSH)shareFile(bl,f.fn,"text/plain",m,"",ok);else saveFile(bl,f.fn,ok,function(){m.textContent="Salvataggio non riuscito."})}
  var sg=el("div","seg");sg.append(btn(N.length?"on":"","Invia al PC · "+N.length+(N.length===1?" nuovo":" nuovi"),function(){go(pcNew(),1)}),btn("","Tutto ("+ARC.length+")",function(){go(ARC.slice(),1)}));
@@ -951,7 +951,8 @@ function pcBox(){var N=pcNew(),bx=el("div","pcx"),m=el("div","cnt","");m.setAttr
  if(GD.ok){var gr=el("div","cnt");if(gd){gr.append(document.createTextNode("Invio diretto su Google Drive · "));gr.append(btn("lnk","Scollega",function(){lsSet("gla_gd","0");arcView()}))}
   else gr.append(btn("reset tight","Collega Google Drive",function(){gLogin("link")}));bx.append(gr)}
  bx._go=function(w){go(w==="all"?ARC.slice():pcNew(),1)};return bx}
-function arcView(){if(GBK){var g=GBK;GBK=null;if(g.ok){lsSet("gla_gd","1");if(g.st==="send")GSEND=lsGet("gla_gsend")||"new";else arcMsg="Google Drive collegato: «Invia al PC» carica i lavori direttamente nella cartella."}else arcMsg="Accesso a Google "+(g.err==="access_denied"?"annullato.":"non riuscito.")}
+function arcView(){if(GBK&&GBK.sil&&!GBK.ok&&GBK.st==="send"){GBK=null;gLogin("send");return}
+ if(GBK){var g=GBK;GBK=null;if(g.ok){lsSet("gla_gd","1");if(g.st==="send")GSEND=lsGet("gla_gsend")||"new";else arcMsg="Google Drive collegato: «Invia al PC» carica i lavori direttamente nella cartella."}else arcMsg="Accesso a Google "+(g.err==="access_denied"?"annullato.":"non riuscito.")}
  view="";ttl.textContent="Archivio lavori";back.hidden=false;gear.hidden=true;clearPassi();closeOv();app.textContent="";noteTa=null;
  var m=el("div","cnt",arcMsg);m.setAttribute("role","status");arcMsg="";
  var q=document.createElement("input");q.type="text";q.placeholder="Cerca cliente, CV, RMA, matricola…";q.setAttribute("aria-label","Cerca nell'archivio");q.value=ui.q||"";
@@ -1421,13 +1422,20 @@ var GD={cid:"734772581415-0qsblo2m724m9pjda994173bf36v6r3r.apps.googleuserconten
  ok:location.protocol==="https:"||location.hostname==="localhost",FOLD:"application/vnd.google-apps.folder"};
 function gRedir(){return location.origin+location.pathname.replace(/index\.html$/,"")}
 function gTokC(){try{var o=JSON.parse(localStorage.getItem("gla_gtok")||"null");if(o&&o.t&&o.e>Date.now()+60000)return o.t}catch(e){}return ""}
-function gLogin(st){var q={client_id:GD.cid,redirect_uri:gRedir(),response_type:"token",scope:GD.sc,include_granted_scopes:"true",state:st||""};
+/* sil: rinnovo senza chiedere niente (riesce se in Chrome sei ancora collegato a Google) */
+function gLogin(st,sil){var q={client_id:GD.cid,redirect_uri:gRedir(),response_type:"token",scope:GD.sc,include_granted_scopes:"true",state:(sil?"~":"")+(st||"")};
+ if(sil){q.prompt="none";try{var hm=localStorage.getItem("gla_gmail");if(hm)q.login_hint=hm}catch(e){}}
  location.href="https://accounts.google.com/o/oauth2/v2/auth?"+Object.keys(q).map(function(k){return k+"="+encodeURIComponent(q[k])}).join("&")}
 /* al ritorno da Google: il token è nell'indirizzo dopo # */
 function gBack(nh){var h=location.hash;if(!/(^|[#&])(access_token|error)=/.test(h))return null;var p={};
  h.replace(/^#/,"").split("&").forEach(function(kv){var i=kv.indexOf("=");if(i>0)p[decodeURIComponent(kv.slice(0,i))]=decodeURIComponent(kv.slice(i+1).replace(/\+/g," "))});
  if(p.access_token)try{localStorage.setItem("gla_gtok",JSON.stringify({t:p.access_token,e:Date.now()+(+p.expires_in||3600)*1000}))}catch(e){}
- try{history.replaceState(null,"",location.pathname+location.search+(nh||""))}catch(e){}return {st:p.state||"",ok:!!p.access_token,err:p.error||""}}
+ try{history.replaceState(null,"",location.pathname+location.search+(nh||""))}catch(e){}var st=p.state||"",sil=st.charAt(0)==="~";if(sil)st=st.slice(1);
+ if(p.access_token)gMail();return {st:st,sil:sil,ok:!!p.access_token,err:p.error||""}}
+/* rinnovo automatico, al massimo una volta ogni 10 minuti (niente giri a vuoto se Google chiede di accedere) */
+function gAuto(st){try{var t=+sessionStorage.getItem("gla_gsil")||0;if(Date.now()-t<6e5)return false;sessionStorage.setItem("gla_gsil",String(Date.now()))}catch(e){return false}gLogin(st,1);return true}
+/* la Gmail collegata serve per il rinnovo automatico */
+function gMail(){setTimeout(function(){gFetch("https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)").then(function(r){return r.json()}).then(function(j){var m=j&&j.user&&j.user.emailAddress;if(m)try{localStorage.setItem("gla_gmail",m)}catch(e){}}).catch(function(){})},0)}
 function gFetch(u,o){var t=gTokC();if(!t)return Promise.reject(new Error("login"));o=o||{};o.headers=o.headers||{};o.headers.Authorization="Bearer "+t;
  return fetch(u,o).then(function(r){if(r.status===401){try{localStorage.removeItem("gla_gtok")}catch(e){}throw new Error("login")}if(!r.ok)throw new Error("http "+r.status);return r})}
 /* carica un file nella cartella (anche grande, con le foto) */
