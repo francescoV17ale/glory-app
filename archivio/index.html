@@ -321,6 +321,7 @@ function impostazioni(){var ov=el("div","ov"),d=el("div","dlg");ov.setAttribute(
  d.append(el("h2",0,"Impostazioni"));var r1=el("div","er"),inp=document.createElement("input");inp.type="text";inp.value=NOME;inp.placeholder="Nome e cognome";inp.setAttribute("aria-label","Il tuo nome");
  inp.onchange=function(){var v=inp.value.trim();if(v){NOME=v;cfg("nome",NOME);nomeLab()}};r1.append(el("b",0,"Il tuo nome"),inp);d.append(r1,el("p","st","Compare sui commenti che scrivi. Obbligatorio per commentare."));
  var lb=el("label","er"),cb=document.createElement("input");cb.type="checkbox";cb.checked=!!MAIN;cb.onchange=function(){MAIN=cb.checked?1:0;cfg("main",MAIN);PULITO=0};lb.append(cb,document.createTextNode(" PC principale: sposta in «_importati» i file dei tecnici già importati da più di 30 giorni"));d.append(lb,el("p","st","Attivalo su un solo PC."));
+ var lm=el("label","er"),cm=document.createElement("input");cm.type="checkbox";cm.checked=mailWeb();cm.onchange=function(){try{localStorage.setItem("gla_mailw",cm.checked?"1":"0")}catch(e){}};lm.append(cm,document.createTextNode(" Mail al magazzino con Outlook sul web (invece del programma di posta del PC)"));d.append(lm);
  if(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)d.append(el("p","st","Programma installato."));
  else if(INST)d.append(btn("b sm","Installa sul PC",function(){var e=INST;INST=null;e.prompt();e.userChoice.then(function(){close()})}));
  else d.append(el("p","st","Per installarlo: menù di Chrome ⋮ › Trasmetti, salva e condividi › Installa pagina come app."));
@@ -533,7 +534,12 @@ function pdfLav(r,pv){var fn=(r.n||"rapportino")+".pdf";say("Preparo il PDF…")
 function riprendi(r){var o=JSON.parse(JSON.stringify(r.s||{}));delete o._arc;o._u=r.u;var n=new Date(),t={glory:2,view:r.v,saved:n.getFullYear()+"-"+("0"+(n.getMonth()+1)).slice(-2)+"-"+("0"+n.getDate()).slice(-2),s:o,ph:r.ph||[]};
  var fn="Scheda Glory - "+(r.n||TIT[r.v])+".txt",b=new Blob([JSON.stringify(t)],{type:"text/plain"});
  if(tel())condividi(b,fn);else{scarica(b,fn);say("Mandalo al tecnico che continua: lo apre con Glory 2.0 (Condividi › Glory, oppure menù › Carica scheda).")}}
-function mailLav(r){conApp(r,function(w){return w.magMail(w.S)}).then(function(u){location.href=u},function(){say("Mail non riuscita: apri il programma con internet almeno una volta.",1)})}
+/* Mail: programma di posta del dispositivo oppure Outlook sul web (impostazione gla_mailw, valida per app e programma PC sullo stesso browser) */
+function mailWeb(){try{return localStorage.getItem("gla_mailw")==="1"}catch(e){return false}}
+function mailOwa(u){var m=/^mailto:([^?]*)\??(.*)$/i.exec(u||"");if(!m)return u;var q={to:decodeURIComponent(m[1]||"")};(m[2]||"").split("&").forEach(function(kv){var i=kv.indexOf("=");if(i>0)q[kv.slice(0,i).toLowerCase()]=decodeURIComponent(kv.slice(i+1).replace(/\+/g," "))});
+ return "https://outlook.office.com/mail/deeplink/compose?"+["to","cc","subject","body"].filter(function(k){return q[k]}).map(function(k){return k+"="+encodeURIComponent(q[k])}).join("&")}
+function mailGo(u,wn){if(mailWeb()){var w=mailOwa(u);if(wn){wn.location.href=w;return}if(!window.open(w,"_blank"))location.href=w}else{if(wn)wn.close();location.href=u}}
+function mailLav(r){var wn=mailWeb()?window.open("","_blank"):null;conApp(r,function(w){return w.magMail(w.S)}).then(function(u){mailGo(u,wn)},function(){say("Mail non riuscita: apri il programma con internet almeno una volta.",1)})}
 
 /* ---------- Excel (CSV con separatore ;) ---------- */
 function oggi(){var n=new Date();return p2(n.getDate())+"-"+p2(n.getMonth()+1)+"-"+n.getFullYear()}

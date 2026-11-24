@@ -430,7 +430,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=92,svEl=null;
+var VER=93,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -462,6 +462,11 @@ function verT(s,id){var a=String(s[id+"_a"]||"").trim(),n=String(s[id+"_n"]||"")
 /* modulo associato: l'altro modulo della stessa macchina, revisionato; collaudo unico */
 /* mail al magazzino: il minimo per la spedizione. Il codice CRM è il prefisso del nome cliente */
 function crm(t){var m=/^\s*([A-Za-z]{0,4}\d[\w.\/]*)\s*[-–—:·,]?\s+(.+)$/.exec(String(t||""));return m?{c:m[1],n:m[2].trim()}:{c:"",n:String(t||"").trim()}}
+/* Mail: programma di posta del dispositivo oppure Outlook sul web (impostazione gla_mailw, valida per app e programma PC sullo stesso browser) */
+function mailWeb(){try{return localStorage.getItem("gla_mailw")==="1"}catch(e){return false}}
+function mailOwa(u){var m=/^mailto:([^?]*)\??(.*)$/i.exec(u||"");if(!m)return u;var q={to:decodeURIComponent(m[1]||"")};(m[2]||"").split("&").forEach(function(kv){var i=kv.indexOf("=");if(i>0)q[kv.slice(0,i).toLowerCase()]=decodeURIComponent(kv.slice(i+1).replace(/\+/g," "))});
+ return "https://outlook.office.com/mail/deeplink/compose?"+["to","cc","subject","body"].filter(function(k){return q[k]}).map(function(k){return k+"="+encodeURIComponent(q[k])}).join("&")}
+function mailGo(u,wn){if(mailWeb()){var w=mailOwa(u);if(wn){wn.location.href=w;return}if(!window.open(w,"_blank"))location.href=w}else{if(wn)wn.close();location.href=u}}
 function magMail(s){var o=[],cl=crm(s.cl),rv=s.rv?crm(s.rvn):null,ss=[],i,t,v=view;
  function L(k,x){x=String(x==null?"":x).trim();if(x)o.push(k+": "+x)}
  function pz(p){var q=[],j;for(j=1;j<=(+s[p+"np"]||0);j++)if(String(s[p+"pz"+j]||"").trim())q.push(String(s[p+"pz"+j]).trim());return q}
@@ -1213,7 +1218,7 @@ function render(){
    se.onchange=function(){S[x.id]=se.value||0;save();render()};fs.dataset.id=x.id;fs.append(se);app.append(fs)}
   else if(x.t==="n"){app.append(el("h2",0,"Note rapportino"));noteTa=el("textarea");noteTa.readOnly=true;noteTa.style.minHeight="300px";noteTa.value=noteText();noteTa.setAttribute("aria-label","Note per il rapportino");
    var cm=el("div"),cb=btn("reset ac","Copia note",function(){tryCopy(cb,cm)});cb.style.marginTop="10px";app.append(noteTa,cb,cm);
-   app.append(btn("reset tight","Mail al magazzino",function(){location.href=magMail(S)}));pdfBox()}
+   app.append(btn("reset tight","Mail al magazzino",function(){mailGo(magMail(S))}));pdfBox()}
   else if(x.t==="c"){var nk="nt_"+x.id,rw=el("div","rowc"),
     b=btn("chk"+(S[x.id]?" on":""),null,function(){S[x.id]=S[x.id]?0:1;if(x.id==="grm"&&S.grm)S.rmaM=0;save();render()}),
     nb=btn("nb"+(S[nk]?" has":""),"Nota",function(){ui.notes[x.id]=!ui.notes[x.id];ui.foc=ui.notes[x.id]?x.id:null;render()});
@@ -1235,7 +1240,7 @@ function render(){
     rl.append(rc,document.createTextNode("Ricordami: usa questo nome in tutte le schede"));ft.append(rl)}app.append(ft);if(x.cmp){i.style.minHeight="56px";i.style.overflowY="auto";grow(i)}}
  });
  if(PS&&!last)markAll(list);
- if(!PS||last){if(view==="prep"){app.append(btn("reset tight","Mail al magazzino",function(){location.href=magMail(S)}));pdfBox()}if(!SOLO&&!EDIT)arcBox();if(PS&&!EDIT)rstBox()}
+ if(!PS||last){if(view==="prep"){app.append(btn("reset tight","Mail al magazzino",function(){mailGo(magMail(S))}));pdfBox()}if(!SOLO&&!EDIT)arcBox();if(PS&&!EDIT)rstBox()}
  passiFrame();pendGo()}
 
 /* ---------- menu Condividi della scheda ---------- */
@@ -1336,6 +1341,9 @@ function gearDlg(){openOv(function(bx){var cur=lsGet("gla_vista")==="passi"?"pas
  [["unica","Scheda unica","Tutte le voci in una pagina: scorri liberamente."],["passi","A passi","Una sezione alla volta, con Avanti, la nota sempre a portata e l'elenco di cosa manca."]].forEach(function(o){
   var b=btn("vopt"+(cur===o[0]?" on":""),null,function(){lsSet("gla_vista",o[0]);closeOv();if(view&&V[view]){render();window.scrollTo(0,0)}else route()});
   b.append(el("b",0,o[1]),el("span",0,o[2]));b.setAttribute("aria-pressed",cur===o[0]?"true":"false");bx.append(b)});
+ bx.append(el("h2",0,"Mail al magazzino"));
+ [["0","Programma di posta","Quello del telefono o del computer."],["1","Outlook sul web","Apre Outlook online nel browser, con la mail già compilata."]].forEach(function(o){var on=(mailWeb()?"1":"0")===o[0],b=btn("vopt"+(on?" on":""),null,function(){lsSet("gla_mailw",o[0]);gearDlg()});
+  b.append(el("b",0,o[1]),el("span",0,o[2]));b.setAttribute("aria-pressed",on?"true":"false");bx.append(b)});
  bx.append(btn("reset tight","Chiudi",closeOv))})}
 gear.onclick=gearDlg;
 try{SI=JSON.parse(lsGet("gla_si"))||{}}catch(e){SI={}}if(typeof SI!=="object"||Array.isArray(SI))SI={};
