@@ -223,7 +223,7 @@ body.pv .notev{font-size:17px}
 .card .atg{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.card .atg .chip.spc{color:#fff;border-color:transparent}.card .atg .chip{display:inline-flex;margin:0;min-height:0;line-height:1.5;font-size:12px;padding:1px 8px;color:var(--tx)}.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;border:1px solid var(--ln);border-radius:12px;padding:1px 8px;color:var(--tx)}
 .chip i,.tgb i{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none}
 .atgs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}.tgb{min-height:40px;border:1px solid var(--ln);border-radius:20px;padding:0 12px;background:var(--sf);color:var(--tx);font:inherit;font-size:14px;display:inline-flex;align-items:center;gap:6px}.tgb.on{border:2px solid var(--ac);font-weight:700}
-html.edit header{display:none}
+html.edit #back,html.edit #gear,html.edit #ttl{display:none}html.edit header{min-height:0;padding-top:0;padding-bottom:0}
 </style>
 </head>
 
@@ -431,7 +431,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=98,svEl=null;
+var VER=99,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -1274,7 +1274,7 @@ function ddBuild(dd){dd.textContent="";var m=el("div","cnt","");m.setAttribute("
 
 /* ---------- visualizzazione: scheda unica o a passi ---------- */
 var SI={},pend=null,MK={},BL=[],ST=[],OV=null,RD={},PJ=null,gear=document.getElementById("gear"),hdr=document.querySelector("header");
-function passi(){return !!view&&!SOLO&&lsGet("gla_vista")==="passi"}
+function passi(){return !!view&&!SOLO&&(EDIT||lsGet("gla_vista")==="passi")}
 function gv(k){return String(S[k]==null?"":S[k]).trim()}
 function hasNote(){return BL.some(function(b){return b.t==="n"})}
 function steps(bl){var st=[{x:"Dati del lavoro",it:[]}],nn=[];
@@ -1298,8 +1298,9 @@ function railBuild(){var n=el("nav","rail"),cur=curStep();n.id="rail";n.setAttri
 function dockBuild(){var cur=curStep(),last=cur===ST.length-1,q=stat(ST[cur]),rest=q.t-q.d,d=el("div","dock"),a;d.id="dock";
  var p=btn("ib","‹",function(){goStep(cur-1)});p.disabled=cur===0;p.setAttribute("aria-label","Passo precedente");d.append(p);
  if(hasNote())d.append(btn("mid","Nota",noteDlg));
- var rk=last&&IDB&&!SOLO&&hasData(S)?check(BL):null;
+ var rk=last&&IDB&&!SOLO&&!EDIT&&hasData(S)?check(BL):null;
  if(rk&&!rk.bad.length&&!rk.warn.length){a=btn("go",null,function(){ui.arc=1;pend="arcb";render()});a.append(el("b",0,S._arc?"Aggiorna":"Archivia"),el("span",0,"tutto completato"))}
+ else if(last&&EDIT){a=btn("go",null,function(){try{window.parent.postMessage("glory-edit-save","*")}catch(e){}});a.append(el("b",0,"Salva"),el("span",0,"modifiche"))}
  else if(last){a=btn("go wait",null,function(){location.hash=""});a.append(el("b",0,"Menù"),el("span",0,"torna alle schede"))}
  else{a=btn("go"+(rest>0?" wait":""),null,function(){goStep(cur+1)});a.append(el("b",0,"Avanti"),el("span",0,rest>0?(rest===1?"resta 1 voce qui":"restano "+rest+" voci qui"):ST[cur+1].x))}
  d.append(a);return d}

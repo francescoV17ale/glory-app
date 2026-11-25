@@ -105,6 +105,7 @@ a.b{display:inline-flex;align-items:center;text-decoration:none;color:var(--tx)}
 </head>
 <body>
 <header>
+ <button class="b" id="homeb" type="button" title="Torna all'elenco con i filtri di partenza">⌂ Home</button>
  <h1>Glory Archivio <span>sul PC</span></h1>
  <label class="b ac" style="display:inline-flex;align-items:center;position:relative">Importa file<input id="fi" type="file" multiple accept=".txt,.json,text/plain,application/json" style="position:absolute;inset:0;opacity:0;cursor:pointer" aria-label="Importa file dall'app"></label>
  <button class="b" id="dirb" type="button"></button>
@@ -364,7 +365,7 @@ function frequenti(){var lim=Date.now()-183*864e5,C={};
 
 /* ---------- disegno ---------- */
 function draw(){
- var bk=$("bk");bk.textContent="";if(HIST.length)bk.append(btn("back","‹ Indietro",back));if(HIST.length||JSON.stringify(F)!==JSON.stringify(F0))bk.append(btn("back","⌂ Home",home));
+ var bk=$("bk");bk.textContent="";if(HIST.length)bk.append(btn("back","‹ Indietro",back));
  var LV=vis(),NW=LV.filter(nuovo).length;
  var fl=$("fl");fl.textContent="";if(NW||F.nw)fl.append(btn("ch nwc"+(F.nw?" on":""),"Nuovi "+NW,function(){go({nw:F.nw?0:1,frq:0})}));
  [["","Tutti"]].concat(Object.keys(TIT).map(function(k){return [k,TIT[k]]})).forEach(function(o){var n=o[0]?LV.filter(function(r){return r.v===o[0]}).length:LV.length;if(o[0]&&!n)return;fl.append(btn("ch"+(F.v===o[0]&&!F.frq?" on":""),o[1]+" "+n,function(){go({v:o[0],frq:0})}))});
@@ -397,7 +398,7 @@ function draw(){
   rie.textContent="";rie.hidden=false;rie.append(el("b",0,R.length+(R.length===1?" lavoro":" lavori")),document.createTextNode(": "+Object.keys(TIT).filter(function(k){return cnt[k]}).map(function(k){return cnt[k]+" "+TIT[k].toLowerCase()}).join(", ")));
   if(ore){rie.append(document.createTextNode(" · "),el("b",0,ore+(ore===1?" ora":" ore")),document.createTextNode(" di manodopera"));var tt=Object.keys(ot);if(tt.length>1)rie.append(document.createTextNode(" ("+tt.map(function(t){return t+" "+ot[t]}).join(", ")+")"))}}
  else rie.hidden=true;
- if(!L.length){it.append(el("p","empty","Archivio vuoto. Importa i file inviati dall'app o collega la cartella dove arrivano."))}
+ if(!L.length){it.append(el("p","empty","Archivio vuoto: collega Google Drive (tasto in alto) o importa i file inviati dall'app."))}
  else if(!R.length)it.append(el("p","empty","Nessun risultato."));
  R.slice(0,400).forEach(function(r){var st=stato(r),c=btn("it"+(st==="fatto"?" fat":st==="corso"?" cor":"")+(nuovo(r)?" nw":"")+(F.sel===r.u?" on":""),null,function(){if(h&&!F.sel)go({sel:r.u});else{F.sel=r.u;draw()}if(innerWidth<860)$("det").scrollIntoView()});
   var tl=el("b",0,r.n||"Senza nome"),T=tagsL(r);if(nuovo(r))tl.prepend(el("em","nwb","Nuovo"));if(r.mod&&r.mod.length)tl.append(el("em","edm"," ✎"));if(arrivo(r)){var pz=presa(r),ab=el("em","spb",pz?"Presa da "+pz.a:"📥 In arrivo");ab.style.background=pz?"#5b6770":"#7c3aed";tl.append(ab)}var sx=spOk(r)&&spOf(r);if(sx){var sb=el("em","spb",sx.n);sb.style.background=sx.c;tl.append(sb)}if(T.length){var dd=el("span","dots");T.forEach(function(id){var t=tagOf(id),d=el("i","dot");d.style.background=t.c;d.title=t.n;dd.append(d)});tl.append(dd)}
@@ -447,7 +448,7 @@ function alBox(r){var w=el("div","als"),A=alList(r.u);
 /* ---------- modifica del rapportino dal PC: si usa la scheda dell'app, la correzione va a tutti (anche al telefono del tecnico) ---------- */
 function modifica(r){var ov=el("div","ov edov"),d=el("div","edw"),bar=el("div","edb"),f=document.createElement("iframe");ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");
  bar.append(el("b",0,"Modifica · "+(r.n||"lavoro")));var ok=btn("b ac","Salva modifiche",salva),no=btn("b","Annulla",function(){if(confirm("Chiudere senza salvare?"))ov.remove()});bar.append(no,ok);
- f.src="../index.html?edit=1";f.title="Rapportino da modificare";d.append(bar,f);ov.append(d);document.body.append(ov);
+ f.src="../index.html?edit=1";window.addEventListener("message",function onm(e){if(!document.body.contains(ov)){window.removeEventListener("message",onm);return}if(e.source===f.contentWindow&&e.data==="glory-edit-save")salva()});f.title="Rapportino da modificare";d.append(bar,f);ov.append(d);document.body.append(ov);
  f.onload=function(){var n=0;(function t(){var w=f.contentWindow;if(w&&w.edReady&&w.edOpen){w.edOpen(r)}else if(++n>80){say("Modifica non disponibile: apri il programma con internet almeno una volta.",1);ov.remove()}else setTimeout(t,100)})()};
  function salva(){function go(){var w=f.contentWindow,x;try{x=w.edGet()}catch(e){say("Modifica non riuscita.",1);return}
    if(JSON.stringify(x.s)===JSON.stringify(r.s)&&JSON.stringify(x.ph)===JSON.stringify(r.ph||[])){ov.remove();say("Nessuna modifica.");return}
@@ -530,7 +531,7 @@ function salvaTutto(){if(!L.length){say("Archivio vuoto.",1);return}
 /* ---------- avvio ---------- */
 $("fi").onchange=function(){if(this.files.length)importa(this.files);this.value=""};
 $("q").oninput=function(){F.q=this.value;F.sel=null;F.frq=0;draw()};
-$("dirb").onclick=collega;$("sync").onclick=function(){gSync(1)};$("csv").onclick=csv;$("tagb").onclick=tagEditor;$("rmab").onclick=rmaDlg;$("setb").onclick=impostazioni;$("bak").onclick=salvaTutto;
+$("dirb").onclick=collega;$("sync").onclick=function(){gSync(1)};$("csv").onclick=csv;$("tagb").onclick=tagEditor;$("rmab").onclick=rmaDlg;$("homeb").onclick=home;$("setb").onclick=impostazioni;$("bak").onclick=salvaTutto;
 var INST=null;window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();INST=e});
 document.addEventListener("keydown",function(e){if(e.key==="Escape"){var o=document.querySelector(".ov");if(o){o.remove();draw()}else if(HIST.length&&document.activeElement.tagName!=="INPUT"&&document.activeElement.tagName!=="TEXTAREA")back()}});
 var dc=0;document.addEventListener("dragenter",function(e){e.preventDefault();dc++;$("drop").hidden=false});
