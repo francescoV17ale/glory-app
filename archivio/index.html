@@ -132,11 +132,12 @@ a.b{display:inline-flex;align-items:center;text-decoration:none;color:var(--tx)}
  <section class="pane det" id="det" aria-label="Dettaglio"></section>
 </main>
 <div class="drop" id="drop" hidden>Rilascia qui i file da importare</div>
+<script src="../shared.js"></script>
 <script>
 "use strict";
 /* Archivio dei rapportini arrivati dall'app Glory 2.0 ("Archivio per il PC").
    I dati restano su questo PC: nel browser (IndexedDB) e, se collegata, in una cartella (un file per lavoro). */
-var DB=null,L=[],SEL=null,F={q:"",v:"",t:""},DIR=null;
+var DB=null,L=[],SEL=null;
 var TIT={inst:"Installazione",prep:"Preparazione",rip:"Riparazione",loc:"In loco",altro:"Altra attività",rit:"Ritiro"};
 var PX={"CI-5":"50","CI-10":"100","CI-10X":"200"};
 function $(i){return document.getElementById(i)}
@@ -169,35 +170,11 @@ function dbAll(){return new Promise(function(ok){var t=DB.transaction("lav").obj
 function dbPut(arr){return new Promise(function(ok,ko){if(!arr.length){ok();return}var t=DB.transaction("lav","readwrite"),st=t.objectStore("lav");arr.forEach(function(r){st.put(r)});t.oncomplete=ok;t.onerror=t.onabort=function(){ko(t.error)}})}
 function cfg(k,v){return new Promise(function(ok){var t=DB.transaction("cfg",v===undefined?"readonly":"readwrite"),st=t.objectStore("cfg"),q=v===undefined?st.get(k):st.put(v,k);q.onsuccess=function(){ok(q.result)};q.onerror=function(){ok(null)}})}
 
-/* ---------- cartella sul PC (Chrome/Edge): un file .json per lavoro ---------- */
-var FSA=!!window.showDirectoryPicker;
-function dirLabel(){var b=$("dirb");if(!FSA&&!GD.ok){b.hidden=true;return}b.hidden=false;
- b.textContent=GDON?(gTokC()?"Google Drive":"Google Drive · accedi")+(DIR&&DIR.ok?" + "+DIR.h.name:""):DIR?(DIR.ok?"Cartella: "+DIR.h.name:"Riapri la cartella "+DIR.h.name):FSA?"Collega una cartella":"Collega Google Drive";$("sync").hidden=!(DIR&&DIR.ok||GDON)}
-function dirPick(){if(DIR&&!DIR.ok){DIR.h.requestPermission({mode:"readwrite"}).then(function(p){if(p==="granted"){DIR.ok=1;dirSync()}dirLabel()});return}
- window.showDirectoryPicker({mode:"readwrite",id:"glory-archivio"}).then(function(h){DIR={h:h,ok:1};SEEN={};cfg("seen",SEEN);cfg("dir",h);dirSync();dirLabel()},function(){})}
-function dirInit(){if(!FSA)return Promise.resolve();return cfg("seen").then(function(x){SEEN=x||{}}).then(function(){return cfg("dir")}).then(function(h){if(!h)return;DIR={h:h,ok:0};return h.queryPermission({mode:"readwrite"}).then(function(p){if(p==="granted"){DIR.ok=1;return dirSync()}})}).catch(function(){})}
-/* nella cartella (anche una cartella condivisa di Google Drive):
-   - i file "Archivio Glory …" che arrivano dai tecnici vengono importati da soli
-   - in _archivio ogni PC scrive solo il suo file _team-<codice>.json (etichette e commenti di squadra)
-   - le copie dei lavori in _archivio (versione precedente) vengono ancora lette, non più scritte */
-var SUB="_archivio",SEEN={};
-function subDir(){return DIR.h.getDirectoryHandle(SUB,{create:true})}
+/* ---------- collegamento a Google Drive (tasto in alto) ---------- */
+var SUB="_archivio",SEEN={},syncing=0;
 function fnSafe(t){return String(t).replace(/[^A-Za-z0-9_-]/g,"_")}
-var syncing=0;
-function dirSync(){if(!DIR||!DIR.ok||syncing)return Promise.resolve();syncing=1;var got={},inc=[],nf=0,tms=[],mtOld=null;
- return (async function(){
-  for await (var e of DIR.h.values()){if(e.kind!=="file"||!/\.(txt|json)$/i.test(e.name))continue;
-   var f=await e.getFile(),key=e.name+"|"+f.size+"|"+f.lastModified;if(SEEN[key])continue;
-   var o=null;try{o=JSON.parse(await f.text())}catch(x){}SEEN[key]=1;
-   if(o&&o.u&&o.s&&o.v){got[o.u]=o;continue}            /* copia di un lavoro lasciata nella cartella principale (versione precedente) */
-   var A=o?norm(o):[];if(A.length){nf++;inc=inc.concat(A)}}
-  try{var rmd=await DIR.h.getDirectoryHandle("_rma",{create:false});for await (var e5 of rmd.values()){if(e5.kind!=="file"||!/\.json$/i.test(e5.name))continue;var f5=await e5.getFile(),k5="_rma/"+e5.name+"|"+f5.size+"|"+f5.lastModified;if(SEEN[k5])continue;SEEN[k5]=1;try{inc=inc.concat(norm(JSON.parse(await f5.text())))}catch(x){}}}catch(x){}
-  try{var mdd=await DIR.h.getDirectoryHandle("_modifiche",{create:false});for await (var e4 of mdd.values()){if(e4.kind!=="file"||!/\.json$/i.test(e4.name))continue;var f4=await e4.getFile(),k4="_modifiche/"+e4.name+"|"+f4.size+"|"+f4.lastModified;if(SEEN[k4])continue;SEEN[k4]=1;try{var o4=JSON.parse(await f4.text());inc=inc.concat(norm(o4))}catch(x){}}}catch(x){}
-  try{var imd=await DIR.h.getDirectoryHandle("_importati",{create:false});for await (var e3 of imd.values()){if(e3.kind!=="file"||!/\.(txt|json)$/i.test(e3.name))continue;var f3=await e3.getFile(),k3="_importati/"+e3.name+"|"+f3.size;if(SEEN[k3])continue;SEEN[k3]=1;try{var o3=JSON.parse(await f3.text());var A3=norm(o3);if(A3.length)inc=inc.concat(A3)}catch(x){}}}catch(x){}
-  var sd=await subDir();
-  for await (var e2 of sd.values()){if(e2.kind!=="file"||!/\.json$/.test(e2.name))continue;var f2=await e2.getFile(),k2=SUB+"/"+e2.name+"|"+f2.size+"|"+f2.lastModified;if(SEEN[k2])continue;SEEN[k2]=1;try{var r=JSON.parse(await f2.text());if(/^_team-/.test(e2.name)){tms.push(r)}else if(r&&r.u)got[r.u]=r}catch(x){}}
- })().then(function(){return unisci(got,inc,tms,mtOld,"Dalla cartella")})
- .catch(function(){say("Lettura della cartella non riuscita: ricollegala.",1)}).then(function(){syncing=0})}
+
+function dirLabel(){var b=$("dirb");if(!GD.ok){b.hidden=true;return}b.hidden=false;b.textContent=GDON?(gTokC()?"Google Drive":"Google Drive · accedi"):"Collega Google Drive";$("sync").hidden=!GDON}
 function unisci(got,inc,tms,mtOld,da){
   var M={},toDb=[],nu=0,ag=0;L.forEach(function(r){M[r.u]=r});
   Object.keys(got).forEach(function(u){var r=got[u];if(!M[u]||r.d>M[u].d){toDb.push(r);M[u]=r}});
@@ -206,34 +183,6 @@ function unisci(got,inc,tms,mtOld,da){
   var tch=0;tms.forEach(function(t){if(teamMerge(t))tch=1});if(tch)cfg("team",TEAM);
   return dbPut(toDb).then(teamDir).then(pulisci).then(function(){cfg("seen",SEEN);
    if(nu||ag)say(da+": "+nu+(nu===1?" nuovo":" nuovi")+(ag?", "+ag+(ag===1?" aggiornato":" aggiornati"):"")+".");if(nu||ag||tch||toDb.length)draw();else dirLabel()})}
-/* ---------- Google Drive online (cartella condivisa dei lavori) ---------- */
-var GD={cid:"734772581415-0qsblo2m724m9pjda994173bf36v6r3r.apps.googleusercontent.com",fid:"1Y-gv5GMlXuRe8jY2u8Gf7ZlSkPC3oRba",sc:"https://www.googleapis.com/auth/drive",
- ok:location.protocol==="https:"||location.hostname==="localhost",FOLD:"application/vnd.google-apps.folder"};
-function gRedir(){return location.origin+location.pathname.replace(/index\.html$/,"")}
-function gTokC(){try{var o=JSON.parse(localStorage.getItem("gla_gtok")||"null");if(o&&o.t&&o.e>Date.now()+60000)return o.t}catch(e){}return ""}
-/* sil: rinnovo senza chiedere niente (riesce se in Chrome sei ancora collegato a Google) */
-function gLogin(st,sil){var q={client_id:GD.cid,redirect_uri:gRedir(),response_type:"token",scope:GD.sc,include_granted_scopes:"true",state:(sil?"~":"")+(st||"")};
- if(sil){q.prompt="none";try{var hm=localStorage.getItem("gla_gmail");if(hm)q.login_hint=hm}catch(e){}}
- location.href="https://accounts.google.com/o/oauth2/v2/auth?"+Object.keys(q).map(function(k){return k+"="+encodeURIComponent(q[k])}).join("&")}
-/* al ritorno da Google: il token è nell'indirizzo dopo # */
-function gBack(nh){var h=location.hash;if(!/(^|[#&])(access_token|error)=/.test(h))return null;var p={};
- h.replace(/^#/,"").split("&").forEach(function(kv){var i=kv.indexOf("=");if(i>0)p[decodeURIComponent(kv.slice(0,i))]=decodeURIComponent(kv.slice(i+1).replace(/\+/g," "))});
- if(p.access_token)try{localStorage.setItem("gla_gtok",JSON.stringify({t:p.access_token,e:Date.now()+(+p.expires_in||3600)*1000}))}catch(e){}
- try{history.replaceState(null,"",location.pathname+location.search+(nh||""))}catch(e){}var st=p.state||"",sil=st.charAt(0)==="~";if(sil)st=st.slice(1);
- if(p.access_token)gMail();return {st:st,sil:sil,ok:!!p.access_token,err:p.error||""}}
-/* rinnovo automatico, al massimo una volta ogni 10 minuti (niente giri a vuoto se Google chiede di accedere) */
-function gAuto(st){try{var t=+sessionStorage.getItem("gla_gsil")||0;if(Date.now()-t<6e5)return false;sessionStorage.setItem("gla_gsil",String(Date.now()))}catch(e){return false}gLogin(st,1);return true}
-/* la Gmail collegata serve per il rinnovo automatico */
-function gMail(){setTimeout(function(){gFetch("https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)").then(function(r){return r.json()}).then(function(j){var m=j&&j.user&&j.user.emailAddress;if(m)try{localStorage.setItem("gla_gmail",m)}catch(e){}}).catch(function(){})},0)}
-function gFetch(u,o){var t=gTokC();if(!t)return Promise.reject(new Error("login"));o=o||{};o.headers=o.headers||{};o.headers.Authorization="Bearer "+t;
- return fetch(u,o).then(function(r){if(r.status===401){try{localStorage.removeItem("gla_gtok")}catch(e){}throw new Error("login")}if(!r.ok)throw new Error("http "+r.status);return r})}
-/* carica un file nella cartella (anche grande, con le foto) */
-function gUp(text,name,parent,type){type=type||"text/plain";var meta={name:name,parents:[parent||GD.fid],mimeType:type};
- return gFetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true",{method:"POST",headers:{"Content-Type":"application/json; charset=UTF-8","X-Upload-Content-Type":type},body:JSON.stringify(meta)})
- .then(function(r){var loc=r.headers.get("Location");if(!loc)return gMulti(meta,text,type);return fetch(loc,{method:"PUT",headers:{"Content-Type":type},body:new Blob([text],{type:type})}).then(function(r2){if(!r2.ok)throw new Error("http "+r2.status);return r2.json()})})}
-function gMulti(meta,text,type){var b="glory"+Date.now().toString(36);
- return gFetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true",{method:"POST",headers:{"Content-Type":"multipart/related; boundary="+b},
-  body:new Blob(["--"+b+"\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n"+JSON.stringify(meta)+"\r\n--"+b+"\r\nContent-Type: "+type+"\r\n\r\n",text,"\r\n--"+b+"--"])}).then(function(r){return r.json()})}
 /* il programma legge la cartella su Drive come farebbe con la cartella del PC:
    file dei tecnici nella cartella, _archivio con i file _team-<pc>.json, _importati */
 var GDON=0,GDR=null,GDF={};
@@ -265,22 +214,15 @@ function gPulisci(){var lim=Date.now()-30*864e5,da=(GDR||[]).filter(function(f){
  return (GDF.i?Promise.resolve(GDF.i):gDir("_importati").then(function(id){GDF.i=id;return id})).then(function(imd){var n=0;return da.reduce(function(p,f){return p.then(function(){return gFetch("https://www.googleapis.com/drive/v3/files/"+f.id+"?addParents="+imd+"&removeParents="+GD.fid+"&supportsAllDrives=true",{method:"PATCH",headers:{"Content-Type":"application/json"},body:"{}"}).then(function(){n++},function(){})})},Promise.resolve()).then(function(){if(n)say(n+(n===1?" file vecchio spostato":" file vecchi spostati")+" in _importati.")})}).catch(function(){})}
 function status2(){}
 /* scegli dove leggere i lavori: Google Drive online o una cartella del PC */
-function collega(){if(DIR&&!DIR.ok&&!GD.ok){dirPick();return}var ov=el("div","ov"),d=el("div","dlg");ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");function close(){ov.remove()}ov.onclick=function(e){if(e.target===ov)close()};
- d.append(el("h2",0,"Cartella dei lavori"));var row=el("div","az");
- if(GD.ok){if(GDON){d.append(el("p","st","Google Drive collegato"+(gTokC()?".":": accesso da rinnovare.")));if(!gTokC())row.append(btn("b ac","Accedi a Google",function(){gLogin("sync")}));row.append(btn("b","Scollega Google Drive",function(){GDON=0;cfg("gd",0);close();dirLabel()}))}
-  else row.append(btn("b ac","Google Drive (online)",function(){gLogin("link")}))}
-
- if(FSA)row.append(btn("b",DIR?(DIR.ok?"Cambia cartella del PC":"Riapri la cartella "+DIR.h.name):"Cartella del PC",function(){close();dirPick()}));
- row.append(btn("b","Chiudi",close));d.append(row);ov.append(d);document.body.append(ov)}
+function collega(){if(!GDON){gLogin("link");return}var ov=el("div","ov"),d=el("div","dlg");ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");function close(){ov.remove()}ov.onclick=function(e){if(e.target===ov)close()};
+ d.append(el("h2",0,"Google Drive"));var row=el("div","az");d.append(el("p","st","Cartella condivisa collegata"+(gTokC()?".":": accesso da rinnovare.")));
+ if(!gTokC())row.append(btn("b ac","Accedi a Google",function(){gLogin("sync")}));row.append(btn("b","Scollega Google Drive",function(){GDON=0;cfg("gd",0);close();dirLabel()}),btn("b","Chiudi",close));
+ d.append(row);ov.append(d);document.body.append(ov)}
 /* PC principale: i file dei tecnici già importati da più di 30 giorni vanno in _importati (una volta al giorno) */
 var MAIN=0,PULITO=0;
-function pulisci(){if(MAIN&&GDON&&GDR&&Date.now()-PULITO>=864e5){PULITO=Date.now();cfg("pulito",PULITO);return gPulisci()}if(!MAIN||!DIR||!DIR.ok||Date.now()-PULITO<864e5)return Promise.resolve();PULITO=Date.now();cfg("pulito",PULITO);var lim=Date.now()-30*864e5,n=0;
- return (async function(){var imd=await DIR.h.getDirectoryHandle("_importati",{create:true}),da=[];
-  for await (var e of DIR.h.values()){if(e.kind!=="file"||!/\.(txt|json)$/i.test(e.name)||/^_/.test(e.name))continue;var f=await e.getFile();if(f.lastModified<lim&&SEEN[e.name+"|"+f.size+"|"+f.lastModified])da.push([e,f])}
-  for(var i=0;i<da.length;i++){var e=da[i][0],f=da[i][1],nn=e.name;try{try{await imd.getFileHandle(nn)}catch(x){nn=nn}var w=await (await imd.getFileHandle(nn,{create:true})).createWritable();await w.write(await f.arrayBuffer());await w.close();SEEN["_importati/"+nn+"|"+f.size]=1;await DIR.h.removeEntry(e.name);n++}catch(x){}}
- })().then(function(){if(n)say(n+(n===1?" file vecchio spostato":" file vecchi spostati")+" in _importati.")}).catch(function(){})}
+function pulisci(){if(MAIN&&GDON&&GDR&&Date.now()-PULITO>=864e5){PULITO=Date.now();cfg("pulito",PULITO);return gPulisci()}return Promise.resolve()}
 /* torna sulla finestra o tocca Aggiorna: rilegge la cartella */
-window.addEventListener("focus",function(){if(GDON&&!gTokC()&&navigator.onLine&&!document.querySelector(".ov")&&!(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))&&gAuto("sync"))return;if(GDON&&gTokC())gSync(0).then(function(){return dirSync()});else if(DIR&&DIR.ok)dirSync()});
+window.addEventListener("focus",function(){if(GDON&&!gTokC()&&navigator.onLine&&!document.querySelector(".ov")&&!(document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))&&gAuto("sync"))return;if(GDON&&gTokC())gSync(0)});
 
 /* ---------- etichette e commenti di squadra ----------
    Ogni PC scrive solo il suo file _archivio/_team-<codice PC>.json e legge quelli degli altri:
@@ -294,7 +236,7 @@ function teamDef(){var n=["Da fatturare","Garanzia","Cliente critico","Da richia
 function teamMerge(o){o=teamFix(o);var ch=0;["defs","tg","cm","hid","sp","al","pr"].forEach(function(k){Object.keys(o[k]).forEach(function(id){var a=TEAM[k][id],b=o[k][id];if(b&&(!a||(+b.ts||0)>(+a.ts||0))){TEAM[k][id]=b;ch=1}})});return ch}
 var tmT=null;
 function teamSave(){cfg("team",TEAM);clearTimeout(tmT);tmT=setTimeout(teamDir,800)}
-function teamDir(){gTeam();if(!DIR||!DIR.ok||!PCID)return Promise.resolve();return subDir().then(function(sd){return sd.getFileHandle("_team-"+PCID+".json",{create:true})}).then(function(fh){return fh.createWritable()}).then(function(w){return w.write(JSON.stringify(TEAM)).then(function(){return w.close()})}).catch(function(){})}
+function teamDir(){gTeam();return Promise.resolve()}
 /* stato della spedizione (magazzino), solo Riparazioni e Preparazioni: TEAM.sp[u]={s,ts,a} */
 var SPD=[["lav","In lavorazione","#d97706"],["pronta","Pronta alla spedizione","#1f5f99"],["sped","Spedita","#1f7a4d"]];
 function spOk(r){return r.v==="rip"||r.v==="prep"}
@@ -375,7 +317,7 @@ function importa(files){var M={},nu=0,ag=0,ug=0,bad=0,ch=[],mt=0;L.forEach(funct
    if(ch.length&&!F.sel)F.sel=ch[0].u;draw()})}).catch(function(){say("Importazione non riuscita.",1)})}
 
 /* ---------- stato della vista e freccia Indietro ---------- */
-var F0={q:"",v:"",t:"",per:"",da:"",a:"",st:"corso",tag:"",sel:null,frq:0,nw:0,sp:"",mo:"",rv:"",cm:0},F=JSON.parse(JSON.stringify(F0)),HIST=[];
+var F0={q:"",v:"",t:"",per:"",da:"",a:"",st:"aperti",tag:"",sel:null,frq:0,nw:0,sp:"",mo:"",rv:"",cm:0},F=JSON.parse(JSON.stringify(F0)),HIST=[];
 function home(){HIST=[];F=JSON.parse(JSON.stringify(F0));$("q").value="";draw();window.scrollTo(0,0)}
 function snap(){return JSON.parse(JSON.stringify(F))}
 function go(ch){HIST.push(snap());if(HIST.length>40)HIST.shift();Object.keys(ch).forEach(function(k){F[k]=ch[k]});$("q").value=F.q;draw();window.scrollTo(0,0)}
@@ -390,7 +332,7 @@ function range(){var n=new Date(),y=n.getFullYear(),m=n.getMonth();
  if(F.per==="x"){var a=F.da?new Date(F.da+"T00:00").getTime():-Infinity,b=F.a?new Date(F.a+"T00:00").getTime()+864e5:Infinity;return [a,b]}return null}
 function stato(r){return (!r.st||r.st==="fatto")?"fatto":r.st}
 function filtrati(){var q=F.q.toLowerCase().trim(),W=q.split(/\s+/).filter(Boolean),R=range();
- return (F.st==="del"?L.filter(hid):vis()).filter(function(r){if(F.nw&&!nuovo(r))return false;if(F.v&&r.v!==F.v)return false;if(F.t&&tecL(r).indexOf(F.t)<0)return false;if(F.mo&&modelli(r).indexOf(F.mo)<0)return false;if(F.rv&&rivend(r)!==F.rv)return false;if(F.cm&&!comms("L",r.u).length)return false;if(F.st&&F.st!=="del"&&stato(r)!==F.st)return false;
+ return (F.st==="del"?L.filter(hid):vis()).filter(function(r){if(F.nw&&!nuovo(r))return false;if(F.v&&r.v!==F.v)return false;if(F.t&&tecL(r).indexOf(F.t)<0)return false;if(F.mo&&modelli(r).indexOf(F.mo)<0)return false;if(F.rv&&rivend(r)!==F.rv)return false;if(F.cm&&!comms("L",r.u).length)return false;if(F.st==="aperti"?stato(r)==="fatto":(F.st&&F.st!=="del"&&stato(r)!==F.st))return false;
   if(R){var t=tLav(r);if(t<R[0]||t>=R[1])return false}
   if(F.tag&&tagsL(r).indexOf(F.tag)<0)return false;
   if(F.sp){if(!spOk(r))return false;var sx=spOf(r);if(F.sp==="no"?sx:(!sx||sx.s!==F.sp))return false}
@@ -432,8 +374,8 @@ function draw(){
  function sel(lab,opts,val,fn){var se=el("select","sel");se.setAttribute("aria-label",lab);opts.forEach(function(o){var op=new Option(o[1],o[0]);if(o[0]===val)op.selected=true;se.append(op)});se.onchange=function(){fn(se.value)};fr.append(se)}
  sel("Periodo",PER,F.per,function(v){go({per:v})});
  if(F.per==="x"){[["da","Dal"],["a","Al"]].forEach(function(x){var i=document.createElement("input");i.type="date";i.value=F[x[0]];i.setAttribute("aria-label",x[1]);i.onchange=function(){F[x[0]]=i.value;draw()};fr.append(i)})}
- sel("Stato",[["","Tutti gli stati"],["fatto","Conclusi"],["corso","In corso"],["attesa","In attesa"]].concat(L.some(hid)?[["del","Eliminati"]]:[]),F.st,function(v){go({st:v})});
- if(L.some(spOk))sel("Spedizione",[["","Tutte le spedizioni"]].concat(SPD.map(function(x){return [x[0],x[1]]}),[["no","Senza stato di spedizione"]]),F.sp,function(v){go({sp:v})});
+ sel("Stato",[["","Tutti gli stati"],["aperti","Aperti (in corso e in attesa)"],["fatto","Conclusi"],["corso","In corso"],["attesa","In attesa"]].concat(L.some(hid)?[["del","Eliminati"]]:[]),F.st,function(v){go({st:v})});
+ if(L.some(spOk))sel("Spedizione",[["","Tutte le spedizioni"]].concat(SPD.map(function(x){return [x[0],x[1]]}),[["no","Senza stato di spedizione"]]),F.sp,function(v){go(v?{sp:v,st:""}:{sp:v})});
  if(tags().length)sel("Etichetta",[["","Tutte le etichette"]].concat(tags().map(function(t){return [t.id,t.n]})),F.tag,function(v){go({tag:v})});
  var tecs={};vis().forEach(function(r){tecL(r).forEach(function(t){tecs[t]=1})});var tk=Object.keys(tecs).sort(function(a,b){return a.localeCompare(b)});
  var mos={};vis().forEach(function(r){modelli(r).forEach(function(m){mos[m]=1})});if(Object.keys(mos).length)sel("Modello",[["","Tutti i modelli"]].concat(MOD.filter(function(m){return mos[m]}).map(function(m){return [m,m]})),F.mo,function(v){go({mo:v})});
@@ -470,14 +412,14 @@ function dett(h){var d=$("det");d.textContent="";var r=L.filter(function(x){retu
  if(r.mod&&r.mod.length){var lm=r.mod[r.mod.length-1],md=el("div","mods");md.append(el("span",0,"✎ Modificato da "+(lm.a||"?")+" il "+dIt(lm.ts)+" alle "+new Date(lm.ts).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"})));
   if(r.mod.length>1){var dm=el("details");dm.append(el("summary",0,"Tutte le modifiche ("+r.mod.length+")"));r.mod.slice().reverse().forEach(function(x){dm.append(el("div",0,(x.a||"?")+" · "+dIt(x.ts)+" "+new Date(x.ts).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"})))});md.append(dm)}d.append(md)}
  var az=el("div","az"),pv=el("div","pdfv");pv.hidden=true;az.append(btn("b sm","✎ Modifica",function(){modifica(r)}),btn("b sm","PDF",function(){pdfLav(r,pv)}),btn("b sm","Mail al magazzino",function(){mailLav(r)}));
- if(stato(r)!=="fatto")az.append(btn("b sm","Scheda da riprendere",function(){riprendi(r)}));
+ az.append(GDON?btn("b sm","Rimetti in arrivo",function(){rimetti(r)}):btn("b sm","Scheda da riprendere",function(){riprendi(r)}));
  az.append(
   hid(r)?btn("b sm","Ripristina",function(){TEAM.hid[r.u]={on:0,ts:Date.now(),a:NOME};teamSave();draw()}):btn("b sm dgb","Elimina",function(){if(!confirm("Eliminare «"+(r.n||"lavoro")+"» per tutta la squadra?\nSi può ripristinare da Stato › Eliminati."))return;TEAM.hid[r.u]={on:1,ts:Date.now(),a:NOME};teamSave();F.sel=null;draw()}));d.append(az,pv);
  if(spOk(r)){var sx=spOf(r),sr=el("div","spr");sr.append(el("b",0,"Spedizione"));var sg=el("div","az");
   SPD.forEach(function(x){var on=sx&&sx.s===x[0],b=btn("b sm"+(on?" spon":""),x[1],function(){spSet(r,on?"":x[0])});b.setAttribute("aria-pressed",on?"true":"false");if(on){b.style.background=x[2];b.style.borderColor=x[2]}sg.append(b)});
   sr.append(sg);if(sx)sr.append(el("p","st",sx.n+" · segnata da "+(sx.a||"?")+" il "+dIt(sx.ts)+". Tocca di nuovo per togliere."));d.append(sr)}
  var kv=el("dl","kv");function row(k,v){if(!v)return;kv.append(el("dt",0,k),el("dd",0,v))}
- var TL=tecL(r);row(TL.length>1?"Tecnici":"Tecnico",TL.join(" → "));if(arrivo(r)){row("Arrivata",dIt(r.arr.ts)+" · RMA creato da "+(r.arr.a||"?"));var pz=presa(r);row("Presa in carico",pz?pz.a+" il "+dIt(pz.ts):"non ancora")}row("Data intervento",dLav(r));row("Cliente",g(s,"cl"));if(s.rv)row("Rivenditore",g(s,"rvn"));row("Sede",g(s,"se"));row("Riferimento",rif(r));row("Manodopera",g(s,"ore")?g(s,"ore")+(g(s,"ore")==="1"?" ora":" ore"):"");d.append(kv);
+ var TL=tecL(r);row(TL.length>1?"Tecnici":"Tecnico",TL.join(" → "));if(arrivo(r)){row(r.arr.pass?"Messo in arrivo":"Arrivata",dIt(r.arr.ts)+(r.arr.pass?" da ":" · RMA creato da ")+(r.arr.a||"?"));var pz=presa(r);row("Presa in carico",pz?pz.a+" il "+dIt(pz.ts):"non ancora")}row("Data intervento",dLav(r));row("Cliente",g(s,"cl"));if(s.rv)row("Rivenditore",g(s,"rvn"));row("Sede",g(s,"se"));row("Riferimento",rif(r));row("Manodopera",g(s,"ore")?g(s,"ore")+(g(s,"ore")==="1"?" ora":" ore"):"");d.append(kv);
  d.append(el("h3",0,"Etichette"),tagRow("L",r.u),el("h3",0,"Commenti"),commBox("L",r.u),el("h3",0,"Allegati"),alBox(r));
  var M=mats(r);if(M.length){d.append(el("h3",0,"Matricole · scheda macchina"));var w=el("div","mats");M.forEach(function(m){var b=btn("mat",null,function(){apri(m.v)});b.append(el("i",0,m.k),document.createTextNode(m.v));var mt=tagsK("M",mk(m.v));mt.forEach(function(id){var t=tagOf(id);if(t){var dd=el("i","dot");dd.style.background=t.c;dd.style.marginLeft="6px";dd.title=t.n;b.append(dd)}});w.append(b)});d.append(w)}
  if(r.nt){d.append(el("h3",0,"Note rapportino"));var p=el("pre","note",r.nt);d.append(p,btn("b sm","Copia note",function(e){var b=e.target;navigator.clipboard.writeText(r.nt).then(function(){b.textContent="Copiato";setTimeout(function(){b.textContent="Copia note"},1500)})}))}
@@ -517,15 +459,10 @@ function corrOut(nr){var x=JSON.parse(JSON.stringify(nr));delete x.imp;delete x.
  var t=JSON.stringify({glory:2,pc:1,dev:"pc-"+PCID,saved:+nr.sent||nr.d,tec:nr.tec||"",arc:[x]}),fn=fnSafe(nr.u)+".json";
  if(GDON&&gTokC())return (GDF.mo?Promise.resolve(GDF.mo):gDir("_modifiche").then(function(id){GDF.mo=id;return id})).then(function(dir){var ex=GDF.mf&&GDF.mf[fn];
    return ex?gFetch("https://www.googleapis.com/upload/drive/v3/files/"+ex+"?uploadType=media&supportsAllDrives=true",{method:"PATCH",headers:{"Content-Type":"text/plain"},body:t}):gUp(t,fn,dir).then(function(j){GDF.mf=GDF.mf||{};GDF.mf[fn]=j.id})}).then(function(){return "Modifica salvata e inviata a tutti."});
- if(DIR&&DIR.ok)return DIR.h.getDirectoryHandle("_modifiche",{create:true}).then(function(dh){return dh.getFileHandle(fn,{create:true})}).then(function(fh){return fh.createWritable()}).then(function(w){return w.write(t).then(function(){return w.close()})}).then(function(){return "Modifica salvata e messa nella cartella."});
+
  return Promise.resolve("Modifica salvata su questo PC. Per mandarla agli altri collega Google Drive.")}
 
 /* ---------- Genera RMA: la macchina arrivata diventa una riparazione "in attesa" che il tecnico prende dall'app (Macchine in arrivo) ---------- */
-function crm(t){var m=/^\s*([A-Za-z]{1,4}\s?[-–]\s?\d[\w.\/]*|[A-Za-z]{0,4}\d[\w.\/]*)\s*[-–—:·,]?\s+(.+)$/.exec(String(t||""));return m?{c:m[1].replace(/\s+/g,"").replace("–","-"),n:m[2].trim()}:{c:"",n:String(t||"").trim()}}
-function rmaGen(s){var src=crm((s.rv&&String(s.rvn||"").trim())?s.rvn:s.cl).n,
- l3=String(src||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z]/g,"").slice(0,3).toUpperCase(),
- num=[PX[s.r1_md],String(s.r1_mat||"").trim()].filter(Boolean).join("-"),er=String(s.r1_er||"").replace(/\s+/g,"").toUpperCase();
- return [l3,num,er].filter(Boolean).join("-")}
 function arrivo(r){return !!r.arr}
 function presa(r){var x=TEAM.pr[r.u];return x&&x.a?x:null}
 var RMA={};
@@ -551,7 +488,7 @@ function rmaSalva(R){var now=Date.now(),g=rmaGen(R),s={grm:1,rma:g};["rv","rvn",
 function cloudPut(dn,fn,t){GDF.cf=GDF.cf||{};
  if(GDON&&gTokC()){var ex=GDF.cf[dn+"/"+fn];return (GDF["d"+dn]?Promise.resolve(GDF["d"+dn]):gDir(dn).then(function(id){GDF["d"+dn]=id;return id})).then(function(dir){
    return ex?gFetch("https://www.googleapis.com/upload/drive/v3/files/"+ex+"?uploadType=media&supportsAllDrives=true",{method:"PATCH",headers:{"Content-Type":"text/plain"},body:t}):gUp(t,fn,dir).then(function(j){GDF.cf[dn+"/"+fn]=j.id})}).then(function(){return 1})}
- if(DIR&&DIR.ok)return DIR.h.getDirectoryHandle(dn,{create:true}).then(function(dh){return dh.getFileHandle(fn,{create:true})}).then(function(fh){return fh.createWritable()}).then(function(w){return w.write(t).then(function(){return w.close()})}).then(function(){return 1});
+
  return Promise.resolve(0)}
 
 /* ---------- PDF e Mail al magazzino: si usa l'app Glory 2.0 in una finestra nascosta ---------- */
@@ -568,15 +505,15 @@ function pdfLav(r,pv){var fn=(r.n||"rapportino")+".pdf";say("Preparo il PDF…")
   pv.textContent="";pv.hidden=false;var bar=el("div","az");bar.append(btn("b ac sm","Condividi PDF",function(){condividi(b,fn)}),btn("b sm","Scarica",function(){scarica(b,fn)}),btn("b sm","Chiudi",function(){pv.hidden=true;pv.textContent=""}));pv.append(bar);
   W.loadPdfJs().then(function(lib){return lib.getDocument({data:new W.Uint8Array(u)}).promise}).then(function(doc){var ch=Promise.resolve();for(var n=1;n<=doc.numPages;n++)(function(n){ch=ch.then(function(){return doc.getPage(n)}).then(function(pg){var vp=pg.getViewport({scale:2}),c=document.createElement("canvas");c.width=vp.width;c.height=vp.height;pv.append(c);return pg.render({canvasContext:c.getContext("2d"),viewport:vp}).promise})})(n);return ch}).catch(function(){pv.append(el("p","st","Anteprima non disponibile: usa Condividi PDF."))});
   pv.scrollIntoView({behavior:"smooth"})},function(){say("PDF non riuscito: apri il programma con internet almeno una volta.",1)})}
+/* rimetti in arrivo: il lavoro va nell'elenco "In arrivo" dell'app (cartella _rma su Drive), chiunque lo può prendere */
+function rimetti(r){function go(){if(!gTokC()){say("Accesso a Google scaduto: clicca Aggiorna e riprova.",1);return}var now=Date.now(),x=JSON.parse(JSON.stringify(r));delete x.imp;delete x.sent;delete x.xd;x.arr={a:NOME,ts:now,pass:1};
+  cloudPut("_rma",fnSafe(r.u)+".json",JSON.stringify({glory:2,pc:1,dev:"pc-"+PCID,saved:+r.sent||r.d,tec:r.tec||"",arc:[x]})).then(function(ok){if(!ok)throw 0;
+   TEAM.pr[r.u]={a:"",ts:now};teamSave();r.arr=x.arr;dbPut([r]);draw();say("Rimesso in arrivo: i tecnici lo trovano nell'app, in «In arrivo».")}).catch(function(){say("Non riuscito: riprova.",1)})}
+ if(!confirm("Rimettere «"+(r.n||"lavoro")+"» in arrivo? Lo potrà prendere qualsiasi tecnico dall'app."))return;if(!NOME)chiediNome(go);else go()}
 /* scheda da riprendere: file «Scheda Glory» che un tecnico apre con Glory 2.0 e continua (stesso lavoro, codice u) */
 function riprendi(r){var o=JSON.parse(JSON.stringify(r.s||{}));delete o._arc;o._u=r.u;var n=new Date(),t={glory:2,view:r.v,saved:n.getFullYear()+"-"+("0"+(n.getMonth()+1)).slice(-2)+"-"+("0"+n.getDate()).slice(-2),s:o,ph:r.ph||[]};
  var fn="Scheda Glory - "+(r.n||TIT[r.v])+".txt",b=new Blob([JSON.stringify(t)],{type:"text/plain"});
  if(tel())condividi(b,fn);else{scarica(b,fn);say("Mandalo al tecnico che continua: lo apre con Glory 2.0 (Condividi › Glory, oppure menù › Carica scheda).")}}
-/* Mail: programma di posta del dispositivo oppure Outlook sul web (impostazione gla_mailw, valida per app e programma PC sullo stesso browser) */
-function mailWeb(){try{return localStorage.getItem("gla_mailw")==="1"}catch(e){return false}}
-function mailOwa(u){var m=/^mailto:([^?]*)\??(.*)$/i.exec(u||"");if(!m)return u;var q={to:decodeURIComponent(m[1]||"")};(m[2]||"").split("&").forEach(function(kv){var i=kv.indexOf("=");if(i>0)q[kv.slice(0,i).toLowerCase()]=decodeURIComponent(kv.slice(i+1).replace(/\+/g," "))});
- return "https://outlook.office.com/mail/deeplink/compose?"+["to","cc","subject","body"].filter(function(k){return q[k]}).map(function(k){return k+"="+encodeURIComponent(q[k])}).join("&")}
-function mailGo(u,wn){if(mailWeb()){var w=mailOwa(u);if(wn){wn.location.href=w;return}if(!window.open(w,"_blank"))location.href=w}else{if(wn)wn.close();location.href=u}}
 function mailLav(r){var wn=mailWeb()?window.open("","_blank"):null;conApp(r,function(w){return w.magMail(w.S)}).then(function(u){mailGo(u,wn)},function(){say("Mail non riuscita: apri il programma con internet almeno una volta.",1)})}
 
 /* ---------- Excel (CSV con separatore ;) ---------- */
@@ -593,7 +530,7 @@ function salvaTutto(){if(!L.length){say("Archivio vuoto.",1);return}
 /* ---------- avvio ---------- */
 $("fi").onchange=function(){if(this.files.length)importa(this.files);this.value=""};
 $("q").oninput=function(){F.q=this.value;F.sel=null;F.frq=0;draw()};
-$("dirb").onclick=collega;$("sync").onclick=function(){var g=gSync(1);g.then(function(){return dirSync()})};$("csv").onclick=csv;$("tagb").onclick=tagEditor;$("rmab").onclick=rmaDlg;$("setb").onclick=impostazioni;$("bak").onclick=salvaTutto;
+$("dirb").onclick=collega;$("sync").onclick=function(){gSync(1)};$("csv").onclick=csv;$("tagb").onclick=tagEditor;$("rmab").onclick=rmaDlg;$("setb").onclick=impostazioni;$("bak").onclick=salvaTutto;
 var INST=null;window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();INST=e});
 document.addEventListener("keydown",function(e){if(e.key==="Escape"){var o=document.querySelector(".ov");if(o){o.remove();draw()}else if(HIST.length&&document.activeElement.tagName!=="INPUT"&&document.activeElement.tagName!=="TEXTAREA")back()}});
 var dc=0;document.addEventListener("dragenter",function(e){e.preventDefault();dc++;$("drop").hidden=false});
@@ -606,7 +543,7 @@ dbOpen().then(function(){return Promise.all([cfg("pcid"),cfg("nome"),cfg("team")
  GDON=GD.ok&&+a[7]?1:0;SEEN=a[8]||{};if(GBK){if(GBK.ok){GDON=1;cfg("gd",1)}else if(!GBK.sil)say("Accesso a Google "+(GBK.err==="access_denied"?"annullato.":"non riuscito."),1)}
  PREV=+a[4]||0;cfg("aperto",Date.now());MAIN=+a[5]||0;PULITO=+a[6]||0;
  PCID=a[0]||Math.random().toString(36).slice(2,8);if(!a[0])cfg("pcid",PCID);NOME=a[1]||"";nomeLab();
- TEAM=a[2]?teamFix(a[2]):teamDef();if(!a[2])cfg("team",TEAM)}).then(dbAll).then(function(a){L=a;draw();return dirInit()}).then(function(){if(GDON&&!gTokC()&&navigator.onLine&&gAuto("sync"))return new Promise(function(){});return gSync(0)}).then(draw).catch(function(){say("Questo browser non può salvare l'archivio: usa Chrome o Edge.",1)});
+ TEAM=a[2]?teamFix(a[2]):teamDef();if(!a[2])cfg("team",TEAM)}).then(dbAll).then(function(a){L=a;draw()}).then(function(){if(GDON&&!gTokC()&&navigator.onLine&&gAuto("sync"))return new Promise(function(){});return gSync(0)}).then(draw).catch(function(){say("Questo browser non può salvare l'archivio: usa Chrome o Edge.",1)});
 if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
 </body>
