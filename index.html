@@ -433,7 +433,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=96,svEl=null;
+var VER=97,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -854,9 +854,12 @@ function photoBox(){var F=PH[view]||(PH[view]=[]),m=el("div","cnt",ui.phMsg||"")
   d.style.cssText+=";color:var(--dg);border-color:var(--dg)"+(ui.phDel===j?";background:var(--dg);color:var(--dgo)":"");d.setAttribute("aria-label","Elimina "+f.n);
   r.append(th,inf,d);app.append(r)});
  var fi=document.createElement("input");fi.type="file";fi.accept="image/jpeg,image/*";fi.multiple=true;fi.hidden=true;
- fi.onchange=function(){var L=Array.prototype.slice.call(fi.files||[]),bad=[];fi.value="";if(!L.length)return;m.textContent="Caricamento foto…";
+ /* fotocamera: un secondo campo con capture apre direttamente la fotocamera posteriore */
+ var fc=document.createElement("input");fc.type="file";fc.accept="image/*";fc.setAttribute("capture","environment");fc.hidden=true;fc.onchange=function(){fi.onchange.call(fc)};
+ fi.onchange=function(){var src=this&&this.files?this:fi,L=Array.prototype.slice.call(src.files||[]),bad=[];src.value="";if(!L.length)return;m.textContent="Caricamento foto…";
   Promise.all(L.map(jpg)).then(function(R){R.forEach(function(r,i){if(r)F.push(r);else bad.push(L[i].name)});ui.phMsg=bad.length?"Non lette: "+bad.join(", ")+".":"";phSave(view);render()})};
- app.append(btn("reset ac tight","+ Aggiungi foto",function(){fi.click()}),fi,m)}
+ var ps=el("div","seg");ps.append(btn("reset ac tight","📷 Scatta foto",function(){fc.click()}),btn("reset ac tight","🖼 Dalla galleria",function(){fi.click()}));
+ app.append(ps,fi,fc,m)}
 function pdfGate(act,lab,m){var r=check(V[view].blocks(S)),all=r.bad.concat(r.warn);m.textContent="";
  if(!all.length){act();return}
  var bx=el("div","box wn"),sg=el("div","seg");bx.setAttribute("role","alert");bx.append(el("b",0,"Prima di generare il PDF, controlla"));wlist(bx,all);
