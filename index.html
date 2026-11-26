@@ -233,6 +233,12 @@ html.edit #back,html.edit #gear,html.edit #ttl{display:none}html.edit header{min
 @media (prefers-color-scheme:dark){.arrb{background:#3a2a10;color:#f6c77d}}
 .ixph{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.ixph img{width:100%;height:96px;object-fit:cover;border-radius:8px;border:1px solid var(--ln)}
 .box.nb{border:1px solid var(--ln);background:var(--sf)}
+.arw{display:flex;gap:10px}.arw>*{flex:1}
+.fbt{border:1px solid var(--ac);background:var(--sf);color:var(--ac);border-radius:18px;min-height:36px;padding:0 14px;font:inherit;font-weight:600;font-size:14px}.fbt.has{background:var(--ac);color:var(--on)}
+.fsh{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.4)}.fshp{position:absolute;left:0;right:0;bottom:0;top:5vh;max-width:560px;margin:0 auto;background:var(--sf);border-radius:16px 16px 0 0;display:flex;flex-direction:column}
+.fshh{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--ln)}.fshh b{flex:1;font-size:18px}
+.fshc{flex:1;overflow:auto;padding:6px 16px 16px}.fshc .frw{display:block;margin:14px 0 0}.fshc .frl{display:block;width:auto;margin:0 0 8px;text-transform:uppercase;letter-spacing:.05em;font-size:12px}.fshc .frow{flex-wrap:wrap;overflow:visible;gap:8px}
+.fshf{display:flex;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--ln)}.fshf>*{flex:1;margin:0}.fshf>*:last-child{flex:2;background:var(--ac);border-color:var(--ac);color:var(--on);font-weight:600}
 </style>
 </head>
 
@@ -440,7 +446,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=100,svEl=null;
+var VER=101,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -993,9 +999,10 @@ function arcView(){if(GBK&&GBK.sil&&!GBK.ok&&GBK.st==="send"){GBK=null;gLogin("s
   return !t||arcTxt(r).indexOf(t)>=0}
  function cur(){return {fs:ui.fs,fv:ui.fv||"",fm:ui.fm||"",fq:ui.fq||"",fp:ui.fp||""}}
  function cnt(ch){var f=Object.assign(cur(),ch),t=String(q.value||"").toLowerCase().trim();return ARC.filter(function(r){return okF(r,f,t)}).length}
- function row(lab,items){items=items.filter(Boolean);if(!items.length)return;var w=el("div","frw");w.append(el("span","frl",lab));var sc=el("div","frow");items.forEach(function(x){if(x)sc.append(x)});w.append(sc);tf.append(w)}
+ var shc=null;
+ function row(lab,items){items=items.filter(Boolean);if(!items.length)return;var w=el("div","frw");w.append(el("span","frl",lab));var sc=el("div","frow");items.forEach(function(x){if(x)sc.append(x)});w.append(sc);shc.append(w)}
  function fch(lab,on,n,fn,dot){var b=btn("fch"+(on?" on":""),null,fn);if(dot)b.append(tmDot(dot));b.append(document.createTextNode(lab));if(n!=null)b.append(el("span","fn",String(n)));b.setAttribute("aria-pressed",on?"true":"false");return b}
- function drawF(){tf.textContent="";
+ function drawF(){tf.textContent="";shc=el("div","fshc");
   var NT=ARC.filter(function(r){return r.del}).length;
   row("Stato",[["ape","Aperti"],["att","In attesa"],["cor","In corso"],["fat","Conclusi"],["","Tutti"]].map(function(o){return fch(o[1],(ui.fs||"")===o[0],cnt({fs:o[0]}),function(){ui.fs=o[0];draw()})}).concat(NT?[fch("🗑 Cestino",ui.fs==="tr",NT,function(){ui.fs=ui.fs==="tr"?"ape":"tr";draw()})]:[]));
   row("Lavoro",NEWS.map(function(x){var k=x[0],n=cnt({fv:k});if(!n&&ui.fv!==k)return null;return fch(V[k].title.replace(/ in laboratorio| macchine/,""),ui.fv===k,n,function(){ui.fv=ui.fv===k?"":k;draw()})}));
@@ -1008,7 +1015,13 @@ function arcView(){if(GBK&&GBK.sil&&!GBK.ok&&GBK.st==="send"){GBK=null;gLogin("s
   var A=[],lb={ape:"Aperti",att:"In attesa",cor:"In corso",fat:"Conclusi",tr:"Cestino"};
   if(ui.fs)A.push([lb[ui.fs],function(){ui.fs=""}]);if(ui.fv)A.push([V[ui.fv].title,function(){ui.fv=""}]);if(ui.fm)A.push([ui.fm,function(){ui.fm=""}]);if(ui.fp)A.push([{m0:"Questo mese",m1:"Mese scorso",y0:"Quest'anno"}[ui.fp],function(){ui.fp=""}]);
   if(ui.fq)A.push([ui.fq==="me"?"Miei":ui.fq.indexOf("s:")===0?SPD[ui.fq.slice(2)][0]:((TG.filter(function(x){return "t:"+x.id===ui.fq})[0]||{n:"Etichetta"}).n),function(){ui.fq=""}]);
-  if(A.length){var ac=el("div","fact");A.forEach(function(x){ac.append(btn("fx",x[0]+" ✕",function(){x[1]();draw()}))});ac.append(btn("fz","Azzera",function(){ui.fs="";ui.fv="";ui.fm="";ui.fq="";ui.fp="";draw()}));tf.append(ac)}}
+  function az(){ui.fs="";ui.fv="";ui.fm="";ui.fq="";ui.fp="";draw()}
+  /* un solo tasto Filtri: i gruppi si aprono in un pannello a tutto schermo */
+  var ac=el("div","fact"),fb=btn("fbt"+(A.length?" has":""),A.length?"Filtri ("+A.length+")":"Filtri",function(){ui.fo=1;draw()});ac.append(fb);
+  A.forEach(function(x){ac.append(btn("fx",x[0]+" ✕",function(){x[1]();draw()}))});if(A.length)ac.append(btn("fz","Azzera",az));tf.append(ac);
+  if(ui.fo){var ov=el("div","fsh"),pn=el("div","fshp"),hd=el("div","fshh"),ft=el("div","fshf"),n=cnt({});ov.onclick=function(e){if(e.target===ov){ui.fo=0;draw()}};
+   hd.append(el("b",0,"Filtri"),btn("fz","Azzera",az));ft.append(btn("reset tight","Chiudi",function(){ui.fo=0;draw()}),btn("reset ac tight","Mostra "+n+(n===1?" lavoro":" lavori"),function(){ui.fo=0;draw()}));
+   pn.append(hd,shc,ft);ov.append(pn);tf.append(ov);document.body.style.overflow="hidden"}else document.body.style.overflow=""}
  function draw(){L.textContent="";drawF();var t=String(q.value||"").toLowerCase().trim(),f0=cur(),
    F=ARC.filter(function(r){return okF(r,f0,t)});
   if(!arcVis().length&&ui.fs!=="tr"&&!(gdo&&ixFind(t).length)){L.append(el("p","cnt","Nessun lavoro archiviato. Dalla scheda usa «Archivia lavoro» a fine intervento."));return}
@@ -1158,7 +1171,7 @@ function updApply(){updMsg="Aggiornamento in corso…";if(!SOLO)home();var p=[];
 /* ---------- menù ---------- */
 var DESC={inst:"Dal contratto alla consegna al cliente",prep:"Configurazione e imballo in magazzino",rip:"Diagnosi, ricambi e collaudo dei moduli",loc:"Guasti, aggiornamenti e collaudo dal cliente",altro:"Lavori fuori dalle schede standard",rit:"Macchine dismesse, rubate o danneggiate"};
 function home(){
- view="";ttl.textContent="Glory 2.0";back.hidden=true;gear.hidden=false;clearPassi();closeOv();app.textContent="";noteTa=null;
+ ui.fo=0;document.body.style.overflow="";view="";ttl.textContent="Glory 2.0";back.hidden=true;gear.hidden=false;clearPassi();closeOv();app.textContent="";noteTa=null;
  if(NEWV)app.append(btn("reset ac tight","È disponibile un aggiornamento: tocca per aggiornare",updApply));
  if(BIP)app.append(btn("reset ac tight","Installa l'app su questo dispositivo",function(){var p=BIP;BIP=null;try{p.prompt();p.userChoice.then(home,home)}catch(e){home()}}));
  var gdh=GD.ok&&lsGet("gla_gd")==="1";
@@ -1178,7 +1191,8 @@ function home(){
  app.append(btn("reset tight","Genera RMA qui",function(){location.hash="#rma"}));
  var NP=pcNew(),lp=+lsGet("gla_lastpc")||0,old=NP.length?Math.min.apply(null,NP.map(function(r){return r.d})):0,gg=NP.length?Math.floor((Date.now()-Math.max(lp,old))/864e5):0,
   NA=arcVis().length,ai=el("div","cnt"+(gg>=3?" bw":""),NA?NA+(NA===1?" lavoro archiviato":" lavori archiviati")+(NP.length?" · "+NP.length+" da inviare al PC"+(gg>=3?" · ultimo invio "+(lp?gg+" giorni fa":"mai"):""):""):"Nessun lavoro archiviato. A fine intervento usa «Archivia lavoro» in fondo alla scheda.");
- app.append(el("h2",0,"Archivio"),ai,btn("reset ac tight",NP.length?"Apri archivio · "+NP.length+" da inviare":"Apri archivio lavori",function(){location.hash="#arc"}));
+ var ar=el("div","arw");ar.append(btn("reset tight",NP.length?"I miei lavori · "+NP.length+" da inviare":"I miei lavori",function(){location.hash="#arc"}),btn("reset ac tight","Archivio squadra",function(){location.href="archivio/?app=1"}));
+ app.append(el("h2",0,"Archivio"),ai,ar);
  app.append(el("h2",0,"Backup"));var u=bkUi(home);app.append(bkLast(),el("p","cnt","Il backup completo comprende le schede in corso e tutto l'archivio."),bkRow(u,function(){var r=bkAll();return r.n?r:null},"Niente da salvare: nessuna scheda compilata e archivio vuoto."),u.fi,u.m);if(ui.bkPend)app.append(pendBox(home));
  if(!LS)app.append(el("p","cnt","Questo browser non conserva i dati: genera PDF e note prima di chiudere la pagina."));
  app.append(el("h2",0,"Aggiornamenti"));
@@ -1596,7 +1610,7 @@ function tSync(f){if(TSY||lsGet("gla_gd")!=="1"||!gTokC()||!navigator.onLine)ret
 
 
 /* ---------- navigazione ---------- */
-function route(){
+function route(){ui.fo=0;document.body.style.overflow="";
  var h=location.hash.replace("#","");if(SOLO)h=SOLO;
  if(V[h]){view=h;S=load(h);rui();if(SHP&&!SHP.all&&SHP.it[0].v===h){ui.bkPend=SHP;SHP=null}bkMsg=bkNext;bkNext="";ttl.textContent=V[h].title;back.hidden=!!SOLO;render();window.scrollTo(0,0)}
  else if(h==="arc"){rui();bkMsg="";bkNext="";arcView();window.scrollTo(0,0)}

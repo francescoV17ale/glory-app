@@ -10,7 +10,7 @@ Tutto è statico (HTML + JavaScript, nessun server): pubblicato con GitHub Pages
 | `shared.js` | Funzioni comuni ad app e programma: accesso a Google Drive (OAuth a reindirizzamento, token, caricamento file), codice cliente CRM (`crm`), codice RMA (`rmaGen`), Mail con Outlook sul web. |
 | `sw.js`, `version.json`, `manifest.webmanifest` | Funzionamento offline, controllo aggiornamenti, installazione. |
 | `pdf.min.mjs`, `pdf.worker.min.mjs` | pdf.js (legacy 6.2.108): lettura dei DDT in PDF e anteprima PDF nel programma. |
-| `archivio/` | Programma Glory Archivio (`index.html`, `sw.js`, `manifest.webmanifest`). Per PDF, Mail al magazzino e Modifica usa l'app in una finestra (iframe). |
+| `archivio/` | Programma Glory Archivio (`index.html`, `sw.js`, `manifest.webmanifest`): è anche l'«Archivio squadra» del telefono (tasto nella home dell'app, `archivio/?app=1` mostra «‹ App»). Sotto 860 px: menù a scomparsa, filtri in un pannello a tutto schermo, lavoro aperto a pagina intera. Per PDF, Mail al magazzino e Modifica usa l'app in una finestra (iframe). |
 | `note/` | Pagina «Note rapportino» (tasti che copiano le note standard). |
 | `Glory.apk` | App Android (TWA creata con PWABuilder) che apre il sito e si aggiorna con esso. |
 
