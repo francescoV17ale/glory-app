@@ -118,6 +118,7 @@ a.b{display:inline-flex;align-items:center;text-decoration:none;color:var(--tx)}
  .fmo{display:flex;gap:10px;align-items:center;background:var(--sf)}.fmh{position:sticky;top:0;z-index:1;padding:14px 0 10px;border-bottom:1px solid var(--ln)}.fmh b{flex:1;font-size:18px}
  .fft{position:sticky;bottom:0;padding:12px 0 calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--ln);margin-top:14px}.fft .b{flex:1;justify-content:center}.fft .b.ac{flex:2}
  body.dsel .list,body.dsel .fil{display:none}.mback{display:inline-flex;align-items:center;margin-bottom:10px}}
+.stb{font-style:normal;font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;margin-right:6px;vertical-align:middle;color:#fff;background:var(--ok)}.stb.corso{background:#b45309}.stb.attesa{background:#7c3aed}
 </style>
 </head>
 <body>
@@ -300,7 +301,7 @@ var tmT=null;
 function teamSave(){cfg("team",TEAM);clearTimeout(tmT);tmT=setTimeout(teamDir,800)}
 function teamDir(){gTeam();return Promise.resolve()}
 /* stato della spedizione (magazzino), solo Riparazioni e Preparazioni: TEAM.sp[u]={s,ts,a} */
-var SPD=[["lav","In lavorazione","#d97706"],["pronta","Pronta alla spedizione","#1f5f99"],["sped","Spedita","#1f7a4d"],["ric","Merce ricevuta","#6d28d9"]];
+var SPD=[["ric","Merce ricevuta","#6d28d9"],["lav","In lavorazione","#d97706"],["pronta","Pronta alla spedizione","#1f5f99"],["sped","Spedita","#1f7a4d"]];
 function spOk(r){return r.v==="rip"||r.v==="prep"}
 function spOf(r){var x=TEAM.sp[r.u];if(!x||!x.s)return null;for(var i=0;i<SPD.length;i++)if(SPD[i][0]===x.s)return {s:x.s,n:SPD[i][1],c:SPD[i][2],a:x.a,ts:x.ts};return null}
 function spSet(r,v){function go(){TEAM.sp[r.u]={s:v,ts:Date.now(),a:NOME};teamSave();draw()}if(!NOME)chiediNome(go);else go()}
@@ -496,8 +497,8 @@ function draw(){
  if(!L.length){it.append(el("p","empty","Archivio vuoto: collega Google Drive (tasto in alto) o importa i file inviati dall'app."))}
  else if(!R.length)it.append(el("p","empty","Nessun risultato."));
  R.slice(0,400).forEach(function(r){var st=stato(r),c=btn("it"+(st==="fatto"?" fat":st==="corso"?" cor":"")+(nuovo(r)?" nw":"")+(F.sel===r.u?" on":""),null,function(){if(h&&!F.sel)go({sel:r.u});else{F.sel=r.u;draw()}if(innerWidth<=860)scrollTo(0,0)});
-  var tl=el("b",0,r.n||"Senza nome"),T=tagsL(r);if(nuovo(r))tl.prepend(el("em","nwb","Nuovo"));if(r.mod&&r.mod.length)tl.append(el("em","edm"," ✎"));if(arrivo(r)){var pz=presa(r),ab=el("em","spb",pz?"Presa da "+pz.a:"📥 In arrivo");ab.style.background=pz?"#5b6770":"#7c3aed";tl.append(ab)}var sx=spOk(r)&&spOf(r);if(sx){var sb=el("em","spb",sx.n);sb.style.background=sx.c;tl.append(sb)}if(T.length){var dd=el("span","dots");T.forEach(function(id){var t=tagOf(id),d=el("i","dot");d.style.background=t.c;d.title=t.n;dd.append(d)});tl.append(dd)}
-  var nn=comms("L",r.u).length;c.append(tl,el("span",0,TIT[r.v]+" · "+dLav(r)+(r.tec?" · "+r.tec:"")+(st==="corso"?" · in corso":st==="attesa"?" · in attesa":"")+(nn?" · 💬 "+nn:"")));it.append(c)});
+  var tl=el("b",0,r.n||"Senza nome"),T=tagsL(r),sto=stato(r);tl.prepend(el("em","stb "+sto,sto==="corso"?"In corso":sto==="attesa"?"In attesa":"Concluso"));if(nuovo(r))tl.prepend(el("em","nwb","Nuovo"));if(r.mod&&r.mod.length)tl.append(el("em","edm"," ✎"));if(arrivo(r)){var pz=presa(r),ab=el("em","spb",pz?"Presa da "+pz.a:"📥 In arrivo");ab.style.background=pz?"#5b6770":"#7c3aed";tl.append(ab)}var sx=spOk(r)&&spOf(r);if(sx){var sb=el("em","spb",sx.n);sb.style.background=sx.c;tl.append(sb)}if(T.length){var dd=el("span","dots");T.forEach(function(id){var t=tagOf(id),d=el("i","dot");d.style.background=t.c;d.title=t.n;dd.append(d)});tl.append(dd)}
+  var nn=comms("L",r.u).length;c.append(tl,el("span",0,TIT[r.v]+" · "+dLav(r)+(r.tec?" · "+r.tec:"")+(nn?" · 💬 "+nn:"")));it.append(c)});
  if(R.length>400)it.append(el("p","cnt","Mostrati i primi 400: affina la ricerca."));
  dett(h);status(tecs);document.body.classList.toggle("dsel",!!(F.sel&&L.some(function(x){return x.u===F.sel})))}
 function status(tecs){$("st").textContent=vis().length+" lavori · "+Object.keys(tecs).length+(Object.keys(tecs).length===1?" tecnico":" tecnici");dirLabel()}

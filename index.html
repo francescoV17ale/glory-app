@@ -449,7 +449,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=106,svEl=null;
+var VER=107,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -1560,7 +1560,7 @@ function tmOf(r){return tmTags().filter(function(t){return tmOn(r,t.id)})}
 function tmMy(){try{return tmFix(JSON.parse(lsGet("gla_tmy")||"null"))}catch(e){return tmFix(null)}}
 function tmSet(r,id,on){var k=tmKey(r)+"|"+id,v={on:on?1:0,ts:Date.now()},my=tmMy();tmLoad().tg[k]=v;tmSave();my.tg[k]=v;lsSet("gla_tmy",JSON.stringify(my));lsSet("gla_tdirty","1");
  clearTimeout(TMT);TMT=setTimeout(function(){tSync(1)},1200)}
-var SPD={lav:["In lavorazione","#d97706"],pronta:["Pronta alla spedizione","#1f5f99"],sped:["Spedita","#1f7a4d"],ric:["Merce ricevuta","#6d28d9"]};
+var SPD={ric:["Merce ricevuta","#6d28d9"],lav:["In lavorazione","#d97706"],pronta:["Pronta alla spedizione","#1f5f99"],sped:["Spedita","#1f7a4d"]};
 function tmSp(r){if(r.v!=="rip"&&r.v!=="prep")return null;var x=tmLoad().sp[r.u||devId()+"-"+r.id];return x&&SPD[x.s]?{n:SPD[x.s][0],c:SPD[x.s][1]}:null}
 function tmAl(r){var u=r.u||devId()+"-"+r.id,A=tmLoad().al;return Object.keys(A).map(function(id){return A[id]}).filter(function(a){return a&&a.u===u&&!a.del&&a.f}).sort(function(a,b){return a.ts-b.ts})}
 /* applica al telefono le correzioni fatte dal PC sui suoi lavori */
