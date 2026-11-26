@@ -300,7 +300,7 @@ var tmT=null;
 function teamSave(){cfg("team",TEAM);clearTimeout(tmT);tmT=setTimeout(teamDir,800)}
 function teamDir(){gTeam();return Promise.resolve()}
 /* stato della spedizione (magazzino), solo Riparazioni e Preparazioni: TEAM.sp[u]={s,ts,a} */
-var SPD=[["lav","In lavorazione","#d97706"],["pronta","Pronta alla spedizione","#1f5f99"],["sped","Spedita","#1f7a4d"]];
+var SPD=[["lav","In lavorazione","#d97706"],["pronta","Pronta alla spedizione","#1f5f99"],["sped","Spedita","#1f7a4d"],["ric","Merce ricevuta","#6d28d9"]];
 function spOk(r){return r.v==="rip"||r.v==="prep"}
 function spOf(r){var x=TEAM.sp[r.u];if(!x||!x.s)return null;for(var i=0;i<SPD.length;i++)if(SPD[i][0]===x.s)return {s:x.s,n:SPD[i][1],c:SPD[i][2],a:x.a,ts:x.ts};return null}
 function spSet(r,v){function go(){TEAM.sp[r.u]={s:v,ts:Date.now(),a:NOME};teamSave();draw()}if(!NOME)chiediNome(go);else go()}
