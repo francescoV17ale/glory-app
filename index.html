@@ -449,7 +449,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=103,svEl=null;
+var VER=104,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -1204,6 +1204,8 @@ function home(){
  if(BIP)app.append(btn("reset ac tight","Installa l'app su questo dispositivo",function(){var p=BIP;BIP=null;try{p.prompt();p.userChoice.then(home,home)}catch(e){home()}}));
  var gdh=GD.ok&&lsGet("gla_gd")==="1";
  if(gdh&&sqList().length&&!lsGet("gla_me"))app.append(sqBox(home));
+ else if(!String(lsGet("gla_tec")||"").trim()){var nb=el("div","box nb"),ni=document.createElement("input");ni.type="text";ni.placeholder="Nome e cognome";ni.setAttribute("aria-label","Il tuo nome");
+  nb.append(el("b",0,"Chi sei? Scrivi il tuo nome"),el("p","cnt","Compare come tecnico nei rapportini e su chi registra le macchine in arrivo. Lo cambi dall'ingranaggio."),ni,btn("reset ac tight","Salva",function(){var v=ni.value.trim();if(!v){ni.focus();return}lsSet("gla_tec",v);lsSet("gla_tecrm","1");home()}));app.append(nb)}
  if(gdh){var AR=arrList();if(AR.length){var np=AR.filter(function(r){return r.arr&&r.arr.pass}).length,ab=btn("arrb"+(ui.arrOpen?" on":""),null,function(){ui.arrOpen=!ui.arrOpen;home()});
    ab.append(el("b",0,"📥 "+AR.length+" in arrivo"),el("span",0,[AR.length-np?(AR.length-np)+" RMA":"",np?np+(np===1?" passato":" passati"):""].filter(Boolean).join(" · ")+(ui.arrOpen?" · chiudi":" · apri")));ab.setAttribute("aria-expanded",ui.arrOpen?"true":"false");app.append(ab);
    if(ui.arrOpen)AR.forEach(function(r){var s=r.s||{},ps=r.arr&&r.arr.pass,c=btn("card acor",null,function(){if(hasData(load(r.v))&&ui.arrOk!==r.u){ui.arrOk=r.u;home();return}ui.arrOk=0;arrTake(r)});
@@ -1439,6 +1441,9 @@ function gearDlg(){openOv(function(bx){var cur=lsGet("gla_vista")==="passi"?"pas
   b.append(el("b",0,o[1]),el("span",0,o[2]));b.setAttribute("aria-pressed",cur===o[0]?"true":"false");bx.append(b)});
  if(GD.ok&&lsGet("gla_gd")==="1"&&sqList().length){var mi=sqList().filter(function(x){return x.mio})[0];bx.append(el("h2",0,"Il tuo nome"));
   if(mi&&!ui.sqCh)bx.append(el("p","cnt",mi.n),btn("reset tight","Cambia nome",function(){ui.sqCh=1;gearDlg()}));else bx.append(sqBox(function(){ui.sqCh=0;gearDlg()}))}
+ else{/* senza elenco della squadra: il nome si scrive qui (vale per le schede nuove) */
+  var nf=el("div","fld"),ni=document.createElement("input");ni.type="text";ni.placeholder="Nome e cognome";ni.value=lsGet("gla_tec")||"";ni.setAttribute("aria-label","Il tuo nome");
+  ni.onchange=function(){var v=ni.value.trim();lsSet("gla_tec",v);if(v)lsSet("gla_tecrm","1")};nf.append(el("label",0,"Compare come tecnico nelle schede nuove."),ni);bx.append(el("h2",0,"Il tuo nome"),nf)}
  bx.append(el("h2",0,"Mail al magazzino"));
  [["0","Programma di posta","Quello del telefono o del computer."],["1","Outlook sul web","Apre Outlook online nel browser, con la mail già compilata."]].forEach(function(o){var on=(mailWeb()?"1":"0")===o[0],b=btn("vopt"+(on?" on":""),null,function(){lsSet("gla_mailw",o[0]);gearDlg()});
   b.append(el("b",0,o[1]),el("span",0,o[2]));b.setAttribute("aria-pressed",on?"true":"false");bx.append(b)});
