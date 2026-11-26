@@ -449,7 +449,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=104,svEl=null;
+var VER=105,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -1206,10 +1206,10 @@ function home(){
  if(gdh&&sqList().length&&!lsGet("gla_me"))app.append(sqBox(home));
  else if(!String(lsGet("gla_tec")||"").trim()){var nb=el("div","box nb"),ni=document.createElement("input");ni.type="text";ni.placeholder="Nome e cognome";ni.setAttribute("aria-label","Il tuo nome");
   nb.append(el("b",0,"Chi sei? Scrivi il tuo nome"),el("p","cnt","Compare come tecnico nei rapportini e su chi registra le macchine in arrivo. Lo cambi dall'ingranaggio."),ni,btn("reset ac tight","Salva",function(){var v=ni.value.trim();if(!v){ni.focus();return}lsSet("gla_tec",v);lsSet("gla_tecrm","1");home()}));app.append(nb)}
- if(gdh){var AR=arrList();if(AR.length){var np=AR.filter(function(r){return r.arr&&r.arr.pass}).length,ab=btn("arrb"+(ui.arrOpen?" on":""),null,function(){ui.arrOpen=!ui.arrOpen;home()});
-   ab.append(el("b",0,"📥 "+AR.length+" in arrivo"),el("span",0,[AR.length-np?(AR.length-np)+" RMA":"",np?np+(np===1?" passato":" passati"):""].filter(Boolean).join(" · ")+(ui.arrOpen?" · chiudi":" · apri")));ab.setAttribute("aria-expanded",ui.arrOpen?"true":"false");app.append(ab);
+ if(gdh){var AR=arrList();if(AR.length){var np=AR.filter(function(r){return r.arr&&r.arr.pass&&!r.arr.bz}).length,nz=AR.filter(function(r){return r.arr&&r.arr.bz}).length,ab=btn("arrb"+(ui.arrOpen?" on":""),null,function(){ui.arrOpen=!ui.arrOpen;home()});
+   ab.append(el("b",0,"📥 "+AR.length+" in arrivo"),el("span",0,[AR.length-np-nz?(AR.length-np-nz)+" RMA":"",nz?nz+(nz===1?" bozza":" bozze"):"",np?np+(np===1?" passato":" passati"):""].filter(Boolean).join(" · ")+(ui.arrOpen?" · chiudi":" · apri")));ab.setAttribute("aria-expanded",ui.arrOpen?"true":"false");app.append(ab);
    if(ui.arrOpen)AR.forEach(function(r){var s=r.s||{},ps=r.arr&&r.arr.pass,c=btn("card acor",null,function(){if(hasData(load(r.v))&&ui.arrOk!==r.u){ui.arrOk=r.u;home();return}ui.arrOk=0;arrTake(r)});
-    c.append(el("b",0,ps?r.n:(s.rma||r.n)),el("span",0,(ps?[(V[r.v]?V[r.v].title:"")+" · passato da "+(r.arr.a||"?")+" il "+fmtDate(new Date(r.arr.ts))]:[String((s.rv&&s.rvn)?s.rvn+" › ":"")+String(s.cl||"").trim(),[s.r1_md,s.r1_tp].filter(Boolean).join(" "),s.r1_mat?"matr. "+s.r1_mat:"",r.arr?"arrivata il "+fmtDate(new Date(r.arr.ts)):""]).filter(Boolean).join(" · ")+" · tocca per prenderlo"));c.setAttribute("aria-label","Prendi "+(s.rma||r.n));app.append(c);
+    c.append(el("b",0,ps?r.n:(s.rma||r.n)),el("span",0,(ps?[(V[r.v]?V[r.v].title:"")+(r.arr.bz?" · bozza preparata da ":" · passato da ")+(r.arr.a||"?")+" il "+fmtDate(new Date(r.arr.ts))]:[String((s.rv&&s.rvn)?s.rvn+" › ":"")+String(s.cl||"").trim(),[s.r1_md,s.r1_tp].filter(Boolean).join(" "),s.r1_mat?"matr. "+s.r1_mat:"",r.arr?"arrivata il "+fmtDate(new Date(r.arr.ts)):""]).filter(Boolean).join(" · ")+" · tocca per prenderlo"));c.setAttribute("aria-label","Prendi "+(s.rma||r.n));app.append(c);
     if(ui.arrOk===r.u)app.append(confirmBox("In «"+(V[r.v]?V[r.v].title:"")+"» c'è già una scheda in corso: verrà sostituita (se ti serve, archiviala prima). Continuare?","Sostituisci",function(){ui.arrOk=0;arrTake(r)},function(){ui.arrOk=0;home()}))})}}
  var SQ=lsGet("gla_vista")==="passi",tl=el("div","tiles");document.body.classList.toggle("pv",SQ);NEWS.forEach(function(r){var s=load(r[0]),p=prog(V[r[0]].blocks(s),s,1),a=el("a",SQ?"tile":"card"),busy=hasData(s);
   a.href="#"+r[0];a.append(el("b",0,V[r[0]].title));
@@ -1218,7 +1218,7 @@ function home(){
    a.append(br,el("span",0,(s.tmA?"⏱ ":"")+(s._arc?"Riaperto dall'archivio · ":"In corso · ")+p.d+" di "+p.t+(String(s.cl||s.rma||s.cvc||s.ti||"").trim()?" · "+String(s.cl||s.rma||s.cvc||s.ti).trim():"")))}
   else a.append(el("span",0,DESC[r[0]]));tl.append(a)});if(SQ)app.append(tl);
  if(!gdh)app.append(el("div","cnt","Collega Google Drive (Archivio lavori) per ricevere i lavori in arrivo e vedere lo storico delle macchine."));
- app.append(btn("reset tight","Genera RMA qui",function(){location.hash="#rma"}));
+ var rw=el("div","arw");rw.append(btn("reset tight","Genera RMA",function(){location.hash="#rma"}),btn("reset tight","Carica CV",function(){location.hash="#inst"}));app.append(rw);
  var NP=pcNew(),lp=+lsGet("gla_lastpc")||0,old=NP.length?Math.min.apply(null,NP.map(function(r){return r.d})):0,gg=NP.length?Math.floor((Date.now()-Math.max(lp,old))/864e5):0,
   NA=arcVis().length,ai=el("div","cnt"+(gg>=3?" bw":""),NA?NA+(NA===1?" lavoro archiviato":" lavori archiviati")+(NP.length?" · "+NP.length+" da inviare al PC"+(gg>=3?" · ultimo invio "+(lp?gg+" giorni fa":"mai"):""):""):"Nessun lavoro archiviato. A fine intervento usa «Archivia lavoro» in fondo alla scheda.");
  var ar=el("div","arw");ar.append(btn("reset tight",NP.length?"I miei lavori · "+NP.length+" da inviare":"I miei lavori",function(){location.hash="#arc"}),btn("reset ac tight","Archivio squadra",function(){location.href="archivio/?app=1"}));
@@ -1346,7 +1346,8 @@ function ddBuild(dd){dd.textContent="";var m=el("div","cnt","");m.setAttribute("
  it("Condividi PDF","WhatsApp, email…",function(){pdfGate(function(){var r=pdfFile();shareFile(new Blob([r.u],{type:"application/pdf"}),r.fn,"application/pdf",m,"PDF condiviso.")},"Condividi comunque",m)});
  it("Genera PDF","Crea e salva il PDF della checklist",function(){pdfGate(function(){dlPdf(m)},"Scarica comunque",m)});
  dd.append(el("div","ddh","Scheda da riprendere"));
- if(GD.ok&&lsGet("gla_gd")==="1")it("Passa a un collega","Va su Drive: la trova in «In arrivo» e continua da qui",function(){passTo(m)});
+ if(GD.ok&&lsGet("gla_gd")==="1"){it("Passa a un collega","Va su Drive: la trova in «In arrivo» e continua da qui",function(){passTo(m)});
+  if(view==="inst")it("Bozza per un tecnico","Senza il tuo nome: va in «In arrivo», un tecnico la prende e fa l'installazione",function(){passTo(m,1)})}
  it(GD.ok&&lsGet("gla_gd")==="1"?"Condividi come file":"Condividi scheda","Un collega la carica e continua da qui",function(){if(!hasData(S)){m.textContent="Scheda vuota: niente da condividere.";return}var r=bkFile();shareFile(new Blob([r.t],{type:"text/plain"}),r.fn,"text/plain",m,"Scheda condivisa.")});
  it("Scarica scheda","File da ricaricare più tardi o altrove",function(){if(!hasData(S)){m.textContent="Scheda vuota: niente da scaricare.";return}var r=bkFile();saveFile(new Blob([r.t],{type:"text/plain"}),r.fn,function(){m.textContent="Scheda salvata nei Download: «"+r.fn+"»."},function(){m.textContent="Salvataggio non riuscito."})});
  var fi=document.createElement("input");fi.type="file";fi.accept=DOCACC;fi.hidden=true;
@@ -1585,18 +1586,20 @@ function arrTake(r){var v0=r.v,tec=String(lsGet("gla_tec")||load(v0).tec||"").tr
  if(tec){if(da&&da!==tec)s._tp=(Array.isArray(s._tp)?s._tp:[]).filter(function(y){return y!==da&&y!==tec}).concat(da);s.tec=tec}
  lsSet("gla_"+v0,JSON.stringify(s));siSet(v0,0);PH[v0]=bkPh(r.ph||[]);phSave(v0);
  var v={a:tec||"tecnico",ts:Date.now()},my=tmMy();tmLoad().pr[r.u]=v;tmSave();my.pr[r.u]=v;lsSet("gla_tmy",JSON.stringify(my));lsSet("gla_tdirty","1");setTimeout(function(){tSync(1)},500);
- topMsg=r.arr&&r.arr.pass?"Lavoro preso in carico: lo continui da qui.":"Scheda aperta dall'RMA "+(s.rma||"")+": riparazione presa in carico.";location.hash="#"+v0}
+ topMsg=r.arr&&r.arr.bz?"Bozza preparata da "+(r.arr.a||"?")+": controlla i dati e completa l'installazione.":r.arr&&r.arr.pass?"Lavoro preso in carico: lo continui da qui.":"Scheda aperta dall'RMA "+(s.rma||"")+": riparazione presa in carico.";location.hash="#"+v0}
 /* passa la scheda aperta a un collega: va su Drive nell'elenco "In arrivo" e qui resta in archivio "in attesa" */
-function passTo(m){if(!hasData(S)){m.textContent="Scheda vuota: niente da passare.";return}if(!navigator.onLine){m.textContent="Serve internet: senza, usa «Condividi come file».";return}
+function passTo(m,bz){if(!hasData(S)){m.textContent="Scheda vuota: niente da passare.";return}if(!navigator.onLine){m.textContent="Serve internet: senza, usa «Condividi come file».";return}
+ var me0=String(lsGet("gla_tec")||"").trim();if(bz&&!me0){m.textContent="Serve il tuo nome: scrivilo nell'ingranaggio in home.";return}
  if(!gTokC()){if(!gAuto("pass"))gLogin("pass");return}
- var now=Date.now(),u=S._u||(S._arc?devId()+"-"+S._arc:devId()+"-"+now),me=String(S.tec||lsGet("gla_tec")||"").trim();S._u=u;save();
- var x=JSON.parse(JSON.stringify(S));delete x._arc;delete x._u;
- var r={id:now,u:u,v:view,d:now,n:fnBase(),s:x,ph:phOf(view),st:"attesa",tec:me,arr:{a:me||"tecnico",ts:now,pass:1}};
+ var now=Date.now(),u=S._u||(S._arc?devId()+"-"+S._arc:devId()+"-"+now),me=bz?me0:String(S.tec||me0).trim();S._u=u;save();
+ var x=JSON.parse(JSON.stringify(S));delete x._arc;delete x._u;if(bz){delete x.tec;delete x._tp}
+ var r={id:now,u:u,v:view,d:now,n:fnBase(),s:x,ph:phOf(view),st:"attesa",tec:bz?"":me,arr:{a:me||"tecnico",ts:now,pass:1}};if(bz)r.arr.bz=1;
  m.textContent="Invio su Google Drive…";
  gIn(GD.fid).then(function(R){var f=R.filter(function(y){return y.mimeType===GD.FOLD&&y.name==="_rma"})[0];if(f)return f.id;
   return gFetch("https://www.googleapis.com/drive/v3/files?supportsAllDrives=true&fields=id",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:"_rma",mimeType:GD.FOLD,parents:[GD.fid]})}).then(function(q){return q.json()}).then(function(j){return j.id})})
  .then(function(dir){return gUp(JSON.stringify({glory:2,pc:1,dev:devId(),saved:now,tec:me,arc:[r]}),u.replace(/[^\w.-]/g,"_")+".json",dir)})
  .then(function(){var v={a:"",ts:now+1},my=tmMy();tmLoad().pr[u]=v;tmSave();my.pr[u]=v;lsSet("gla_tmy",JSON.stringify(my));lsSet("gla_tdirty","1");setTimeout(function(){tSync(1)},300);
+  if(bz){var vv=view,tc=S.tec;S={};if(tc)S.tec=tc;save();PH[vv]=[];phSave(vv);siSet(vv,0);topMsg="Bozza inviata: i tecnici la trovano in «In arrivo» e la completano. Scheda svuotata.";if(location.hash)location.hash="";else home();return}
   arcSave(1,"attesa");setTimeout(function(){topMsg="Lavoro passato: i colleghi lo trovano in «In arrivo». Qui resta in archivio «in attesa».";if(location.hash)location.hash="";else home()},600)},function(){m.textContent="Invio non riuscito: riprova o usa «Condividi come file»."})}
 /* squadra: il nome si sceglie dall'elenco creato sul PC; un nome preso da un altro telefono non è disponibile */
 function sqList(){var T=tmLoad(),me=lsGet("gla_me");return Object.keys(T.sq).map(function(id){var x=T.sq[id],c=T.sqc[id];return {id:id,n:String(x.n||""),del:x.del,mio:id===me,preso:!!(c&&c.d&&c.d!==devId())}}).filter(function(x){return x.n&&!x.del}).sort(function(a,b){return a.n.localeCompare(b.n)})}
