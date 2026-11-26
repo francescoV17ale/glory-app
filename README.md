@@ -21,19 +21,20 @@ Tutto è statico (HTML + JavaScript, nessun server): pubblicato con GitHub Pages
 - Il push su `main` pubblica il sito; app e programma si aggiornano alla riapertura.
 
 ## Dati
-- **Telefono**: schede in corso in `localStorage` (chiavi `gla_*`); archivio lavori e foto in IndexedDB `glory_archivio`. Ogni lavoro ha un codice unico `u` (`<dispositivo>-<id>`, o quello ricevuto).
-- **Programma**: IndexedDB `glory_pc` (store `lav` per codice `u`, store `cfg`). Unione dei lavori per `u`: vince la data `d` più recente.
+- **Telefono**: schede in corso in `localStorage` (chiavi `gla_*`); archivio lavori e foto in IndexedDB `glory_archivio`. Ogni lavoro ha un codice unico `u` (`<dispositivo>-<id>`, o quello ricevuto). Eliminare sposta nel cestino (`del` = data): dopo 30 giorni il lavoro viene cancellato. Indice della squadra in `gla_ix`; nome scelto dalla squadra in `gla_me` (id) e `gla_tec`.
+- **Programma**: IndexedDB `glory_pc` versione 2: store `lav` (lavori senza foto, `nph` = numero foto, `src` = id del file Drive da cui arriva), store `ph` (foto per codice `u`, caricate solo quando servono: dettaglio, PDF, Modifica, Rimetti, Riprendi, Salva tutto), store `cfg`. Unione dei lavori per `u`: vince la data `d` più recente.
 - Su GitHub non passa nessun dato dei lavori.
 
 ## Cartella Google Drive condivisa
 | Posizione | Chi scrive | Contenuto |
 |---|---|---|
 | radice | app (Invia al PC) | `Archivio Glory - <tecnico> - N lavori - <data>.txt`: `{glory:2, pc:1, dev, saved, tec, arc:[lavori]}` |
-| `_archivio/` | programma e app | `_team-<pc>.json` / `_team-app-<dispositivo>.json`: dati di squadra `{defs, tg, cm, hid, sp, al, pr}` (etichette, assegnazioni etichette, commenti, eliminati, stato spedizione, allegati, «preso da»). Unione per voce con `ts` più recente. |
+| `_archivio/` | programma e app | `_team-<pc>.json` / `_team-app-<dispositivo>.json`: dati di squadra `{defs, tg, cm, hid, sp, al, pr, sq, sqc}` (etichette, assegnazioni etichette, commenti, eliminati, stato spedizione, allegati, «preso da», nomi della squadra, nome scelto da quale telefono). Unione per voce con `ts` più recente. Il «PC principale» scrive anche `_indice.json` (`{ix:1, l:[{u,v,n,d,st,t,c,m,e,f,p}]}`): indice leggero per lo storico nell'app, `f` = file Drive da cui scaricare il lavoro completo. |
 | `_rma/` | programma (Genera RMA, Rimetti in arrivo) e app (Passa a un collega) | `<u>.json`: lavori «in arrivo» (`arr:{a, ts, pass?}`), mostrati nell'app in «In arrivo»; chi lo prende scrive `pr[u]`. |
 | `_modifiche/` | programma (Modifica) | `<u>.json`: versione corretta (`mod:[{a, ts}]`), letta da tutti i PC e dal telefono del tecnico. |
 | `_allegati/` | programma | file allegati, elencati in `al`. |
 | `_importati/` | «PC principale» | file dei tecnici già importati da più di 30 giorni. |
+| `_backup/` | «PC principale» | `Glory backup - <data>.json` una volta a settimana (lavori senza foto, etichette, commenti, squadra); si tengono gli ultimi 4. Le foto restano nei file dei tecnici. Si ripristina con Importa file. |
 
 - Client OAuth web e ID della cartella nelle costanti `GD` di `shared.js`. Ambito `https://www.googleapis.com/auth/drive`; app in modalità prova (utenti di prova su Google Cloud, progetto `bustling-joy-515709-g0`).
 - URI di reindirizzamento autorizzati: `…/glory-app/` e `…/glory-app/archivio/`.
