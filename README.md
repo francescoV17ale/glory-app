@@ -46,4 +46,4 @@ Password comune per la squadra (hash `PWH` in `index.html`): è solo un filtro, 
 
 ## Spostare su un dominio aziendale
 - Pubblicare gli stessi file su un altro hosting statico; aggiornare origine e URI di reindirizzamento del client Google, oppure sostituire Drive con lo spazio aziendale: tutte le chiamate passano da `shared.js` (`gFetch`, `gUp`) e dalle funzioni `gSync`, `gTeam`, `gPulisci`, `cloudPut`, `corrOut` (programma) e `tSync`, `passTo`, `pcBox` (app).
-- L'APK è legato al dominio: va rigenerato (PWABuilder › Android, stesso Package ID `io.github.francescov17ale.glory` e stessa chiave di firma per aggiornare quello installato). I lavori si portano con Backup › Carica backup.
+- L'APK è legato al dominio: va rigenerato (PWABuilder › Android, stesso Package ID `io.github.francescov17ale.glory` e stessa chiave di firma per aggiornare quello installato). I lavori si portano con ⚙ › Backup del telefono › Carica backup.
