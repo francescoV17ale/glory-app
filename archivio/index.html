@@ -119,6 +119,7 @@ a.b{display:inline-flex;align-items:center;text-decoration:none;color:var(--tx)}
  .fft{position:sticky;bottom:0;padding:12px 0 calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--ln);margin-top:14px}.fft .b{flex:1;justify-content:center}.fft .b.ac{flex:2}
  body.dsel .list,body.dsel .fil{display:none}.mback{display:inline-flex;align-items:center;margin-bottom:10px}}
 .stb{font-style:normal;font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;margin-right:6px;vertical-align:middle;color:#fff;background:var(--ok)}.stb.corso{background:#b45309}.stb.attesa{background:#7c3aed}
+.nwg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.nwg .b{justify-content:center;padding:12px}
 </style>
 </head>
 <body>
@@ -131,6 +132,7 @@ a.b{display:inline-flex;align-items:center;text-decoration:none;color:var(--tx)}
  <button class="b" id="dirb" type="button"></button>
  <button class="b" id="sync" type="button" hidden title="Rileggi la cartella">Aggiorna</button>
  <button class="b" id="setb" type="button" title="Impostazioni">⚙ Impostazioni</button>
+ <button class="b" id="nwlb" type="button">+ Nuovo lavoro</button>
  <button class="b" id="rmab" type="button">Genera RMA</button>
   <button class="b" id="tagb" type="button">Etichette</button>
  <button class="b" id="sqb" type="button">Squadra</button>
@@ -462,8 +464,8 @@ function drawFil(LV){var fc=$("fil"),fst=fc.scrollTop;fc.textContent="";
  var inv=el("div","inv2");inv.id="inv";fc.append(inv);
  /* fascia In arrivo */
  var ab=$("arrb");ab.textContent="";var AR=LV.filter(function(r){return arrivo(r)&&!presa(r)});
- if(AR.length||F.arr){var np=AR.filter(function(r){return r.arr&&r.arr.pass}).length,b=btn("arrb"+(F.arr?" on":""),null,function(){go(F.arr?{arr:0}:{arr:1,st:"",v:"",t:"",tag:"",sp:"",mo:"",per:"",cm:0,nw:0,frq:0})});
-  b.append(document.createTextNode("📥 "+AR.length+" in arrivo"),el("small",0,[AR.length-np?(AR.length-np)+" RMA":"",np?np+(np===1?" passato":" passati"):""].filter(Boolean).join(" · ")+(F.arr?" · chiudi":" ›")));ab.append(b)}
+ if(AR.length||F.arr){var np=AR.filter(function(r){return r.arr&&r.arr.pass&&!r.arr.bz}).length,nz=AR.filter(function(r){return r.arr&&r.arr.bz}).length,b=btn("arrb"+(F.arr?" on":""),null,function(){go(F.arr?{arr:0}:{arr:1,st:"",v:"",t:"",tag:"",sp:"",mo:"",per:"",cm:0,nw:0,frq:0})});
+  b.append(document.createTextNode("📥 "+AR.length+" in arrivo"),el("small",0,[AR.length-np-nz?(AR.length-np-nz)+" RMA":"",nz?nz+(nz===1?" bozza":" bozze"):"",np?np+(np===1?" passato":" passati"):""].filter(Boolean).join(" · ")+(F.arr?" · chiudi":" ›")));ab.append(b)}
  /* filtri attivi */
  var ac=$("act");ac.textContent="";var A=[];
  if(F.st)A.push([FLAB.st[F.st]||F.st,{st:""}]);if(F.v)A.push([TIT[F.v],{v:""}]);if(F.mo)A.push([F.mo,{mo:""}]);if(F.t)A.push([F.t,{t:""}]);
@@ -553,6 +555,21 @@ function modifica(r){if(!Array.isArray(r.ph)){phGet(r).then(function(){modifica(
    var now=Date.now(),nr=JSON.parse(JSON.stringify(r));nr.s=x.s;nr.ph=x.ph;nr.n=x.n||r.n;if(x.nt)nr.nt=x.nt;nr.d=now;nr.mod=(r.mod||[]).concat([{a:NOME,ts:now}]);delete nr.imp;
    L=L.map(function(y){return y.u===r.u?nr:y});dbPut([nr]).then(function(){ov.remove();draw();return corrOut(nr)}).then(function(m){say(m||"Modifica salvata.")},function(){say("Modifica salvata su questo PC, ma non inviata: collega Google Drive.",1)})}
   if(!NOME)chiediNome(go);else go()}}
+/* nuovo lavoro aperto dal PC: si compila con la scheda dell'app e va «In arrivo» come bozza senza tecnico */
+function nuovoDlg(){var ov=el("div","ov"),d=el("div","dlg");ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");ov.onclick=function(e){if(e.target===ov)ov.remove()};
+ d.append(el("h2",0,"Nuovo lavoro"),el("p","st","Lo compili qui e va «In arrivo»: un tecnico lo prende dall'app e lo completa."));var w=el("div","nwg");
+ ["inst","prep","rip","loc","altro","rit"].forEach(function(v){w.append(btn("b",TIT[v],function(){ov.remove();if(!NOME)chiediNome(function(){nuovoLav(v)});else nuovoLav(v)}))});
+ var az=el("div","az");az.append(btn("b","Annulla",function(){ov.remove()}));d.append(w,az);ov.append(d);document.body.append(ov)}
+function nuovoLav(v){var ov=el("div","ov edov"),d=el("div","edw"),bar=el("div","edb"),f=document.createElement("iframe");ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");
+ bar.append(el("b",0,"Nuovo lavoro · "+TIT[v]));bar.append(btn("b","Annulla",function(){if(confirm("Chiudere senza salvare?"))ov.remove()}),btn("b ac","Metti in arrivo",salva));
+ f.src="../index.html?edit=1";window.addEventListener("message",function onm(e){if(!document.body.contains(ov)){window.removeEventListener("message",onm);return}if(e.source===f.contentWindow&&e.data==="glory-edit-save")salva()});f.title="Nuovo lavoro";d.append(bar,f);ov.append(d);document.body.append(ov);
+ f.onload=function(){var n=0;(function t(){var w=f.contentWindow;if(w&&w.edReady&&w.edOpen){w.edOpen({v:v,s:{},ph:[]})}else if(++n>80){say("Scheda non disponibile: apri il programma con internet almeno una volta.",1);ov.remove()}else setTimeout(t,100)})()};
+ function salva(){var x;try{x=f.contentWindow.edGet()}catch(e){say("Salvataggio non riuscito.",1);return}
+  var sx=x.s||{};delete sx.tec;delete sx._tp;if(!Object.keys(sx).some(function(k){var y=sx[k];return y!==""&&y!=null&&y!==false&&!(Array.isArray(y)&&!y.length)})){say("Scheda vuota: compila almeno il cliente.",1);return}
+  var now=Date.now(),r={id:now,u:"pc-"+(PCID||"pc")+"-"+now.toString(36),v:v,d:now,n:x.n||TIT[v],s:sx,ph:x.ph||[],st:"attesa",tec:"",arr:{a:NOME,ts:now,pass:1,bz:1},imp:now};
+  L.push(r);dbPut([r]).then(function(){ov.remove();F.sel=r.u;draw();var y=JSON.parse(JSON.stringify(r));delete y.imp;
+   return cloudPut("_rma",fnSafe(r.u)+".json",JSON.stringify({glory:2,pc:1,dev:"pc-"+PCID,saved:now,tec:"",arc:[y]}))})
+  .then(function(ok){say(ok?"Lavoro messo in arrivo: i tecnici lo trovano nell'app.":"Salvato su questo PC. Per mandarlo ai tecnici collega Google Drive.",!ok)},function(){say("Salvato su questo PC, ma non inviato: riprova con Aggiorna.",1)})}}
 /* la correzione va in _modifiche/<codice>.json: la leggono gli altri PC e il telefono del tecnico */
 function corrOut(nr){if(!Array.isArray(nr.ph))return phGet(nr).then(corrOut);var x=JSON.parse(JSON.stringify(nr));delete x.imp;delete x.sent;delete x.nph;
  var t=JSON.stringify({glory:2,pc:1,dev:"pc-"+PCID,saved:+nr.sent||nr.d,tec:nr.tec||"",arc:[x]}),fn=fnSafe(nr.u)+".json";
@@ -631,7 +648,7 @@ function salvaTutto(){if(!L.length){say("Archivio vuoto.",1);return}say("Preparo
 /* ---------- avvio ---------- */
 $("fi").onchange=function(){if(this.files.length)importa(this.files);this.value=""};
 $("q").oninput=function(){F.q=this.value;F.sel=null;F.frq=0;draw()};
-$("dirb").onclick=collega;$("sync").onclick=function(){gSync(1)};$("csv").onclick=csv;$("tagb").onclick=tagEditor;$("rmab").onclick=rmaDlg;$("sqb").onclick=squadDlg;$("fbt").onclick=function(){document.body.classList.add("fopen")};
+$("dirb").onclick=collega;$("sync").onclick=function(){gSync(1)};$("csv").onclick=csv;$("tagb").onclick=tagEditor;$("rmab").onclick=rmaDlg;$("nwlb").onclick=nuovoDlg;$("sqb").onclick=squadDlg;$("fbt").onclick=function(){document.body.classList.add("fopen")};
 document.querySelector("header").addEventListener("click",function(e){var b=e.target.closest(".b");if(b&&b.id!=="menub"&&document.body.classList.contains("mopen")){document.body.classList.remove("mopen");$("menub").setAttribute("aria-expanded","false")}});
 $("menub").onclick=function(){var o=document.body.classList.toggle("mopen");this.setAttribute("aria-expanded",o?"true":"false")};
 try{if(/[?&]app=1/.test(location.search))sessionStorage.setItem("gla_fromapp","1");if(sessionStorage.getItem("gla_fromapp")==="1")$("appb").hidden=false}catch(e){}$("anb").onclick=analisi;$("homeb").onclick=home;$("setb").onclick=impostazioni;$("bak").onclick=salvaTutto;

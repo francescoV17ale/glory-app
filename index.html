@@ -449,7 +449,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=107,svEl=null;
+var VER=109,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -1586,7 +1586,7 @@ function arrTake(r){var v0=r.v,tec=String(lsGet("gla_tec")||load(v0).tec||"").tr
  if(tec){if(da&&da!==tec)s._tp=(Array.isArray(s._tp)?s._tp:[]).filter(function(y){return y!==da&&y!==tec}).concat(da);s.tec=tec}
  lsSet("gla_"+v0,JSON.stringify(s));siSet(v0,0);PH[v0]=bkPh(r.ph||[]);phSave(v0);
  var v={a:tec||"tecnico",ts:Date.now()},my=tmMy();tmLoad().pr[r.u]=v;tmSave();my.pr[r.u]=v;lsSet("gla_tmy",JSON.stringify(my));lsSet("gla_tdirty","1");setTimeout(function(){tSync(1)},500);
- topMsg=r.arr&&r.arr.bz?"Bozza preparata da "+(r.arr.a||"?")+": controlla i dati e completa l'installazione.":r.arr&&r.arr.pass?"Lavoro preso in carico: lo continui da qui.":"Scheda aperta dall'RMA "+(s.rma||"")+": riparazione presa in carico.";location.hash="#"+v0}
+ topMsg=r.arr&&r.arr.bz?"Bozza preparata da "+(r.arr.a||"?")+": controlla i dati e completa il lavoro.":r.arr&&r.arr.pass?"Lavoro preso in carico: lo continui da qui.":"Scheda aperta dall'RMA "+(s.rma||"")+": riparazione presa in carico.";location.hash="#"+v0}
 /* passa la scheda aperta a un collega: va su Drive nell'elenco "In arrivo" e qui resta in archivio "in attesa" */
 function passTo(m,bz){if(!hasData(S)){m.textContent="Scheda vuota: niente da passare.";return}if(!navigator.onLine){m.textContent="Serve internet: senza, usa «Condividi come file».";return}
  var me0=String(lsGet("gla_tec")||"").trim();if(bz&&!me0){m.textContent="Serve il tuo nome: scrivilo nell'ingranaggio in home.";return}
