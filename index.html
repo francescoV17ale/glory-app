@@ -449,7 +449,7 @@ var NEWS=[["inst","Installazione"],["prep","Preparazione macchine"],["rip","Ripa
 var LS=null;
 try{localStorage.setItem("gla_t","1");localStorage.removeItem("gla_t");LS=localStorage}catch(e){}
 function lsGet(k){try{return LS?LS.getItem(k):null}catch(e){return null}}
-var VER=109,svEl=null;
+var VER=110,svEl=null;
 function svWarn(on){if(!svEl){if(!on)return;svEl=document.createElement("div");svEl.setAttribute("role","alert");svEl.textContent="Salvataggio non riuscito: i dati di questa scheda non sono al sicuro. Salva un backup o genera il PDF adesso.";svEl.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:12px 16px;background:#b3261e;color:#fff;font-weight:600;font-size:15px";document.body.appendChild(svEl)}svEl.hidden=!on}
 function lsSet(k,v){try{if(LS){LS.setItem(k,v);svWarn(0)}}catch(e){svWarn(1)}}
 function tecRm(){return lsGet("gla_tecrm")!=="0"}
@@ -882,7 +882,7 @@ function pdfGate(act,lab,m){var r=check(V[view].blocks(S)),all=r.bad.concat(r.wa
  sg.append(btn("on",lab,function(){m.textContent="";act()}),btn("","Annulla",function(){m.textContent=""}));bx.append(sg);m.append(bx)}
 var CANSH=!!(navigator.canShare&&!CL);
 function dlPdf(m){var r=pdfFile();saveFile(new Blob([r.u],{type:"application/pdf"}),r.fn,function(){m.textContent="PDF salvato."},function(){m.textContent="Salvataggio non riuscito."})}
-function shareFile(blob,fn,type,m,okMsg,ok){var no="Condivisione non disponibile su questo dispositivo: usa Scarica.",file;
+function shareFile(blob,fn,type,m,okMsg,ok){var no="Condivisione non disponibile su questo dispositivo: usa Genera PDF o il backup.",file;
  try{file=new File([blob],fn,{type:type})}catch(e){m.textContent=no;return}
  if(!navigator.canShare||!navigator.canShare({files:[file]})){m.textContent=no;return}
  navigator.share({files:[file],title:fn}).then(function(){m.textContent=okMsg;if(ok)ok()},function(e){if(!e||e.name!=="AbortError")m.textContent=no})}
@@ -962,7 +962,7 @@ function rmaToRip(R){var tc=load("rip").tec,s=rmaS(R);if(tc)s.tec=tc;
 
 /* ---------- archivio lavori ---------- */
 function arcBox(){app.append(el("h2",0,"Archivio"));var m=el("div","cnt",arcMsg);m.setAttribute("role","status");arcMsg="";
- if(!IDB){app.append(el("p","cnt","Archivio non disponibile in questo browser: usa Scarica backup dal menù."));return}
+ if(!IDB){app.append(el("p","cnt","Archivio non disponibile in questo browser: usa Scarica backup nell'ingranaggio."));return}
  if(!ui.arc){app.append(btn("reset ac tight",S._arc?"Aggiorna nell'archivio":"Archivia o metti in pausa",function(){if(!hasData(S)){arcMsg="Scheda vuota: niente da archiviare.";render();return}ui.arc=1;render()}))}
  else{var bx=el("div","box wn"),sg=el("div","seg");bx.dataset.id="arcb";
   bx.append(el("div",0,(S._arc?"Aggiorno nell'archivio il lavoro «":"Salvo nell'archivio di questo dispositivo il lavoro «")+fnBase()+"», con note e foto."));
@@ -1006,8 +1006,7 @@ function pcBox(){var N=pcNew(),bx=el("div","pcx"),m=el("div","cnt","");m.setAttr
   if(share&&CANSH)shareFile(bl,f.fn,"text/plain",m,"",ok);else saveFile(bl,f.fn,ok,function(){m.textContent="Salvataggio non riuscito."})}
  var sg=el("div","seg");sg.append(btn(N.length?"on":"","Invia al PC · "+N.length+(N.length===1?" nuovo":" nuovi"),function(){go(pcNew(),1)}),btn("","Tutto ("+arcVis().length+")",function(){go(ARC.slice(),1)}));
  bx.append(sg,m);
- if(GD.ok){var gr=el("div","cnt");if(gd){gr.append(document.createTextNode("Invio diretto su Google Drive · "));gr.append(btn("lnk","Scollega",function(){lsSet("gla_gd","0");arcView()}))}
-  else gr.append(btn("reset tight","Collega Google Drive",function(){gLogin("link")}));bx.append(gr)}
+ if(GD.ok&&!gd)bx.append(el("div","cnt","Per inviare direttamente nella cartella condivisa collega Google Drive dall'ingranaggio ⚙ in home."));
  bx._go=function(w){go(w==="all"?arcVis():pcNew(),1)};return bx}
 function arcView(){if(GBK&&GBK.sil&&!GBK.ok&&GBK.st==="send"){GBK=null;gLogin("send");return}
  if(GBK){var g=GBK;GBK=null;if(g.ok){lsSet("gla_gd","1");if(g.st==="send")GSEND=lsGet("gla_gsend")||"new";else arcMsg="Google Drive collegato: «Invia al PC» carica i lavori direttamente nella cartella."}else arcMsg="Accesso a Google "+(g.err==="access_denied"?"annullato.":"non riuscito.")}
@@ -1197,7 +1196,7 @@ function updApply(){updMsg="Aggiornamento in corso…";if(!SOLO)home();var p=[];
  Promise.all(p).then(go,go)}
 
 /* ---------- menù ---------- */
-var DESC={inst:"Dal contratto alla consegna al cliente",prep:"Configurazione e imballo in magazzino",rip:"Diagnosi, ricambi e collaudo dei moduli",loc:"Guasti, aggiornamenti e collaudo dal cliente",altro:"Lavori fuori dalle schede standard",rit:"Macchine dismesse, rubate o danneggiate"};
+var DESC={inst:"Dal contratto alla consegna al cliente",prep:"Configurazione e imballo in magazzino",rip:"Diagnosi, ricambi e collaudo dei moduli",loc:"Guasti, aggiornamenti e collaudo dal cliente",altro:"Lavori fuori dalle schede standard",rit:"Dismissione, sostituzione, furto o danni"};
 function home(){
  ui.fo=0;document.body.style.overflow="";view="";ttl.textContent="Glory 2.0";back.hidden=true;gear.hidden=false;clearPassi();closeOv();app.textContent="";noteTa=null;
  if(NEWV)app.append(btn("reset ac tight","È disponibile un aggiornamento: tocca per aggiornare",updApply));
@@ -1217,7 +1216,7 @@ function home(){
   if(busy){var br=el("div","bar"),bi=document.createElement("i");bi.style.width=(p.t?p.d/p.t*100:0)+"%";br.append(bi);a.classList.add("busy");
    a.append(br,el("span",0,(s.tmA?"⏱ ":"")+(s._arc?"Riaperto dall'archivio · ":"In corso · ")+p.d+" di "+p.t+(String(s.cl||s.rma||s.cvc||s.ti||"").trim()?" · "+String(s.cl||s.rma||s.cvc||s.ti).trim():"")))}
   else a.append(el("span",0,DESC[r[0]]));tl.append(a)});if(SQ)app.append(tl);
- if(!gdh)app.append(el("div","cnt","Collega Google Drive (Archivio lavori) per ricevere i lavori in arrivo e vedere lo storico delle macchine."));
+ if(!gdh&&GD.ok)app.append(btn("reset tight","Collega Google Drive · ricevi i lavori in arrivo",function(){gLogin("link")}));
  var rw=el("div","arw");rw.append(btn("reset tight","Genera RMA",function(){location.hash="#rma"}),btn("reset tight","Carica CV",function(){location.hash="#inst"}));app.append(rw);
  var NP=pcNew(),lp=+lsGet("gla_lastpc")||0,old=NP.length?Math.min.apply(null,NP.map(function(r){return r.d})):0,gg=NP.length?Math.floor((Date.now()-Math.max(lp,old))/864e5):0,
   NA=arcVis().length,ai=el("div","cnt"+(gg>=3?" bw":""),NA?NA+(NA===1?" lavoro archiviato":" lavori archiviati")+(NP.length?" · "+NP.length+" da inviare al PC"+(gg>=3?" · ultimo invio "+(lp?gg+" giorni fa":"mai"):""):""):"Nessun lavoro archiviato. A fine intervento usa «Archivia lavoro» in fondo alla scheda.");
@@ -1225,8 +1224,7 @@ function home(){
  app.append(el("h2",0,"Archivio"),ai,ar);
  if(bkMsg){var bm0=el("div","cnt",bkMsg);bm0.setAttribute("role","status");app.append(bm0);bkMsg=""}if(ui.bkPend)app.append(pendBox(home));
  if(!LS)app.append(el("p","cnt","Questo browser non conserva i dati: genera PDF e note prima di chiudere la pagina."));
- app.append(el("h2",0,"Aggiornamenti"));
- app.append(btn("reset tight"+(NEWV?" ac":""),NEWV?"Aggiorna ora":"Cerca aggiornamenti",function(){if(NEWV)updApply();else updCheck(1)}));
+ if(NEWV)app.append(btn("reset ac tight","Nuova versione disponibile · Aggiorna ora",updApply));
  if(updMsg){var um=el("div","cnt",updMsg);um.setAttribute("role","status");app.append(um)}
  var vp=el("p","cnt","Glory 2.0");vp.title="Build "+VER;vp.style.cssText="text-align:center;margin-top:24px";app.append(vp)}
 
@@ -1330,10 +1328,8 @@ function render(){
    if(!x.area)i.type="text";i.placeholder=x.a;i.setAttribute("aria-label",x.x);
    if(x.id==="rma")rmaEl=i;i.value=S[x.id]||"";var er=null,dgm=view==="prep"&&/^mtM\d*$/.test(x.id)&&prepMode(S)==="Downgrade CI-5";
    if(dgm){er=el("div","cnt","");er.style.color="var(--dg)";i.onblur=function(){if(dupOf(x.id,i.value)){var dq=dupOf(x.id,i.value);i.value=S[x.id]||"";i.style.borderColor="";er.textContent="Matricola non salvata: già inserita nel Dispositivo "+dq}}}
-   i.oninput=function(){if(dgm){var dj=dupOf(x.id,i.value);if(dj){i.style.borderColor="var(--dg)";er.textContent="Già inserita nel Dispositivo "+dj+": non viene salvata";return}i.style.borderColor="";er.textContent=""}S[x.id]=i.value;if(view==="rip"&&S.grm){if(x.id==="rma")S.rmaM=1;else if(!S.rmaM&&rmaEl){S.rma=rmaGen(S);rmaEl.value=S.rma}}if(x.id==="tec"&&tecRm())lsSet("gla_tec",i.value.trim());save();if(noteTa)noteTa.value=noteText();if(x.cmp)grow(i)};ft.dataset.id=x.id;ft.append(i);if(er)ft.append(er);
-   if(x.id==="tec"){var rl=el("label","tecrm"),rc=document.createElement("input");rc.type="checkbox";rc.checked=tecRm();
-    rc.onchange=function(){lsSet("gla_tecrm",rc.checked?"1":"0");if(rc.checked)lsSet("gla_tec",String(S.tec||"").trim());else{try{LS&&LS.removeItem("gla_tec")}catch(e){}}};
-    rl.append(rc,document.createTextNode("Ricordami: usa questo nome in tutte le schede"));ft.append(rl)}app.append(ft);if(x.cmp){i.style.minHeight="56px";i.style.overflowY="auto";grow(i)}}
+   i.oninput=function(){if(dgm){var dj=dupOf(x.id,i.value);if(dj){i.style.borderColor="var(--dg)";er.textContent="Già inserita nel Dispositivo "+dj+": non viene salvata";return}i.style.borderColor="";er.textContent=""}S[x.id]=i.value;if(view==="rip"&&S.grm){if(x.id==="rma")S.rmaM=1;else if(!S.rmaM&&rmaEl){S.rma=rmaGen(S);rmaEl.value=S.rma}}if(x.id==="tec"&&!String(lsGet("gla_tec")||"").trim()&&i.value.trim().length>2)lsSet("gla_tec",i.value.trim());save();if(noteTa)noteTa.value=noteText();if(x.cmp)grow(i)};ft.dataset.id=x.id;ft.append(i);if(er)ft.append(er);
+   if(x.id==="tec"&&String(lsGet("gla_tec")||"").trim()&&String(S.tec||"").trim()!==String(lsGet("gla_tec")).trim())ft.append(el("div","cnt","Solo per questa scheda: il tuo nome si cambia dall'ingranaggio ⚙."));app.append(ft);if(x.cmp){i.style.minHeight="56px";i.style.overflowY="auto";grow(i)}}
  });
  if(PS&&!last)markAll(list);
  if(!PS||last){if(view==="prep"){app.append(btn("reset tight","Mail al magazzino",function(){mailGo(magMail(S))}));pdfBox()}if(!SOLO&&!EDIT)arcBox();if(PS&&!EDIT)rstBox()}
@@ -1348,8 +1344,8 @@ function ddBuild(dd){dd.textContent="";var m=el("div","cnt","");m.setAttribute("
  dd.append(el("div","ddh","Scheda da riprendere"));
  if(GD.ok&&lsGet("gla_gd")==="1"){it("Passa a un collega","Va su Drive: la trova in «In arrivo» e continua da qui",function(){passTo(m)});
   if(view==="inst")it("Bozza per un tecnico","Senza il tuo nome: va in «In arrivo», un tecnico la prende e fa l'installazione",function(){passTo(m,1)})}
- it(GD.ok&&lsGet("gla_gd")==="1"?"Condividi come file":"Condividi scheda","Un collega la carica e continua da qui",function(){if(!hasData(S)){m.textContent="Scheda vuota: niente da condividere.";return}var r=bkFile();shareFile(new Blob([r.t],{type:"text/plain"}),r.fn,"text/plain",m,"Scheda condivisa.")});
- it("Scarica scheda","File da ricaricare più tardi o altrove",function(){if(!hasData(S)){m.textContent="Scheda vuota: niente da scaricare.";return}var r=bkFile();saveFile(new Blob([r.t],{type:"text/plain"}),r.fn,function(){m.textContent="Scheda salvata nei Download: «"+r.fn+"»."},function(){m.textContent="Salvataggio non riuscito."})});
+ it("Scheda come file","Condividi o salva: un collega la carica e continua da qui",function(){if(!hasData(S)){m.textContent="Scheda vuota: niente da condividere.";return}var r=bkFile(),bl=new Blob([r.t],{type:"text/plain"});
+  var cs=0;try{cs=CANSH&&navigator.canShare&&navigator.canShare({files:[new File([bl],r.fn,{type:"text/plain"})]})}catch(e){}if(cs)shareFile(bl,r.fn,"text/plain",m,"Scheda condivisa.",function(){});else saveFile(bl,r.fn,function(){m.textContent="Scheda salvata nei Download: «"+r.fn+"»."},function(){m.textContent="Salvataggio non riuscito."})});
  var fi=document.createElement("input");fi.type="file";fi.accept=DOCACC;fi.hidden=true;
  fi.onchange=function(){var f=fi.files&&fi.files[0];fi.value="";if(!f)return;var rd=new FileReader();
   rd.onload=function(){var r=bkRead(String(rd.result||""));ui.dd=0;
@@ -1445,12 +1441,16 @@ function gearDlg(){openOv(function(bx){var cur=lsGet("gla_vista")==="passi"?"pas
  else{/* senza elenco della squadra: il nome si scrive qui (vale per le schede nuove) */
   var nf=el("div","fld"),ni=document.createElement("input");ni.type="text";ni.placeholder="Nome e cognome";ni.value=lsGet("gla_tec")||"";ni.setAttribute("aria-label","Il tuo nome");
   ni.onchange=function(){var v=ni.value.trim();lsSet("gla_tec",v);if(v)lsSet("gla_tecrm","1")};nf.append(el("label",0,"Compare come tecnico nelle schede nuove."),ni);bx.append(el("h2",0,"Il tuo nome"),nf)}
+ if(GD.ok){bx.append(el("h2",0,"Google Drive"));var gon=lsGet("gla_gd")==="1",gm=lsGet("gla_gmail")||"";
+  if(gon)bx.append(el("p","cnt","Collegato"+(gm?" · "+gm:"")+". Vale per l'app e per l'Archivio squadra."),btn("reset tight","Scollega",function(){lsSet("gla_gd","0");gearDlg()}));
+  else bx.append(el("p","cnt","Serve per inviare i lavori, ricevere quelli in arrivo e usare l'Archivio squadra."),btn("reset ac tight","Collega Google Drive",function(){gLogin("link")}))}
  bx.append(el("h2",0,"Mail al magazzino"));
  [["0","Programma di posta","Quello del telefono o del computer."],["1","Outlook sul web","Apre Outlook online nel browser, con la mail già compilata."]].forEach(function(o){var on=(mailWeb()?"1":"0")===o[0],b=btn("vopt"+(on?" on":""),null,function(){lsSet("gla_mailw",o[0]);gearDlg()});
   b.append(el("b",0,o[1]),el("span",0,o[2]));b.setAttribute("aria-pressed",on?"true":"false");bx.append(b)});
  /* backup dei rapportini di questo telefono (schede in corso e archivio) */
  bx.append(el("h2",0,"Backup del telefono"));var u=bkUi(gearDlg);bx.append(bkLast(),el("p","cnt","Schede in corso e archivio di questo telefono, in un file da conservare o da caricare su un altro telefono."),bkRow(u,function(){var r=bkAll();return r.n?r:null},"Niente da salvare: nessuna scheda compilata e archivio vuoto."),u.fi,u.m);
  if(ui.bkPend&&ui.bkPend.all)bx.append(pendBox(gearDlg));
+ bx.append(el("h2",0,"Aggiornamenti"),el("p","cnt","L'app si aggiorna da sola alla riapertura. Build "+VER+"."),btn("reset tight",NEWV?"Aggiorna ora":"Cerca aggiornamenti",function(){closeOv();if(NEWV)updApply();else{updCheck(1);home()}}));
  bx.append(btn("reset tight","Chiudi",closeOv))})}
 gear.onclick=gearDlg;
 try{SI=JSON.parse(lsGet("gla_si"))||{}}catch(e){SI={}}if(typeof SI!=="object"||Array.isArray(SI))SI={};
@@ -1546,7 +1546,7 @@ function readerDlg(){openOv(function(bx){var R=RD.found;
   var ta=document.createElement("textarea");ta.placeholder="Oppure incolla qui il testo del DDT";ta.value=RD.txt||"";ta.setAttribute("aria-label","Testo del DDT");ta.oninput=function(){RD.txt=ta.value};
   bx.append(ta,btn("reset tight","Cerca nel testo incollato",function(){var f=parseLines(String(RD.txt||"").split(/\n/));if(gotAny(f)){RD.found=f;RD.msg=""}else RD.msg="Nel testo non trovo matricole: servono le righe articolo (es. CI-5B) con il loro «Codice matricola».";readerDlg()}),btn("reset tight","Chiudi",function(){RD={};closeOv()}))}})}
 
-var GBK=gBack(/state=(%7E|~)?(arr|pass)(&|$)/.test(location.hash)?"":/state=(%7E|~)?rma(&|$)/.test(location.hash)?"#rma":"#arc"),GSEND="";
+var GBK=gBack(/state=(%7E|~)?(arr|pass|link)(&|$)/.test(location.hash)?"":/state=(%7E|~)?rma(&|$)/.test(location.hash)?"#rma":"#arc"),GSEND="";
 /* ---------- etichette di squadra (le stesse del programma PC, file _archivio/_team-*.json su Drive) ---------- */
 var TM=null,TMT=0,TSY=0,TLAST=0,ARCDRAW=null;
 function tmFix(t){t=t&&typeof t==="object"?t:{};function o(k){return t[k]&&typeof t[k]==="object"?t[k]:{}}return {defs:o("defs"),tg:o("tg"),cm:{},hid:o("hid"),sp:o("sp"),al:o("al"),pr:o("pr"),sq:o("sq"),sqc:o("sqc")}}
@@ -1588,7 +1588,7 @@ function arrTake(r){var v0=r.v,tec=String(lsGet("gla_tec")||load(v0).tec||"").tr
  var v={a:tec||"tecnico",ts:Date.now()},my=tmMy();tmLoad().pr[r.u]=v;tmSave();my.pr[r.u]=v;lsSet("gla_tmy",JSON.stringify(my));lsSet("gla_tdirty","1");setTimeout(function(){tSync(1)},500);
  topMsg=r.arr&&r.arr.bz?"Bozza preparata da "+(r.arr.a||"?")+": controlla i dati e completa il lavoro.":r.arr&&r.arr.pass?"Lavoro preso in carico: lo continui da qui.":"Scheda aperta dall'RMA "+(s.rma||"")+": riparazione presa in carico.";location.hash="#"+v0}
 /* passa la scheda aperta a un collega: va su Drive nell'elenco "In arrivo" e qui resta in archivio "in attesa" */
-function passTo(m,bz){if(!hasData(S)){m.textContent="Scheda vuota: niente da passare.";return}if(!navigator.onLine){m.textContent="Serve internet: senza, usa «Condividi come file».";return}
+function passTo(m,bz){if(!hasData(S)){m.textContent="Scheda vuota: niente da passare.";return}if(!navigator.onLine){m.textContent="Serve internet: senza, usa «Scheda come file».";return}
  var me0=String(lsGet("gla_tec")||"").trim();if(bz&&!me0){m.textContent="Serve il tuo nome: scrivilo nell'ingranaggio in home.";return}
  if(!gTokC()){if(!gAuto("pass"))gLogin("pass");return}
  var now=Date.now(),u=S._u||(S._arc?devId()+"-"+S._arc:devId()+"-"+now),me=bz?me0:String(S.tec||me0).trim();S._u=u;save();
@@ -1600,7 +1600,7 @@ function passTo(m,bz){if(!hasData(S)){m.textContent="Scheda vuota: niente da pas
  .then(function(dir){return gUp(JSON.stringify({glory:2,pc:1,dev:devId(),saved:now,tec:me,arc:[r]}),u.replace(/[^\w.-]/g,"_")+".json",dir)})
  .then(function(){var v={a:"",ts:now+1},my=tmMy();tmLoad().pr[u]=v;tmSave();my.pr[u]=v;lsSet("gla_tmy",JSON.stringify(my));lsSet("gla_tdirty","1");setTimeout(function(){tSync(1)},300);
   if(bz){var vv=view,tc=S.tec;S={};if(tc)S.tec=tc;save();PH[vv]=[];phSave(vv);siSet(vv,0);topMsg="Bozza inviata: i tecnici la trovano in «In arrivo» e la completano. Scheda svuotata.";if(location.hash)location.hash="";else home();return}
-  arcSave(1,"attesa");setTimeout(function(){topMsg="Lavoro passato: i colleghi lo trovano in «In arrivo». Qui resta in archivio «in attesa».";if(location.hash)location.hash="";else home()},600)},function(){m.textContent="Invio non riuscito: riprova o usa «Condividi come file»."})}
+  arcSave(1,"attesa");setTimeout(function(){topMsg="Lavoro passato: i colleghi lo trovano in «In arrivo». Qui resta in archivio «in attesa».";if(location.hash)location.hash="";else home()},600)},function(){m.textContent="Invio non riuscito: riprova o usa «Scheda come file»."})}
 /* squadra: il nome si sceglie dall'elenco creato sul PC; un nome preso da un altro telefono non è disponibile */
 function sqList(){var T=tmLoad(),me=lsGet("gla_me");return Object.keys(T.sq).map(function(id){var x=T.sq[id],c=T.sqc[id];return {id:id,n:String(x.n||""),del:x.del,mio:id===me,preso:!!(c&&c.d&&c.d!==devId())}}).filter(function(x){return x.n&&!x.del}).sort(function(a,b){return a.n.localeCompare(b.n)})}
 function sqClaim(id,n){var T=tmLoad(),my=tmMy(),old=lsGet("gla_me"),now=Date.now();if(old&&old!==id){T.sqc[old]=my.sqc[old]={d:"",ts:now}}T.sqc[id]=my.sqc[id]={d:devId(),ts:now+1};tmSave();lsSet("gla_tmy",JSON.stringify(my));lsSet("gla_tdirty","1");
@@ -1684,6 +1684,7 @@ function shareIn(){if(!window.caches)return;
    else bkApply(r)})})}).catch(function(){})}
 function startApp(){if(started)return;started=1;
  if(GBK&&GBK.st==="rma"){RMAM=GBK.ok?"Accesso a Google rinnovato: tocca di nuovo «Salva come macchina in arrivo».":"Accesso a Google non riuscito.";GBK=null}
+ if(GBK&&GBK.st==="link"){if(GBK.ok){lsSet("gla_gd","1");topMsg="Google Drive collegato: vale anche per l'Archivio squadra."}else topMsg="Accesso a Google "+(GBK.err==="access_denied"?"annullato.":"non riuscito.");GBK=null}
  if(GBK&&(GBK.st==="arr"||GBK.st==="pass")){if(GBK.st==="pass")topMsg=GBK.ok?"Accesso a Google rinnovato: ripeti «Passa a un collega».":"Accesso a Google non riuscito.";GBK=null}
  if(GD.ok&&lsGet("gla_gd")==="1"){if(gTokC())setTimeout(function(){tSync(1)},1500);else if(navigator.onLine&&!location.hash.replace("#","")&&gAuto("arr"))return}try{if(location.search)history.replaceState(null,"",location.pathname+location.hash)}catch(e){}route();shareIn();if(navigator.onLine)setTimeout(function(){updCheck(0)},1500)}
 window.removeEventListener("hashchange",route);

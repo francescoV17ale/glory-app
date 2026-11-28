@@ -112,7 +112,7 @@ a.b{display:inline-flex;align-items:center;text-decoration:none;color:var(--tx)}
 .anl-x{}.dlg.anl{width:min(640px,100%)}.anb{display:grid;gap:4px;margin:4px 0 10px}.anr{display:grid;grid-template-columns:170px 1fr 40px;gap:8px;align-items:center;font-size:13px}.anr .anl{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.anw{height:10px;background:var(--bg);border-radius:5px;overflow:hidden}.anw i{display:block;height:100%;background:var(--ac);border-radius:5px}.anr b{text-align:right}
 .qr{display:flex;gap:8px}.qr .q{flex:1;min-width:0}#fbt,#menub,.mback,.fmo{display:none}
 @media (max-width:860px){header{position:static;padding:10px 12px;gap:8px}header h1{font-size:18px}header h1 span{display:none}
- body:not(.mopen) header>.b:not(#homeb):not(#menub):not(#appb),body:not(.mopen) header>label{display:none!important}body.mopen header>.b:not([hidden]),body.mopen header>label{display:inline-flex!important;align-items:center}#menub{display:inline-flex;align-items:center}.fil .lnk2{display:none}#appb:not([hidden]){display:inline-flex;align-items:center;text-decoration:none}
+ body:not(.mopen) header>.b:not(#homeb):not(#menub),body:not(.mopen) header>label{display:none!important}body.mopen header>.b:not([hidden]),body.mopen header>label{display:inline-flex!important;align-items:center}#menub{display:inline-flex;align-items:center}.fil .lnk2{display:none}#appb:not([hidden]){display:inline-flex;align-items:center;text-decoration:none}
  main{padding:10px}.list{position:static;max-height:none}#fbt{display:inline-flex;align-items:center}
  .fil{display:none}body.fopen .fil{display:block;position:fixed;inset:0;z-index:70;max-height:none;border-radius:0;border:0;overflow:auto;padding:0 16px}body.fopen{overflow:hidden}
  .fmo{display:flex;gap:10px;align-items:center;background:var(--sf)}.fmh{position:sticky;top:0;z-index:1;padding:14px 0 10px;border-bottom:1px solid var(--ln)}.fmh b{flex:1;font-size:18px}
@@ -124,8 +124,7 @@ a.b{display:inline-flex;align-items:center;text-decoration:none;color:var(--tx)}
 </head>
 <body>
 <header>
- <a class="b" id="appb" href="../" hidden>‹ App</a>
- <button class="b" id="homeb" type="button" title="Torna all'elenco con i filtri di partenza">⌂ Home</button>
+ <button class="b" id="homeb" type="button" title="Torna alla schermata principale">⌂ Home</button>
  <h1>Glory Archivio <span>sul PC</span></h1>
  <button class="b" id="menub" type="button" aria-expanded="false">☰ Menù</button>
  <label class="b ac" style="display:inline-flex;align-items:center;position:relative">Importa file<input id="fi" type="file" multiple accept=".txt,.json,text/plain,application/json" style="position:absolute;inset:0;opacity:0;cursor:pointer" aria-label="Importa file dall'app"></label>
@@ -281,7 +280,7 @@ function analisi(){var ov=el("div","ov"),d=el("div","dlg anl");ov.setAttribute("
 /* scegli dove leggere i lavori: Google Drive online o una cartella del PC */
 function collega(){if(!GDON){gLogin("link");return}var ov=el("div","ov"),d=el("div","dlg");ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");function close(){ov.remove()}ov.onclick=function(e){if(e.target===ov)close()};
  d.append(el("h2",0,"Google Drive"));var row=el("div","az");d.append(el("p","st","Cartella condivisa collegata"+(gTokC()?".":": accesso da rinnovare.")));
- if(!gTokC())row.append(btn("b ac","Accedi a Google",function(){gLogin("sync")}));row.append(btn("b","Scollega Google Drive",function(){GDON=0;cfg("gd",0);close();dirLabel()}),btn("b","Chiudi",close));
+ if(!gTokC())row.append(btn("b ac","Accedi a Google",function(){gLogin("sync")}));row.append(btn("b","Scollega Google Drive",function(){GDON=0;cfg("gd",0);try{localStorage.setItem("gla_gd","0")}catch(e){}close();dirLabel()}),btn("b","Chiudi",close));
  d.append(row);ov.append(d);document.body.append(ov)}
 /* PC principale: i file dei tecnici già importati da più di 30 giorni vanno in _importati (una volta al giorno) */
 var MAIN=0,PULITO=0;
@@ -336,13 +335,14 @@ function squadDlg(){var ov=el("div","ov"),d=el("div","dlg");ov.setAttribute("rol
   var add=btn("b sm ac","Aggiungi",function(){var n=inp.value.trim();if(!n)return;if(squadNames().some(function(x){return x.n.toLowerCase()===n.toLowerCase()})){inp.value="";return}var id="q"+Date.now().toString(36);TEAM.sq[id]={n:n,ts:Date.now()};teamSave();body()});
   inp.onkeydown=function(e){if(e.key==="Enter")add.click()};r2.append(inp,add);d.append(r2);var rw=el("div","az");rw.style.marginTop="12px";rw.append(btn("b","Chiudi",close));d.append(rw);inp.focus()}
  body();ov.append(d);document.body.append(ov)}
-function chiediNome(ok){var Q=squadNames();if(!Q.length){var n=prompt("Il tuo nome:",NOME||"");if(n==null)return;n=n.trim();if(!n){alert("Il nome è obbligatorio.");return}NOME=n;cfg("nome",NOME);nomeLab();if(ok)ok();return}
+function nomeApp(){try{if(NOME&&!(localStorage.getItem("gla_tec")||"").trim())localStorage.setItem("gla_tec",NOME)}catch(e){}}
+function chiediNome(ok){var Q=squadNames();if(!Q.length){var n=prompt("Il tuo nome:",NOME||"");if(n==null)return;n=n.trim();if(!n){alert("Il nome è obbligatorio.");return}NOME=n;cfg("nome",NOME);nomeApp();nomeLab();if(ok)ok();return}
  var ov=el("div","ov"),d=el("div","dlg");ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");ov.onclick=function(e){if(e.target===ov)ov.remove()};d.append(el("h2",0,"Chi sei?"));var c=el("div","chs");
- Q.forEach(function(x){c.append(btn("ch"+(NOME===x.n?" on":""),x.n,function(){NOME=x.n;cfg("nome",NOME);nomeLab();ov.remove();if(ok)ok()}))});d.append(c,el("p","st","Il nome compare su commenti, spedizioni, modifiche e RMA."));ov.append(d);document.body.append(ov)}
+ Q.forEach(function(x){c.append(btn("ch"+(NOME===x.n?" on":""),x.n,function(){NOME=x.n;cfg("nome",NOME);nomeApp();nomeLab();ov.remove();if(ok)ok()}))});d.append(c,el("p","st","Il nome compare su commenti, spedizioni, modifiche e RMA."));ov.append(d);document.body.append(ov)}
 function nomeLab(){var b=$("setb");if(b)b.textContent=NOME?"⚙ "+NOME:"⚙ Impostazioni"}
 function impostazioni(){var ov=el("div","ov"),d=el("div","dlg");ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");function close(){ov.remove();draw()}ov.onclick=function(e){if(e.target===ov)close()};
  d.append(el("h2",0,"Impostazioni"));var r1=el("div","er"),inp=document.createElement("input");inp.type="text";inp.value=NOME;inp.placeholder="Nome e cognome";inp.setAttribute("aria-label","Il tuo nome");
- inp.onchange=function(){var v=inp.value.trim();if(v){NOME=v;cfg("nome",NOME);nomeLab()}};r1.append(el("b",0,"Il tuo nome"),inp);if(squadNames().length){inp.readOnly=true;inp.onclick=function(){ov.remove();chiediNome(function(){impostazioni()})}}d.append(r1,el("p","st","Compare sui commenti che scrivi. Obbligatorio per commentare."));
+ inp.onchange=function(){var v=inp.value.trim();if(v){NOME=v;cfg("nome",NOME);nomeApp();nomeLab()}};r1.append(el("b",0,"Il tuo nome"),inp);if(squadNames().length){inp.readOnly=true;inp.onclick=function(){ov.remove();chiediNome(function(){impostazioni()})}}d.append(r1,el("p","st","Compare sui commenti che scrivi. Obbligatorio per commentare."));
  var lb=el("label","er"),cb=document.createElement("input");cb.type="checkbox";cb.checked=!!MAIN;cb.onchange=function(){MAIN=cb.checked?1:0;cfg("main",MAIN);PULITO=0};lb.append(cb,document.createTextNode(" PC principale: sposta in «_importati» i file dei tecnici già importati da più di 30 giorni"));d.append(lb,el("p","st","Attivalo su un solo PC."));
  var lm=el("label","er"),cm=document.createElement("input");cm.type="checkbox";cm.checked=mailWeb();cm.onchange=function(){try{localStorage.setItem("gla_mailw",cm.checked?"1":"0")}catch(e){}};lm.append(cm,document.createTextNode(" Mail al magazzino con Outlook sul web (invece del programma di posta del PC)"));d.append(lm);
  if(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)d.append(el("p","st","Programma installato."));
@@ -651,7 +651,8 @@ $("q").oninput=function(){F.q=this.value;F.sel=null;F.frq=0;draw()};
 $("dirb").onclick=collega;$("sync").onclick=function(){gSync(1)};$("csv").onclick=csv;$("tagb").onclick=tagEditor;$("rmab").onclick=rmaDlg;$("nwlb").onclick=nuovoDlg;$("sqb").onclick=squadDlg;$("fbt").onclick=function(){document.body.classList.add("fopen")};
 document.querySelector("header").addEventListener("click",function(e){var b=e.target.closest(".b");if(b&&b.id!=="menub"&&document.body.classList.contains("mopen")){document.body.classList.remove("mopen");$("menub").setAttribute("aria-expanded","false")}});
 $("menub").onclick=function(){var o=document.body.classList.toggle("mopen");this.setAttribute("aria-expanded",o?"true":"false")};
-try{if(/[?&]app=1/.test(location.search))sessionStorage.setItem("gla_fromapp","1");if(sessionStorage.getItem("gla_fromapp")==="1")$("appb").hidden=false}catch(e){}$("anb").onclick=analisi;$("homeb").onclick=home;$("setb").onclick=impostazioni;$("bak").onclick=salvaTutto;
+var FROMAPP=0;try{if(/[?&]app=1/.test(location.search))sessionStorage.setItem("gla_fromapp","1");FROMAPP=sessionStorage.getItem("gla_fromapp")==="1"}catch(e){}$("anb").onclick=analisi;/* Home: aperto dall'app torna alla home dell'app, altrimenti all'elenco con i filtri di partenza */
+$("homeb").onclick=function(){if(FROMAPP)location.href="../";else home()};$("setb").onclick=impostazioni;$("bak").onclick=salvaTutto;
 var INST=null;window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();INST=e});
 document.addEventListener("keydown",function(e){if(e.key==="Escape"){var o=document.querySelector(".ov");if(o){o.remove();draw()}else if(HIST.length&&document.activeElement.tagName!=="INPUT"&&document.activeElement.tagName!=="TEXTAREA")back()}});
 var dc=0;document.addEventListener("dragenter",function(e){e.preventDefault();dc++;$("drop").hidden=false});
@@ -661,9 +662,9 @@ document.addEventListener("drop",function(e){e.preventDefault();dc=0;$("drop").h
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
 var GBK=GD.ok?gBack():null;
 dbOpen().then(function(){return Promise.all([cfg("pcid"),cfg("nome"),cfg("team"),null,cfg("aperto"),cfg("main"),cfg("pulito"),cfg("gd"),cfg("seen"),cfg("bkt")])}).then(function(a){BKT=+a[9]||0;
- GDON=GD.ok&&+a[7]?1:0;SEEN=a[8]||{};if(GBK){if(GBK.ok){GDON=1;cfg("gd",1)}else if(!GBK.sil)say("Accesso a Google "+(GBK.err==="access_denied"?"annullato.":"non riuscito."),1)}
+ var lgd="";try{lgd=localStorage.getItem("gla_gd")||""}catch(e){}GDON=GD.ok&&(lgd==="1"||(+a[7]&&lgd!=="0"))?1:0;SEEN=a[8]||{};if(GBK){if(GBK.ok){GDON=1;cfg("gd",1);try{localStorage.setItem("gla_gd","1")}catch(e){}}else if(!GBK.sil)say("Accesso a Google "+(GBK.err==="access_denied"?"annullato.":"non riuscito."),1)}
  PREV=+a[4]||0;cfg("aperto",Date.now());MAIN=+a[5]||0;PULITO=+a[6]||0;
- PCID=a[0]||Math.random().toString(36).slice(2,8);if(!a[0])cfg("pcid",PCID);NOME=a[1]||"";nomeLab();
+ PCID=a[0]||Math.random().toString(36).slice(2,8);if(!a[0])cfg("pcid",PCID);var ln="";try{ln=(localStorage.getItem("gla_tec")||"").trim()}catch(e){}NOME=a[1]||ln||"";nomeLab();
  TEAM=a[2]?teamFix(a[2]):teamDef();if(!a[2])cfg("team",TEAM)}).then(dbAll).then(function(a){L=a;draw()}).then(function(){if(GDON&&!gTokC()&&navigator.onLine&&gAuto("sync"))return new Promise(function(){});return gSync(0)}).then(draw).catch(function(){say("Questo browser non può salvare l'archivio: usa Chrome o Edge.",1)});
 if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(function(){});
 </script>
